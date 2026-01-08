@@ -483,23 +483,51 @@ async function importExposure(pool: sql.ConnectionPool, csvPath: string) {
     
     const bankId = await getBankId(pool, bankName);
     if (bankId) {
-      await pool.request()
-        .input('BankId', sql.Int, bankId)
-        .input('HQState', sql.NVarChar, hqState)
-        .input('HoldLimit', sql.Decimal(18, 2), holdLimit)
-        .input('PerDealLimit', sql.Decimal(18, 2), perDealLimit)
-        .input('Deposits', sql.Decimal(18, 2), deposits)
-        .input('Notes', sql.NVarChar(sql.MAX), notes)
+      // Check if new columns exist before trying to update them
+      const columnCheck = await pool.request()
         .query(`
+          SELECT COLUMN_NAME 
+          FROM INFORMATION_SCHEMA.COLUMNS 
+          WHERE TABLE_SCHEMA = 'core' 
+            AND TABLE_NAME = 'Bank' 
+            AND COLUMN_NAME IN ('HQState', 'HoldLimit', 'PerDealLimit', 'Deposits')
+        `);
+      
+      const existingColumns = columnCheck.recordset.map((r: any) => r.COLUMN_NAME);
+      
+      // Build dynamic UPDATE query based on which columns exist
+      const updateFields: string[] = [];
+      const request = pool.request().input('BankId', sql.Int, bankId);
+      
+      if (existingColumns.includes('HQState') && hqState) {
+        updateFields.push('HQState = @HQState');
+        request.input('HQState', sql.NVarChar, hqState);
+      }
+      if (existingColumns.includes('HoldLimit') && holdLimit !== null) {
+        updateFields.push('HoldLimit = @HoldLimit');
+        request.input('HoldLimit', sql.Decimal(18, 2), holdLimit);
+      }
+      if (existingColumns.includes('PerDealLimit') && perDealLimit !== null) {
+        updateFields.push('PerDealLimit = @PerDealLimit');
+        request.input('PerDealLimit', sql.Decimal(18, 2), perDealLimit);
+      }
+      if (existingColumns.includes('Deposits') && deposits !== null) {
+        updateFields.push('Deposits = @Deposits');
+        request.input('Deposits', sql.Decimal(18, 2), deposits);
+      }
+      if (notes) {
+        updateFields.push('Notes = ISNULL(@Notes, Notes)');
+        request.input('Notes', sql.NVarChar(sql.MAX), notes);
+      }
+      
+      if (updateFields.length > 0) {
+        await request.query(`
           UPDATE core.Bank
-          SET HQState = ISNULL(@HQState, HQState),
-              HoldLimit = ISNULL(@HoldLimit, HoldLimit),
-              PerDealLimit = ISNULL(@PerDealLimit, PerDealLimit),
-              Deposits = ISNULL(@Deposits, Deposits),
-              Notes = ISNULL(@Notes, Notes)
+          SET ${updateFields.join(', ')}
           WHERE BankId = @BankId
         `);
-      banksUpdated++;
+        banksUpdated++;
+      }
     }
   }
   
