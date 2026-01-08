@@ -424,13 +424,27 @@ async function getAPIDocs() {
 // ============================================================
 
 // ============================================================
-// DOMO INTEGRATION - UPDATE ANY DATA POINT BY ID
+// DOMO INTEGRATION - GET, CREATE, UPDATE, DELETE
 // ============================================================
 // 
 // For Domo Custom Scripts:
 // 1. Copy this entire file into your Domo Custom Script
-// 2. Use the update functions to modify ANY field by ID
-// 3. All functions use the Render API: https://stoagroupdb.onrender.com
+// 2. Use GET functions to pull/read data
+// 3. Use CREATE/UPDATE/DELETE functions to modify data
+// 4. All functions use the Render API: https://stoagroupdb.onrender.com
+//
+// 📥 GET DATA (Pull/Read):
+//   getAllProjects() - Get all projects
+//   getProjectById(projectId) - Get one project
+//   getAllBanks() - Get all banks
+//   getBankById(bankId) - Get one bank
+//   getAllLoans() - Get all loans
+//   getLoansByProject(projectId) - Get loans for a deal
+//   getParticipationsByProject(projectId) - Get participations for a deal
+//   getGuaranteesByProject(projectId) - Get guarantees for a deal
+//   getCovenantsByProject(projectId) - Get covenants for a deal
+//   getDSCRTestsByProject(projectId) - Get DSCR tests for a deal
+//   getLiquidityRequirementsByProject(projectId) - Get liquidity requirements for a deal
 //
 // ⚡ UPDATE ANY FIELD BY ID - Just send the fields you want to change:
 //
@@ -455,6 +469,42 @@ async function getAPIDocs() {
 //   - createEquityCommitment, createUnderContract, createCommercialListed
 //   - createCommercialAcreage, createClosedProperty
 //
+// Available GET functions (Pull/Read data):
+//   - getAllProjects() - Get all projects
+//   - getProjectById(projectId) - Get one project
+//   - getAllBanks() - Get all banks
+//   - getBankById(bankId) - Get one bank
+//   - getAllPersons() - Get all persons
+//   - getPersonById(personId) - Get one person
+//   - getAllEquityPartners() - Get all equity partners
+//   - getEquityPartnerById(partnerId) - Get one equity partner
+//   - getAllLoans() - Get all loans
+//   - getLoanById(loanId) - Get one loan
+//   - getLoansByProject(projectId) - Get loans for a deal
+//   - getAllParticipations() - Get all participations
+//   - getParticipationsByProject(projectId) - Get participations for a deal
+//   - getAllGuarantees() - Get all guarantees
+//   - getGuaranteesByProject(projectId) - Get guarantees for a deal
+//   - getAllDSCRTests() - Get all DSCR tests
+//   - getDSCRTestsByProject(projectId) - Get DSCR tests for a deal
+//   - getAllCovenants() - Get all covenants
+//   - getCovenantsByProject(projectId) - Get covenants for a deal
+//   - getAllLiquidityRequirements() - Get all liquidity requirements
+//   - getLiquidityRequirementsByProject(projectId) - Get liquidity requirements for a deal
+//   - getAllBankTargets() - Get all bank targets
+//   - getAllEquityCommitments() - Get all equity commitments
+//   - getEquityCommitmentsByProject(projectId) - Get equity commitments for a deal
+//
+// Available CREATE functions (POST):
+//   - createProject, createBank, createPerson, createEquityPartner
+//   - createLoan, createParticipation, createGuarantee, createDSCRTest
+//   - createCovenant, createLiquidityRequirement, createBankTarget
+//   - createEquityCommitment, createUnderContract, createCommercialListed
+//   - createCommercialAcreage, createClosedProperty
+//   - createParticipationByProject(projectId, data) - Add participation to deal
+//   - createGuaranteeByProject(projectId, data) - Add guarantee to deal
+//   - createCovenantByProject(projectId, data) - Add covenant to deal
+//
 // Available UPDATE functions (PUT) - Update ANY field by ID:
 //   - updateProject(projectId, {field: value}) - Update any project field
 //   - updateBank(bankId, {field: value}) - Update any bank field
@@ -473,6 +523,11 @@ async function getAPIDocs() {
 //   - updateCommercialListed(listedId, {field: value}) - Update any commercial listed field
 //   - updateCommercialAcreage(acreageId, {field: value}) - Update any commercial acreage field
 //   - updateClosedProperty(propertyId, {field: value}) - Update any closed property field
+//
+// Available DELETE functions:
+//   - deleteParticipation(participationId) - Remove participation
+//   - deleteGuarantee(guaranteeId) - Remove guarantee
+//   - deleteCovenant(covenantId) - Remove covenant
 //
 // For Node.js/ES6 modules, uncomment:
 // export {
@@ -500,10 +555,50 @@ async function getAPIDocs() {
 // };
 
 // ============================================================
-// DOMO USAGE EXAMPLES - UPDATE ANY DATA POINT BY ID
+// DOMO USAGE EXAMPLES - GET, CREATE, UPDATE, DELETE
 // ============================================================
 
 /*
+// ============================================================
+// GET DATA (Pull/Read)
+// ============================================================
+
+// Get all projects
+const projects = await getAllProjects();
+console.log(`Found ${projects.data.length} projects`);
+
+// Get a specific project
+const project = await getProjectById(4);
+console.log('Project:', project.data.ProjectName);
+
+// Get all banks
+const banks = await getAllBanks();
+console.log(`Found ${banks.data.length} banks`);
+
+// Get loans for a deal
+const loans = await getLoansByProject(4);
+console.log(`Found ${loans.data.length} loans for project 4`);
+
+// Get participations for a deal
+const participations = await getParticipationsByProject(4);
+console.log(`Found ${participations.data.length} participations`);
+
+// Get guarantees for a deal
+const guarantees = await getGuaranteesByProject(4);
+console.log(`Found ${guarantees.data.length} guarantees`);
+
+// Get covenants for a deal
+const covenants = await getCovenantsByProject(4);
+console.log(`Found ${covenants.data.length} covenants`);
+
+// Get DSCR tests for a deal
+const dscrTests = await getDSCRTestsByProject(4);
+console.log(`Found ${dscrTests.data.length} DSCR tests`);
+
+// Get liquidity requirements for a deal
+const liquidity = await getLiquidityRequirementsByProject(4);
+console.log(`Found ${liquidity.data.length} liquidity requirements`);
+
 // ============================================================
 // UPDATE ANY FIELD BY ID - Just send what you want to change
 // ============================================================
