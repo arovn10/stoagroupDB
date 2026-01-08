@@ -559,26 +559,41 @@ export const createParticipationByProject = async (req: Request, res: Response, 
 export const updateParticipation = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
-    const { ProjectId, LoanId, BankId, ParticipationPercent, ExposureAmount, PaidOff, Notes } = req.body;
+    const participationData = req.body;
 
     const pool = await getConnection();
-    const result = await pool.request()
-      .input('id', sql.Int, id)
-      .input('ProjectId', sql.Int, ProjectId)
-      .input('LoanId', sql.Int, LoanId)
-      .input('BankId', sql.Int, BankId)
-      .input('ParticipationPercent', sql.NVarChar, ParticipationPercent)
-      .input('ExposureAmount', sql.Decimal(18, 2), ExposureAmount)
-      .input('PaidOff', sql.Bit, PaidOff)
-      .input('Notes', sql.NVarChar(sql.MAX), Notes)
-      .query(`
-        UPDATE banking.Participation
-        SET ProjectId = @ProjectId, LoanId = @LoanId, BankId = @BankId,
-            ParticipationPercent = @ParticipationPercent, ExposureAmount = @ExposureAmount,
-            PaidOff = @PaidOff, Notes = @Notes
-        OUTPUT INSERTED.*
-        WHERE ParticipationId = @id
-      `);
+    const request = pool.request().input('id', sql.Int, id);
+
+    // Build dynamic update query - only update fields that are provided
+    const fields: string[] = [];
+    Object.keys(participationData).forEach((key) => {
+      if (key !== 'ParticipationId' && participationData[key] !== undefined) {
+        fields.push(`${key} = @${key}`);
+        if (key === 'ProjectId' || key === 'LoanId' || key === 'BankId') {
+          request.input(key, sql.Int, participationData[key]);
+        } else if (key === 'ExposureAmount') {
+          request.input(key, sql.Decimal(18, 2), participationData[key]);
+        } else if (key === 'PaidOff') {
+          request.input(key, sql.Bit, participationData[key]);
+        } else if (key === 'Notes') {
+          request.input(key, sql.NVarChar(sql.MAX), participationData[key]);
+        } else {
+          request.input(key, sql.NVarChar, participationData[key]);
+        }
+      }
+    });
+
+    if (fields.length === 0) {
+      res.status(400).json({ success: false, error: { message: 'No fields to update' } });
+      return;
+    }
+
+    const result = await request.query(`
+      UPDATE banking.Participation
+      SET ${fields.join(', ')}
+      WHERE ParticipationId = @id;
+      SELECT * FROM banking.Participation WHERE ParticipationId = @id;
+    `);
 
     if (result.recordset.length === 0) {
       res.status(404).json({ success: false, error: { message: 'Participation not found' } });
@@ -759,24 +774,41 @@ export const createGuaranteeByProject = async (req: Request, res: Response, next
 export const updateGuarantee = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
-    const { ProjectId, LoanId, PersonId, GuaranteePercent, GuaranteeAmount, Notes } = req.body;
+    const guaranteeData = req.body;
 
     const pool = await getConnection();
-    const result = await pool.request()
-      .input('id', sql.Int, id)
-      .input('ProjectId', sql.Int, ProjectId)
-      .input('LoanId', sql.Int, LoanId)
-      .input('PersonId', sql.Int, PersonId)
-      .input('GuaranteePercent', sql.Decimal(10, 4), GuaranteePercent)
-      .input('GuaranteeAmount', sql.Decimal(18, 2), GuaranteeAmount)
-      .input('Notes', sql.NVarChar(sql.MAX), Notes)
-      .query(`
-        UPDATE banking.Guarantee
-        SET ProjectId = @ProjectId, LoanId = @LoanId, PersonId = @PersonId,
-            GuaranteePercent = @GuaranteePercent, GuaranteeAmount = @GuaranteeAmount, Notes = @Notes
-        OUTPUT INSERTED.*
-        WHERE GuaranteeId = @id
-      `);
+    const request = pool.request().input('id', sql.Int, id);
+
+    // Build dynamic update query - only update fields that are provided
+    const fields: string[] = [];
+    Object.keys(guaranteeData).forEach((key) => {
+      if (key !== 'GuaranteeId' && guaranteeData[key] !== undefined) {
+        fields.push(`${key} = @${key}`);
+        if (key === 'ProjectId' || key === 'LoanId' || key === 'PersonId') {
+          request.input(key, sql.Int, guaranteeData[key]);
+        } else if (key === 'GuaranteePercent') {
+          request.input(key, sql.Decimal(10, 4), guaranteeData[key]);
+        } else if (key === 'GuaranteeAmount') {
+          request.input(key, sql.Decimal(18, 2), guaranteeData[key]);
+        } else if (key === 'Notes') {
+          request.input(key, sql.NVarChar(sql.MAX), guaranteeData[key]);
+        } else {
+          request.input(key, sql.NVarChar, guaranteeData[key]);
+        }
+      }
+    });
+
+    if (fields.length === 0) {
+      res.status(400).json({ success: false, error: { message: 'No fields to update' } });
+      return;
+    }
+
+    const result = await request.query(`
+      UPDATE banking.Guarantee
+      SET ${fields.join(', ')}
+      WHERE GuaranteeId = @id;
+      SELECT * FROM banking.Guarantee WHERE GuaranteeId = @id;
+    `);
 
     if (result.recordset.length === 0) {
       res.status(404).json({ success: false, error: { message: 'Guarantee not found' } });
@@ -953,26 +985,39 @@ export const createCovenantByProject = async (req: Request, res: Response, next:
 export const updateCovenant = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
-    const { ProjectId, LoanId, CovenantType, CovenantDate, Requirement, ProjectedValue, Notes } = req.body;
+    const covenantData = req.body;
 
     const pool = await getConnection();
-    const result = await pool.request()
-      .input('id', sql.Int, id)
-      .input('ProjectId', sql.Int, ProjectId)
-      .input('LoanId', sql.Int, LoanId)
-      .input('CovenantType', sql.NVarChar, CovenantType)
-      .input('CovenantDate', sql.Date, CovenantDate)
-      .input('Requirement', sql.NVarChar, Requirement)
-      .input('ProjectedValue', sql.NVarChar, ProjectedValue)
-      .input('Notes', sql.NVarChar(sql.MAX), Notes)
-      .query(`
-        UPDATE banking.Covenant
-        SET ProjectId = @ProjectId, LoanId = @LoanId, CovenantType = @CovenantType,
-            CovenantDate = @CovenantDate, Requirement = @Requirement,
-            ProjectedValue = @ProjectedValue, Notes = @Notes
-        OUTPUT INSERTED.*
-        WHERE CovenantId = @id
-      `);
+    const request = pool.request().input('id', sql.Int, id);
+
+    // Build dynamic update query - only update fields that are provided
+    const fields: string[] = [];
+    Object.keys(covenantData).forEach((key) => {
+      if (key !== 'CovenantId' && covenantData[key] !== undefined) {
+        fields.push(`${key} = @${key}`);
+        if (key === 'ProjectId' || key === 'LoanId') {
+          request.input(key, sql.Int, covenantData[key]);
+        } else if (key === 'CovenantDate') {
+          request.input(key, sql.Date, covenantData[key]);
+        } else if (key === 'Notes') {
+          request.input(key, sql.NVarChar(sql.MAX), covenantData[key]);
+        } else {
+          request.input(key, sql.NVarChar, covenantData[key]);
+        }
+      }
+    });
+
+    if (fields.length === 0) {
+      res.status(400).json({ success: false, error: { message: 'No fields to update' } });
+      return;
+    }
+
+    const result = await request.query(`
+      UPDATE banking.Covenant
+      SET ${fields.join(', ')}
+      WHERE CovenantId = @id;
+      SELECT * FROM banking.Covenant WHERE CovenantId = @id;
+    `);
 
     if (result.recordset.length === 0) {
       res.status(404).json({ success: false, error: { message: 'Covenant not found' } });
