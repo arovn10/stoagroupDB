@@ -66,3 +66,4 @@ The database is organized into three main schemas:
 - **Auto-populated fields** - City, State, Region, and ProductType are automatically set
 - **Match by ProjectName** - External systems match to projects using ProjectName
 
+# stoagroupDB
