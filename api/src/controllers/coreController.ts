@@ -246,6 +246,8 @@ export const updateBank = async (req: Request, res: Response, next: NextFunction
         fields.push(`${key} = @${key}`);
         if (key === 'Notes') {
           request.input(key, sql.NVarChar(sql.MAX), bankData[key]);
+        } else if (key === 'HoldLimit' || key === 'PerDealLimit' || key === 'Deposits') {
+          request.input(key, sql.Decimal(18, 2), bankData[key]);
         } else {
           request.input(key, sql.NVarChar, bankData[key]);
         }
