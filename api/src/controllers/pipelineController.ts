@@ -100,39 +100,45 @@ export const createUnderContract = async (req: Request, res: Response, next: Nex
 export const updateUnderContract = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
-    const {
-      ProjectId, Location, Region, Acreage, Units, Price, PricePerSF,
-      ExecutionDate, DueDiligenceDate, ClosingDate, PurchasingEntity,
-      CashFlag, OpportunityZone, ExtensionNotes
-    } = req.body;
+    const contractData = req.body;
 
     const pool = await getConnection();
-    const result = await pool.request()
-      .input('id', sql.Int, id)
-      .input('ProjectId', sql.Int, ProjectId)
-      .input('Location', sql.NVarChar, Location)
-      .input('Region', sql.NVarChar, Region)
-      .input('Acreage', sql.Decimal(18, 4), Acreage)
-      .input('Units', sql.Int, Units)
-      .input('Price', sql.Decimal(18, 2), Price)
-      .input('PricePerSF', sql.Decimal(18, 2), PricePerSF)
-      .input('ExecutionDate', sql.Date, ExecutionDate)
-      .input('DueDiligenceDate', sql.Date, DueDiligenceDate)
-      .input('ClosingDate', sql.Date, ClosingDate)
-      .input('PurchasingEntity', sql.NVarChar, PurchasingEntity)
-      .input('CashFlag', sql.Bit, CashFlag)
-      .input('OpportunityZone', sql.Bit, OpportunityZone)
-      .input('ExtensionNotes', sql.NVarChar(sql.MAX), ExtensionNotes)
-      .query(`
-        UPDATE pipeline.UnderContract
-        SET ProjectId = @ProjectId, Location = @Location, Region = @Region,
-            Acreage = @Acreage, Units = @Units, Price = @Price, PricePerSF = @PricePerSF,
-            ExecutionDate = @ExecutionDate, DueDiligenceDate = @DueDiligenceDate,
-            ClosingDate = @ClosingDate, PurchasingEntity = @PurchasingEntity,
-            CashFlag = @CashFlag, OpportunityZone = @OpportunityZone, ExtensionNotes = @ExtensionNotes
-        OUTPUT INSERTED.*
-        WHERE UnderContractId = @id
-      `);
+    const request = pool.request().input('id', sql.Int, id);
+
+    // Build dynamic update query - only update fields that are provided
+    const fields: string[] = [];
+    Object.keys(contractData).forEach((key) => {
+      if (key !== 'UnderContractId' && contractData[key] !== undefined) {
+        fields.push(`${key} = @${key}`);
+        if (key === 'ProjectId' || key === 'Units') {
+          request.input(key, sql.Int, contractData[key]);
+        } else if (key === 'Acreage') {
+          request.input(key, sql.Decimal(18, 4), contractData[key]);
+        } else if (key === 'Price' || key === 'PricePerSF') {
+          request.input(key, sql.Decimal(18, 2), contractData[key]);
+        } else if (key.includes('Date')) {
+          request.input(key, sql.Date, contractData[key]);
+        } else if (key === 'CashFlag' || key === 'OpportunityZone') {
+          request.input(key, sql.Bit, contractData[key]);
+        } else if (key === 'ExtensionNotes') {
+          request.input(key, sql.NVarChar(sql.MAX), contractData[key]);
+        } else {
+          request.input(key, sql.NVarChar, contractData[key]);
+        }
+      }
+    });
+
+    if (fields.length === 0) {
+      res.status(400).json({ success: false, error: { message: 'No fields to update' } });
+      return;
+    }
+
+    const result = await request.query(`
+      UPDATE pipeline.UnderContract
+      SET ${fields.join(', ')}
+      WHERE UnderContractId = @id;
+      SELECT * FROM pipeline.UnderContract WHERE UnderContractId = @id;
+    `);
 
     if (result.recordset.length === 0) {
       res.status(404).json({ success: false, error: { message: 'Under Contract record not found' } });
@@ -261,35 +267,43 @@ export const createCommercialListed = async (req: Request, res: Response, next: 
 export const updateCommercialListed = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
-    const {
-      ProjectId, Location, ListedDate, Acreage, Price, Status,
-      DueDiligenceDate, ClosingDate, Owner, PurchasingEntity, Broker, Notes
-    } = req.body;
+    const listedData = req.body;
 
     const pool = await getConnection();
-    const result = await pool.request()
-      .input('id', sql.Int, id)
-      .input('ProjectId', sql.Int, ProjectId)
-      .input('Location', sql.NVarChar, Location)
-      .input('ListedDate', sql.Date, ListedDate)
-      .input('Acreage', sql.Decimal(18, 4), Acreage)
-      .input('Price', sql.Decimal(18, 2), Price)
-      .input('Status', sql.NVarChar, Status)
-      .input('DueDiligenceDate', sql.Date, DueDiligenceDate)
-      .input('ClosingDate', sql.Date, ClosingDate)
-      .input('Owner', sql.NVarChar, Owner)
-      .input('PurchasingEntity', sql.NVarChar, PurchasingEntity)
-      .input('Broker', sql.NVarChar, Broker)
-      .input('Notes', sql.NVarChar(sql.MAX), Notes)
-      .query(`
-        UPDATE pipeline.CommercialListed
-        SET ProjectId = @ProjectId, Location = @Location, ListedDate = @ListedDate,
-            Acreage = @Acreage, Price = @Price, Status = @Status,
-            DueDiligenceDate = @DueDiligenceDate, ClosingDate = @ClosingDate,
-            Owner = @Owner, PurchasingEntity = @PurchasingEntity, Broker = @Broker, Notes = @Notes
-        OUTPUT INSERTED.*
-        WHERE CommercialListedId = @id
-      `);
+    const request = pool.request().input('id', sql.Int, id);
+
+    // Build dynamic update query - only update fields that are provided
+    const fields: string[] = [];
+    Object.keys(listedData).forEach((key) => {
+      if (key !== 'CommercialListedId' && listedData[key] !== undefined) {
+        fields.push(`${key} = @${key}`);
+        if (key === 'ProjectId') {
+          request.input(key, sql.Int, listedData[key]);
+        } else if (key === 'Acreage') {
+          request.input(key, sql.Decimal(18, 4), listedData[key]);
+        } else if (key === 'Price') {
+          request.input(key, sql.Decimal(18, 2), listedData[key]);
+        } else if (key.includes('Date')) {
+          request.input(key, sql.Date, listedData[key]);
+        } else if (key === 'Notes') {
+          request.input(key, sql.NVarChar(sql.MAX), listedData[key]);
+        } else {
+          request.input(key, sql.NVarChar, listedData[key]);
+        }
+      }
+    });
+
+    if (fields.length === 0) {
+      res.status(400).json({ success: false, error: { message: 'No fields to update' } });
+      return;
+    }
+
+    const result = await request.query(`
+      UPDATE pipeline.CommercialListed
+      SET ${fields.join(', ')}
+      WHERE CommercialListedId = @id;
+      SELECT * FROM pipeline.CommercialListed WHERE CommercialListedId = @id;
+    `);
 
     if (result.recordset.length === 0) {
       res.status(404).json({ success: false, error: { message: 'Commercial Listed record not found' } });
@@ -402,23 +416,39 @@ export const createCommercialAcreage = async (req: Request, res: Response, next:
 export const updateCommercialAcreage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
-    const { ProjectId, Location, Acreage, SquareFootage, BuildingFootprintSF } = req.body;
+    const acreageData = req.body;
 
     const pool = await getConnection();
-    const result = await pool.request()
-      .input('id', sql.Int, id)
-      .input('ProjectId', sql.Int, ProjectId)
-      .input('Location', sql.NVarChar, Location)
-      .input('Acreage', sql.Decimal(18, 4), Acreage)
-      .input('SquareFootage', sql.Decimal(18, 2), SquareFootage)
-      .input('BuildingFootprintSF', sql.Decimal(18, 2), BuildingFootprintSF)
-      .query(`
-        UPDATE pipeline.CommercialAcreage
-        SET ProjectId = @ProjectId, Location = @Location, Acreage = @Acreage,
-            SquareFootage = @SquareFootage, BuildingFootprintSF = @BuildingFootprintSF
-        OUTPUT INSERTED.*
-        WHERE CommercialAcreageId = @id
-      `);
+    const request = pool.request().input('id', sql.Int, id);
+
+    // Build dynamic update query - only update fields that are provided
+    const fields: string[] = [];
+    Object.keys(acreageData).forEach((key) => {
+      if (key !== 'CommercialAcreageId' && acreageData[key] !== undefined) {
+        fields.push(`${key} = @${key}`);
+        if (key === 'ProjectId') {
+          request.input(key, sql.Int, acreageData[key]);
+        } else if (key === 'Acreage') {
+          request.input(key, sql.Decimal(18, 4), acreageData[key]);
+        } else if (key === 'SquareFootage' || key === 'BuildingFootprintSF') {
+          request.input(key, sql.Decimal(18, 2), acreageData[key]);
+        } else {
+          request.input(key, sql.NVarChar, acreageData[key]);
+        }
+      }
+    });
+
+    if (fields.length === 0) {
+      res.status(400).json({ success: false, error: { message: 'No fields to update' } });
+      return;
+    }
+
+    const result = await request.query(`
+      UPDATE pipeline.CommercialAcreage
+      SET ${fields.join(', ')}
+      WHERE CommercialAcreageId = @id;
+      SELECT * FROM pipeline.CommercialAcreage WHERE CommercialAcreageId = @id;
+    `);
 
     if (result.recordset.length === 0) {
       res.status(404).json({ success: false, error: { message: 'Commercial Acreage record not found' } });
@@ -551,38 +581,45 @@ export const createClosedProperty = async (req: Request, res: Response, next: Ne
 export const updateClosedProperty = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
-    const {
-      ProjectId, Status, ClosingDate, Location, Address, Acreage,
-      Units, Price, PricePerSF, ActOfSale, DueDiligenceDate,
-      PurchasingEntity, CashFlag
-    } = req.body;
+    const propertyData = req.body;
 
     const pool = await getConnection();
-    const result = await pool.request()
-      .input('id', sql.Int, id)
-      .input('ProjectId', sql.Int, ProjectId)
-      .input('Status', sql.NVarChar, Status)
-      .input('ClosingDate', sql.Date, ClosingDate)
-      .input('Location', sql.NVarChar, Location)
-      .input('Address', sql.NVarChar(500), Address)
-      .input('Acreage', sql.Decimal(18, 4), Acreage)
-      .input('Units', sql.Int, Units)
-      .input('Price', sql.Decimal(18, 2), Price)
-      .input('PricePerSF', sql.Decimal(18, 2), PricePerSF)
-      .input('ActOfSale', sql.NVarChar, ActOfSale)
-      .input('DueDiligenceDate', sql.Date, DueDiligenceDate)
-      .input('PurchasingEntity', sql.NVarChar, PurchasingEntity)
-      .input('CashFlag', sql.Bit, CashFlag)
-      .query(`
-        UPDATE pipeline.ClosedProperty
-        SET ProjectId = @ProjectId, Status = @Status, ClosingDate = @ClosingDate,
-            Location = @Location, Address = @Address, Acreage = @Acreage,
-            Units = @Units, Price = @Price, PricePerSF = @PricePerSF,
-            ActOfSale = @ActOfSale, DueDiligenceDate = @DueDiligenceDate,
-            PurchasingEntity = @PurchasingEntity, CashFlag = @CashFlag
-        OUTPUT INSERTED.*
-        WHERE ClosedPropertyId = @id
-      `);
+    const request = pool.request().input('id', sql.Int, id);
+
+    // Build dynamic update query - only update fields that are provided
+    const fields: string[] = [];
+    Object.keys(propertyData).forEach((key) => {
+      if (key !== 'ClosedPropertyId' && propertyData[key] !== undefined) {
+        fields.push(`${key} = @${key}`);
+        if (key === 'ProjectId' || key === 'Units') {
+          request.input(key, sql.Int, propertyData[key]);
+        } else if (key === 'Acreage') {
+          request.input(key, sql.Decimal(18, 4), propertyData[key]);
+        } else if (key === 'Price' || key === 'PricePerSF') {
+          request.input(key, sql.Decimal(18, 2), propertyData[key]);
+        } else if (key.includes('Date')) {
+          request.input(key, sql.Date, propertyData[key]);
+        } else if (key === 'CashFlag') {
+          request.input(key, sql.Bit, propertyData[key]);
+        } else if (key === 'Address') {
+          request.input(key, sql.NVarChar(500), propertyData[key]);
+        } else {
+          request.input(key, sql.NVarChar, propertyData[key]);
+        }
+      }
+    });
+
+    if (fields.length === 0) {
+      res.status(400).json({ success: false, error: { message: 'No fields to update' } });
+      return;
+    }
+
+    const result = await request.query(`
+      UPDATE pipeline.ClosedProperty
+      SET ${fields.join(', ')}
+      WHERE ClosedPropertyId = @id;
+      SELECT * FROM pipeline.ClosedProperty WHERE ClosedPropertyId = @id;
+    `);
 
     if (result.recordset.length === 0) {
       res.status(404).json({ success: false, error: { message: 'Closed Property record not found' } });

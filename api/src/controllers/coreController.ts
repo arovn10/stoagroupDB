@@ -84,37 +84,38 @@ export const createProject = async (req: Request, res: Response, next: NextFunct
 export const updateProject = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
-    const {
-      ProjectName, City, State, Region, Location, Units,
-      ProductType, Stage, EstimatedConstructionStartDate
-    } = req.body;
+    const projectData = req.body;
 
     const pool = await getConnection();
-    const result = await pool.request()
-      .input('id', sql.Int, id)
-      .input('ProjectName', sql.NVarChar, ProjectName)
-      .input('City', sql.NVarChar, City)
-      .input('State', sql.NVarChar, State)
-      .input('Region', sql.NVarChar, Region)
-      .input('Location', sql.NVarChar, Location)
-      .input('Units', sql.Int, Units)
-      .input('ProductType', sql.NVarChar, ProductType)
-      .input('Stage', sql.NVarChar, Stage)
-      .input('EstimatedConstructionStartDate', sql.Date, EstimatedConstructionStartDate)
-      .query(`
-        UPDATE core.Project
-        SET ProjectName = @ProjectName,
-            City = @City,
-            State = @State,
-            Region = @Region,
-            Location = @Location,
-            Units = @Units,
-            ProductType = @ProductType,
-            Stage = @Stage,
-            EstimatedConstructionStartDate = @EstimatedConstructionStartDate,
-            UpdatedAt = SYSDATETIME()
-        WHERE ProjectId = @id
-      `);
+    const request = pool.request().input('id', sql.Int, id);
+
+    // Build dynamic update query - only update fields that are provided
+    const fields: string[] = [];
+    Object.keys(projectData).forEach((key) => {
+      if (key !== 'ProjectId' && projectData[key] !== undefined) {
+        fields.push(`${key} = @${key}`);
+        if (key === 'Units') {
+          request.input(key, sql.Int, projectData[key]);
+        } else if (key === 'EstimatedConstructionStartDate') {
+          request.input(key, sql.Date, projectData[key]);
+        } else {
+          request.input(key, sql.NVarChar, projectData[key]);
+        }
+      }
+    });
+
+    if (fields.length === 0) {
+      res.status(400).json({ success: false, error: { message: 'No fields to update' } });
+      return;
+    }
+
+    fields.push('UpdatedAt = SYSDATETIME()');
+
+    const result = await request.query(`
+      UPDATE core.Project
+      SET ${fields.join(', ')}
+      WHERE ProjectId = @id
+    `);
 
     if (result.rowsAffected[0] === 0) {
       res.status(404).json({ success: false, error: { message: 'Project not found' } });
@@ -226,21 +227,35 @@ export const createBank = async (req: Request, res: Response, next: NextFunction
 export const updateBank = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
-    const { BankName, City, State, Notes } = req.body;
+    const bankData = req.body;
 
     const pool = await getConnection();
-    const result = await pool.request()
-      .input('id', sql.Int, id)
-      .input('BankName', sql.NVarChar, BankName)
-      .input('City', sql.NVarChar, City)
-      .input('State', sql.NVarChar, State)
-      .input('Notes', sql.NVarChar(sql.MAX), Notes)
-      .query(`
-        UPDATE core.Bank
-        SET BankName = @BankName, City = @City, State = @State, Notes = @Notes
-        OUTPUT INSERTED.*
-        WHERE BankId = @id
-      `);
+    const request = pool.request().input('id', sql.Int, id);
+
+    // Build dynamic update query - only update fields that are provided
+    const fields: string[] = [];
+    Object.keys(bankData).forEach((key) => {
+      if (key !== 'BankId' && bankData[key] !== undefined) {
+        fields.push(`${key} = @${key}`);
+        if (key === 'Notes') {
+          request.input(key, sql.NVarChar(sql.MAX), bankData[key]);
+        } else {
+          request.input(key, sql.NVarChar, bankData[key]);
+        }
+      }
+    });
+
+    if (fields.length === 0) {
+      res.status(400).json({ success: false, error: { message: 'No fields to update' } });
+      return;
+    }
+
+    const result = await request.query(`
+      UPDATE core.Bank
+      SET ${fields.join(', ')}
+      WHERE BankId = @id;
+      SELECT * FROM core.Bank WHERE BankId = @id;
+    `);
 
     if (result.recordset.length === 0) {
       res.status(404).json({ success: false, error: { message: 'Bank not found' } });
@@ -342,20 +357,31 @@ export const createPerson = async (req: Request, res: Response, next: NextFuncti
 export const updatePerson = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
-    const { FullName, Email, Phone } = req.body;
+    const personData = req.body;
 
     const pool = await getConnection();
-    const result = await pool.request()
-      .input('id', sql.Int, id)
-      .input('FullName', sql.NVarChar, FullName)
-      .input('Email', sql.NVarChar, Email)
-      .input('Phone', sql.NVarChar, Phone)
-      .query(`
-        UPDATE core.Person
-        SET FullName = @FullName, Email = @Email, Phone = @Phone
-        OUTPUT INSERTED.*
-        WHERE PersonId = @id
-      `);
+    const request = pool.request().input('id', sql.Int, id);
+
+    // Build dynamic update query - only update fields that are provided
+    const fields: string[] = [];
+    Object.keys(personData).forEach((key) => {
+      if (key !== 'PersonId' && personData[key] !== undefined) {
+        fields.push(`${key} = @${key}`);
+        request.input(key, sql.NVarChar, personData[key]);
+      }
+    });
+
+    if (fields.length === 0) {
+      res.status(400).json({ success: false, error: { message: 'No fields to update' } });
+      return;
+    }
+
+    const result = await request.query(`
+      UPDATE core.Person
+      SET ${fields.join(', ')}
+      WHERE PersonId = @id;
+      SELECT * FROM core.Person WHERE PersonId = @id;
+    `);
 
     if (result.recordset.length === 0) {
       res.status(404).json({ success: false, error: { message: 'Person not found' } });
@@ -456,19 +482,35 @@ export const createEquityPartner = async (req: Request, res: Response, next: Nex
 export const updateEquityPartner = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
-    const { PartnerName, Notes } = req.body;
+    const partnerData = req.body;
 
     const pool = await getConnection();
-    const result = await pool.request()
-      .input('id', sql.Int, id)
-      .input('PartnerName', sql.NVarChar(255), PartnerName)
-      .input('Notes', sql.NVarChar(sql.MAX), Notes)
-      .query(`
-        UPDATE core.EquityPartner
-        SET PartnerName = @PartnerName, Notes = @Notes
-        OUTPUT INSERTED.*
-        WHERE EquityPartnerId = @id
-      `);
+    const request = pool.request().input('id', sql.Int, id);
+
+    // Build dynamic update query - only update fields that are provided
+    const fields: string[] = [];
+    Object.keys(partnerData).forEach((key) => {
+      if (key !== 'EquityPartnerId' && partnerData[key] !== undefined) {
+        fields.push(`${key} = @${key}`);
+        if (key === 'Notes') {
+          request.input(key, sql.NVarChar(sql.MAX), partnerData[key]);
+        } else {
+          request.input(key, sql.NVarChar, partnerData[key]);
+        }
+      }
+    });
+
+    if (fields.length === 0) {
+      res.status(400).json({ success: false, error: { message: 'No fields to update' } });
+      return;
+    }
+
+    const result = await request.query(`
+      UPDATE core.EquityPartner
+      SET ${fields.join(', ')}
+      WHERE EquityPartnerId = @id;
+      SELECT * FROM core.EquityPartner WHERE EquityPartnerId = @id;
+    `);
 
     if (result.recordset.length === 0) {
       res.status(404).json({ success: false, error: { message: 'Equity Partner not found' } });
