@@ -4,15 +4,15 @@ FROM node:18-alpine
 # Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copy package files from api directory
+COPY api/package*.json ./
 
 # Install ALL dependencies (including devDependencies for TypeScript build)
 # Using npm install instead of npm ci (npm ci requires package-lock.json)
 RUN npm install
 
-# Copy source code
-COPY . .
+# Copy source code from api directory
+COPY api/ .
 
 # Build TypeScript
 RUN npm run build
