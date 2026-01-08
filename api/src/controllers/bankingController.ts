@@ -1056,6 +1056,38 @@ export const getAllEquityCommitments = async (req: Request, res: Response, next:
   }
 };
 
+export const getEquityCommitmentById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input('id', sql.Int, id)
+      .query('SELECT * FROM banking.EquityCommitment WHERE EquityCommitmentId = @id');
+    
+    if (result.recordset.length === 0) {
+      res.status(404).json({ success: false, error: { message: 'Equity Commitment not found' } });
+      return;
+    }
+    
+    res.json({ success: true, data: result.recordset[0] });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getEquityCommitmentsByProject = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { projectId } = req.params;
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input('projectId', sql.Int, projectId)
+      .query('SELECT * FROM banking.EquityCommitment WHERE ProjectId = @projectId ORDER BY EquityCommitmentId');
+    res.json({ success: true, data: result.recordset });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const createEquityCommitment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const {
