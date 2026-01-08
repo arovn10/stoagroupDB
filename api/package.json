@@ -11,7 +11,8 @@
     "db:query": "npx ts-node --transpile-only scripts/db-manipulate.ts query",
     "db:exec": "npx ts-node --transpile-only scripts/db-manipulate.ts exec",
     "db:sp": "npx ts-node --transpile-only scripts/db-manipulate.ts sp",
-    "db:test": "npx ts-node --transpile-only scripts/test-connection.ts"
+    "db:test": "npx ts-node --transpile-only scripts/test-connection.ts",
+    "db:sync-all": "npx ts-node --transpile-only scripts/sync-all-data.ts"
   },
   "keywords": ["api", "rest", "azure-sql"],
   "author": "",
