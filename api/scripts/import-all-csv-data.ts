@@ -25,18 +25,39 @@ function parseAmount(str: string | null | undefined): number | null {
 }
 
 function parseDate(str: string | null | undefined): string | null {
-  if (!str || str.trim() === '' || str === 'N/A') return null;
-  // Handle dates like "2/10/2025" or "May-23"
-  if (str.includes('/')) {
-    const parts = str.split('/');
+  if (!str || str.trim() === '' || str === 'N/A' || str === '-' || str === '$-') return null;
+  
+  const trimmed = str.trim();
+  
+  // Handle dates like "2/10/2025" or "12/31/2024"
+  if (trimmed.includes('/')) {
+    const parts = trimmed.split('/');
     if (parts.length === 3) {
+      const month = parseInt(parts[0]);
+      const day = parseInt(parts[1]);
       let year = parseInt(parts[2]);
-      if (year < 100) year += 2000;
-      return `${year}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
+      
+      // Validate the date parts
+      if (isNaN(month) || isNaN(day) || isNaN(year)) return null;
+      if (month < 1 || month > 12) return null;
+      if (day < 1 || day > 31) return null;
+      
+      // Handle 2-digit years
+      if (year < 100) {
+        if (year < 50) year += 2000; // 00-49 = 2000-2049
+        else year += 1900; // 50-99 = 1950-1999
+      }
+      
+      // Validate year range
+      if (year < 1900 || year > 2100) return null;
+      
+      return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
     }
   }
-  // For month-year formats like "May-23", return as-is (stored as NVARCHAR)
-  return str;
+  
+  // For month-year formats like "May-23", return null (can't convert to SQL date)
+  // These should be stored as NVARCHAR in separate fields
+  return null;
 }
 
 function parsePercent(percentStr: string | null | undefined): string | null {
@@ -288,6 +309,7 @@ async function importBankingDashboard(pool: sql.ConnectionPool, csvPath: string)
       // 2nd DSCR Test
       if (row[22] && row[22].trim() !== '') {
         const testDate = parseDate(row[22]);
+        // Only insert if we have a valid date
         if (testDate) {
           await pool.request()
             .input('ProjectId', sql.Int, projectId)
@@ -319,6 +341,7 @@ async function importBankingDashboard(pool: sql.ConnectionPool, csvPath: string)
       // 3rd DSCR Test
       if (row[26] && row[26].trim() !== '') {
         const testDate = parseDate(row[26]);
+        // Only insert if we have a valid date
         if (testDate) {
           await pool.request()
             .input('ProjectId', sql.Int, projectId)
@@ -374,6 +397,7 @@ async function importBankingDashboard(pool: sql.ConnectionPool, csvPath: string)
       
       // Covenants (Occupancy)
       const occupancyDate = parseDate(row[32]);
+      // Only insert if we have a valid date
       if (occupancyDate) {
         await pool.request()
           .input('ProjectId', sql.Int, projectId)
