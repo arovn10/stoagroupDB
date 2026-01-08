@@ -66,13 +66,13 @@ export const buildDeleteQuery = (
 /**
  * Convert object to SQL parameters
  */
-export const objectToParams = (obj: Record<string, any>): sql.IRequest => {
+export const objectToParams = (obj: Record<string, any>): sql.Request => {
   const request = new sql.Request();
   Object.keys(obj).forEach((key) => {
     if (obj[key] !== undefined && obj[key] !== null) {
       request.input(key, obj[key]);
     }
   });
-  return request as any;
+  return request;
 };
 
