@@ -195,7 +195,10 @@ export const getBankById = async (req: Request, res: Response, next: NextFunctio
 
 export const createBank = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { BankName, City, State, Notes } = req.body;
+    const { 
+      BankName, City, State, HQState, Notes, 
+      HoldLimit, PerDealLimit, Deposits 
+    } = req.body;
 
     if (!BankName) {
       res.status(400).json({ success: false, error: { message: 'BankName is required' } });
@@ -207,11 +210,15 @@ export const createBank = async (req: Request, res: Response, next: NextFunction
       .input('BankName', sql.NVarChar, BankName)
       .input('City', sql.NVarChar, City)
       .input('State', sql.NVarChar, State)
+      .input('HQState', sql.NVarChar, HQState)
       .input('Notes', sql.NVarChar(sql.MAX), Notes)
+      .input('HoldLimit', sql.Decimal(18, 2), HoldLimit)
+      .input('PerDealLimit', sql.Decimal(18, 2), PerDealLimit)
+      .input('Deposits', sql.Decimal(18, 2), Deposits)
       .query(`
-        INSERT INTO core.Bank (BankName, City, State, Notes)
+        INSERT INTO core.Bank (BankName, City, State, HQState, Notes, HoldLimit, PerDealLimit, Deposits)
         OUTPUT INSERTED.*
-        VALUES (@BankName, @City, @State, @Notes)
+        VALUES (@BankName, @City, @State, @HQState, @Notes, @HoldLimit, @PerDealLimit, @Deposits)
       `);
 
     res.status(201).json({ success: true, data: result.recordset[0] });
