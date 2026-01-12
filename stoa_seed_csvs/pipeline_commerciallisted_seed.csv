@@ -1,0 +1,6 @@
+CommercialListedId,ProjectId,ProjectName,Location,ListedDate,Acreage,Price,Status,DueDiligenceDate,ClosingDate,Owner,PurchasingEntity,Notes
+1,19,"Mirage Ave. Crestview, FL 32536","Crestview, FL",6/13/2023,4.26,"$1,400,000.00",Available,,,Bauerle Rd.,,"Brett HouseThe City is working with a big box across the street that could put this parcel
+in gear if they get it finalized."
+2,28,Remaining Freeport Retail,"Freeport, FL",,4.43,"$4,873,000.00",Available,,,Bauerle Rd.,,Thomas Watson
+3,29,Remaining Hammond Land,"Hammond, LA",,5.05,$0.00,Available,,,Bauerle Rd.,,
+4,32,Starbucks,"Freeport, FL",,0.98,"$950,000.00",Under Contract,1/30/2026,1/30/2026,Bauerle Rd.,SDP Acquisitions LLC,Thomas Watson

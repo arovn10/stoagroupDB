@@ -1,0 +1,77 @@
+Birth Order,Borrower,Loan Type,Location,# of Units,Construction Financing Lender,Construction Loan Amount,Construction Loan Closing,Construction Completion Date,Lease-up Completed Date,Construction I/O Maturity,Fixed/Floating,Index,Spread,Mini-Perm Loan Maturity,Mini-Perm Interest Rate,Construction Loan Perm-Phase Maturity,Construtcion Loan Perm-Phase Interest Rate,1st DSCR Test Date,Projected Interest Rate,1st DSCR Requirement,Projected,2nd DSCR Test Date,Projected Interest Rate_2,2nd DSCR Requirement,Projected_2,3rd DSCR Test Date,Projected Interest Rate_3,3rd DSCR Requirement,Projected_3,Liquidity Requirement - Total,Liquidity Requirement - Lending Bank,Occupancy Covenant Date,Occupancy Requirement,Projected Occupancy ' %,Permanent Financing Close Date,Permanent Financing Lender,Permancent Financing Loan Amount
+Other,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,"Bauerle Rd Land, LLC",RLOC - Land,,,Fidelity Bank,4250000.0,2025-02-10,,,2027-02-10,Floating,SOFR,0.0275,,,,,,,,,,,,,,,,,,,,,,,,
+,Plane Loan,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,"210 E Morris Ave, LLC",Owner Occupied Office,,,Renasant Bank,2975000.0,2020-08-28,,,2030-09-05,Fixed,N/A,0.0385,,,,,,,,,,,,,,,,,,,,,,,,
+,"Amor Fati, LLC",RLOC,LA,,b1Bank,4571200.0,2023-12-28,,,2025-12-28,Floating,WSJ Prime,0.0025,,,,,,,,,,,,,,,,,,,,,,,,
+,"Amor Fati, LLC",RLOC,MS,,b1Bank,751000.0,2023-12-28,,,2025-12-28,Floating,WSJ Prime,0.0025,,,,,,,,,,,,,,,,,,,,,,,,
+,"Icarus Development, LLC",RLOC - Plane,,,b1Bank,2150000.0,2023-11-28,,,2025-11-28,Floating,WSJ Prime,0.0025,,,,,,,,,,,,,,,,,,,,,,,,
+,Tredge,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,"Stoa Construction, LLC",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,14697200.0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+Multifamily,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+6,The Waters at Hammond,,"Hammond, LA",312.0,b1Bank,31520000.0,2020-09-24,2022-08-24,2023-05-30,2023-09-24,Floating,WSJ Prime,0.005,2026-09-24,5yr US Treasury + TBD - 25yr am,,,2024-09-24,N/A,1.0,N/A,2025-03-24,N/A,1.25,N/A,,,,,5000000.0,1000000.0,,,,2024-04-30 00:00:00,Berkadia,39364000
+10,The Waters at Millerville,,"Baton Rouge, LA",295.0,First Horizon Bank,36200000.0,2022-06-13,2024-07-02,2025-04-30,2025-07-25,Floating,WSJ Prime,0.005,2027-06-13,SOFR + 2.35% - 30yr am,,,2025-06-30,0,1.0,2795107.6427800385,2025-09-30,0,1.15,2744826.504563391,2025-12-31,0.0,1.15,2660818.4677681783,15000000.0,0.0,,,,2026-04-30 00:00:00,Berkadia,41741692.29857661
+11,The Waters at Redstone,,"Crestview, FL",240.0,Renasant Bank,30000000.0,2022-02-25,2024-07-25,2025-05-31,2025-02-25,Fixed,N/A,0.0425,2027-02-25,WSJ Prime + 0.5% - 25yr am,,,2025-03-31,0,1.2,1950257.1635300033,,,,,,,,,4000000.0,0.0,,,,2026-04-30 00:00:00,Berkadia,24849982.953212652
+12,The Waters at Settlers Trace,,"Lafayette, LA",348.0,b1Bank,49996842.0,2022-08-24,2025-02-10,2025-12-31,2025-08-24,Floating,WSJ Prime,0.005,2028-08-24,3yr US Treasury + 250 - 25yr am,,,2025-09-30,0.08,1.0,0.4078166924440331,2026-09-30,0.06759733572621124,1.1,1.081493268724695,,,,,5000000.0,2000000.0,,,,2026-06-30 00:00:00,Berkadia,54163985.822641246
+14,The Waters at West Village,,"Scott, LA",216.0,Trustmark Bank,25390000.0,2022-12-15,2024-10-29,2025-12-31,2025-12-15,Floating,SOFR,0.0275,2027-12-15,SOFR + 2.75% - 30yr am,,,2025-11-15,0,1.25,2031943.0488582733,,,,,,,,,7500000.0,0.0,,,,2026-06-30 00:00:00,Berkadia,30802504.40090401
+15,The Waters at Bluebonnet,LOC - Construction,"Baton Rouge, LA",324.0,Trustmark Bank,39812626.2,2023-04-12,2025-04-03,2025-12-31,2027-04-12,Floating,SOFR,0.03,2028-04-12,SOFR + 3.00% - 30yr am,,,2026-03-12,0.07,1.25,1.2537995884175284,,,,,,,,,7500000.0,0.0,,,,2026-06-30 00:00:00,Berkadia,50618437.7603304
+16,The Waters at Crestview,LOC - Construction,"Crestview, FL",288.0,Renasant Bank,31000000.0,2023-08-25,2025-08-06,2026-08-31,2027-01-11,Floating,SOFR,0.025,2028-08-25,3yr Treasury + 2.5% - 30yr am,,,2026-09-30,0.05720311706298684,1.2,1.3344807974999706,,,,,,,,,4000000.0,0.0,,,,2027-02-28 00:00:00,Berkadia,43012245.737324655
+17,The Heights at Picardy,LOC - Construction,"Baton Rouge, LA",232.0,b1Bank,35962776.0,2023-10-11,2025-06-30,2026-08-31,2027-05-11,Floating,SOFR,0.03,2028-10-11,SOFR + 3.00% - 30yr am,,,2027-04-30,0.08,1.0,1.0453390728054288,2027-10-31,0.08,1.25,1.053451571206158,,,,,7500000.0,0.0,,,,2027-02-28 00:00:00,Berkadia,40895219.78315295
+18,The Waters at McGowin,LOC - Construction,"Mobile, AL",252.0,Fidelity Bank,31815771.0,2024-01-19,2025-11-24,2026-10-31,2027-01-19,Floating,SOFR,0.0275,2028-01-19,SOFR + 2.75% + Principal Reduction,,,2027-06-30,0.05939179942763065,1.25,1.157393668706131,,,,,,,,,10000000.0,0.0,,,,2027-04-30 00:00:00,Berkadia,46158946.94998138
+19,The Waters at Freeport,LOC - Construction,"Freeport, FL",226.0,Pen-Air,35000000.0,2024-04-24,2026-01-28,2027-01-31,2027-04-24,Fixed,N/A,0.075,2029-04-24,7.5% Fixed - 30yr am,,,2028-04-24,0.075,1.2,1.1899381944741694,,,,,,,,,0.0,0.0,,,,2027-07-31 00:00:00,Berkadia,43709325.4032014
+20,The Heights at Waterpointe,LOC - Construction,"Flowood, MS",240.0,Trustmark Bank,32467928.0,2024-07-31,2026-09-04,2027-09-30,2028-07-31,Floating,SOFR,0.0325,2029-07-31,SOFR + 3.25% - 30yr am,,,2028-01-31,0.075,1.0,1.2725857607413562,2028-07-31,0.075,1.25,1.2696043256900953,,,,,7500000.0,0.0,,,,2028-03-31 00:00:00,Berkadia,44729629.53790802
+21,The Waters at Promenade,LOC - Construction,"Marerro, LA",324.0,b1Bank,43540541.0,2024-10-15,2026-09-16,2027-09-30,2028-04-15,Floating,SOFR,0.03,2029-10-15,SOFR + 3.00% - 30yr am,,,2028-04-30,0.06321738878769143,1.0,1.36761948939868,2028-10-31,0.06321891991558867,1.25,1.3789385193603942,,,,,7500000.0,0.0,,,,2028-03-31 00:00:00,Berkadia,56967430.14516415
+22,The Flats at Ransley,LOC - Construction,"Pensacola, FL",294.0,Hancock Whitney,38624364.0,2024-12-20,2026-11-12,2027-10-31,2028-06-20,Floating,SOFR,0.0275,2028-12-20,SOFR + 2.75% + Principal Reduction,,,2027-12-31,,1.0,,2028-09-30,,1.25,,,,,,7500000.0,0.0,,,,2028-04-30 00:00:00,Berkadia,55343547.413198
+23,The Heights at Materra,LOC - Construction,"Baton Rouge, LA",295.0,First Horizon Bank,38002833.44311695,,2026-12-31,2027-06-30,2028-03-25,Floating,SOFR,0.03,2030-03-25,SOFR + 3.00% - 30yr am ,,,2027-08-17,0.06108835830698431,1.0,0.6680226948279571,2027-11-15,0.062103920794555484,1.15,1.1434755510840926,2028-02-13,0.06217521920346667,1.25,1.66915827116261,7500000.0,,,,,2027-12-31 00:00:00,Berkadia,50502547.280997925
+24,The Waters at Crosspointe,LOC - Construction,"Columbia, SC",336.0,Wells Fargo,41580000.0,2024-03-27,2027-02-28,2027-07-31,2028-03-27,Floating,SOFR,0.035,2030-03-27,5% 30 year am ,,,2028-03-27,0.05,1.2,1.1737498668772024,2029-03-27,0.05,1.42,1.2008609217965438,,,,,11117935.374968458,0.0,2027-03-31,0.5,0.7647058823529411,2028-01-31 00:00:00,Berkadia,56269711.46821684
+25,The Waters at Inverness,LOC - Construction,"Hoover, AL",289.0,Hancock Whitney,39587145.23689532,,2027-03-31,2027-11-30,,,,,,,,,,,,,,,,,,,,,,,,,,2028-05-31 00:00:00,Berkadia,47025609.10008246
+,The Waters at Conway,LOC - Construction,,,b1Bank,38982446.351114444,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+28,The Waters at Covington,LOC - Construction,"Covington, LA",336.0,Hancock Whitney,41117056.806574404,,2027-12-31,2028-07-31,,,,,,,,,,,,,,,,,,,,,,,,,,2029-01-31 00:00:00,Berkadia,50451567.99471618
+,,,,4511.0,,580500826.8800123,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+Under Contract,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,The Waters at Robinwood,LOC - Construction,,,Wells Fargo,41383171.8488036,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+26,The Waters at OWA,LOC - Construction,"Foley, AL",300.0,Renasant Bank,33456616.800018646,,2028-08-31,2028-12-31,,,,,,,,,,,,,,,,,,,,,,,,,,2029-06-30 00:00:00,Berkadia,45186604.65404697
+27,The Waters at Greenville,LOC - Construction,,,Trustmark Bank,40237620.29161014,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Berkadia,
+29,The Waters at Oxford,LOC - Construction,"Oxford, MS",316.0,,49632249.68513396,,2029-02-28,2029-08-31,,,,,,,,,,,,,,,,,,,,,,,,,,2030-02-28 00:00:00,Berkadia,69525968.56654018
+30,The Waters at Southpoint,LOC - Construction,"Hardeeville, SC",288.0,,42468144.893131584,,2028-10-31,2029-02-28,,,,,,,,,,,,,,,,,,,,,,,,,,2029-08-31 00:00:00,Berkadia,51027667.51820075
+,,,,5751.0,,867778133.5563991,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,Portfolio Total,10262.0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+Liquidated,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+1,Silver Oaks,,"Gonzales, LA",336.0,b1Bank,31720000.0,2018-05-03,2019-06-20,2020-03-31,,,,,,,,,,,,,,,,,,,,,,,,,,10/8/2019 & 7/16/2021,Berkadia,41071000
+2,The Heights,,"Hammond, LA",336.0,b1Bank,27000000.0,2018-10-09,2020-02-13,2020-07-31,,,,,,,,,,,,,,,,,,,,,,,,,,2021-02-24 00:00:00,Berkadia,44880000
+3,Sweetwater,,"Addis, LA",276.0,First American,28454715.0,2018-10-31,2020-10-31,2021-05-31,,,,,,,,,,,,,,,,,,,,,,,,,,N/A,N/A,N/A
+4,The Waters at Southpark,,"Lake Charles, LA",220.0,BancorpSouth,20970360.0,2019-09-16,2021-05-18,2021-06-30,,,,,,,,,,,,,,,,,,,,,,,,,,N/A,N/A,N/A
+5,Dawson Park,,"Baton Rouge, LA",155.0,b1Bank,20900000.0,2020-03-12,2022-01-20,2022-05-31,,,,,,,,,,,,,,,,,,,,,,,,,,N/A,N/A,N/A
+7,The Waters at Manhattan,,"Harvey, LA",360.0,b1Bank,38567255.0,2021-03-25,2023-03-28,2023-07-31,2024-03-25,,WSJ Prime + 0.75%,,2027-03-25,5yr US Treasury + TBD - 25yr am,,,2025-03-25,N/A,1.0,N/A,2026-03-25,N/A,1.1,N/A,,,,,5000000.0,1000000.0,,,,N/A,N/A,N/A
+9,The Waters at Heritage,,"Gonzales, LA",299.0,b1Bank,37218162.67,2021-10-26,2024-03-06,2024-07-31,2024-12-26,,WSJ Prime + 0.75%,,2027-12-26,5yr US Treasury + TBD - 25yr am,,,2025-10-26,0,1.0,0,2026-10-26,0,1.1,0,,,,,5000000.0,1000000.0,,,,2025-07-31 00:00:00,Berkadia,43853734.05937564
+8,The Waters at Ransley,,"Pensacola, FL",336.0,The First,37800000.0,2021-05-24,2024-02-15,2024-07-31,2024-05-24,,4.25% Fixed,,2026-05-24,4.25% Fixed - 25yr am,,,2024-06-30,0.0425,1.25,1.0228020291008648,,,,,,,,,4000000.0,0.0,,,,2025-08-31 00:00:00,Berkadia,48977051.237597205
+13,The Flats at East Bay,,"Fairhope, AL",240.0,Cadence Bank,31599189.0,2022-06-16,2024-08-05,2025-03-31,2025-06-16,Fixed,N/A,0.0425,2027-06-16,4.25% Fixed - 25yr am,2050-06-16,WSJ Prime + 0.5% - 25yr am,2025-12-31,0.0425,1.25,1.2130546318176516,,,,,,,,,0.0,0.0,,,,2025-10-31 00:00:00,Berkadia,34165220.63973366
+,,,,2558.0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,Banks that have expressed most capacity:,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,United Bank,,"Charlotte office counts as within footprint. Deal size up to $20-$40MM, up to $100MM in total exposure",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,Atlantic Union Bank,,"6.25% underwriting rate, can do 2 deals at a time by themselves or 3-4 at a  time with anouther participant, mentioned Seacoast Bank as an option.",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,Pinnacle Bank,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,Live Oak Banking Co,,"Hold Size per deal ($25-$30MM), with single borrower ($50-$60MM)",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,Bank of America,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,Bank OZK,,Said they are out of SC for now,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,Valley Bank,,Hoover or Pensacola. Stressed deposits. Told him 5%,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,Regions,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,Truist Bank,,Need contact,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,United Community Bank,,Need contact,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,Servis1st Bank,,Need contact,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,First Bank (Southern Pines),,Need contact,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,First Citizens Bank & Trust,,Need contact,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,

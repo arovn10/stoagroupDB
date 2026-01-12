@@ -1,0 +1,37 @@
+ClosedPropertyId,ProjectId,ProjectName,Status,ClosingDate,Location,Address,Acreage,Units,SqFtPrice_ActOfSale,Due Diligence,CashFlag
+1,11,Dawson Park,Sold,3/12/2020,"Baton Rouge, LA",The Lawrence Messina Property -,5.387,,,3/12/2020,True
+2,51,The Waters at Hammond,,7/29/2020,"Northern ""Notch"" Property",,0.5,,,8/29/2020,True
+3,51,The Waters at Hammond,Purchased,7/29/2020,"Hammond, LA",Bauerle Road,24.72,,,8/29/2020,True
+4,54,The Waters at Manhattan,,10/6/2020,"Harvey, LA",Fountain Park Development,15.66,,,8/23/2020,True
+5,54,The Waters at Manhattan,Sold,1/29/2021,"Harvey, LA",Lot 15-A Kensington Gardens,-,,,,True
+6,61,The Waters at Ransley,Purchased,5/24/2021,"Pensacola, FL",Pine Forest Road,14.51,,,2/8/2021,True
+7,62,The Waters at Redstone,Purchased,5/27/2021,"Crestview, FL",Redstone Avenue,7.9,,,4/25/2021,True
+8,62,The Waters at Redstone,,5/24/2021,"Crestview, FL",Covell Road,2.01,,,4/25/2021,True
+9,52,The Waters at Heritage,Purchased,8/2/2021,"Gonzales, LA",Heritage Crossing,10.825,,,7/21/2021,True
+10,35,The Flats at East Bay,Purchased,8/26/2021,"Fairhope, AL",9376 Twin Beech Rd,20.19,,,7/5/2021,True
+11,56,The Waters at Millerville,Purchased,12/1/2021,"Baton Rouge, LA",The Greens at Millerville Blvd,13.068,,,11/2/2021,True
+12,46,The Waters at Crestview,Purchased,4/11/2022,"Crestview, FL",Mirage Ave,23.4,,,4/1/2022,True
+13,68,The Waters at West Village,Purchased,5/23/2022,"Scott, LA",Apollo Rd,7.96,,,3/15/2022,True
+14,64,The Waters at Settlers Trace,Purchased,8/12/2022,"Lafayette, LA",536 Settlers Trace Blvd,18.37,,,4/21/2022,True
+15,43,The Waters at Bluebonnet,Purchased,4/30/2023,"Baton Rouge, LA",Bluebonnet Blvd,14.29,,,4/30/2023,True
+16,40,The Heights at Picardy,Purchased,7/18/2023,"Baton Rouge, LA",Picardy Ave,6.44,,,7/21/2023,True
+17,36,The Flats at Ransley,Purchased,8/25/2022,"Pensacola, FL",Pine Forest Road,11.16,,,6/26/2023,True
+18,49,The Waters at Freeport,Purchased,9/15/2023,"Freeport, FL",185 Marquis Way,10,,,8/25/2023,True
+19,49,The Waters at Freeport,,9/15/2023,"Freeport, FL",,6.35,,,8/25/2023,True
+20,20,N/A,Purchased,10/20/2023,Hammond,"Tract C-1, Bauerle Rd",1.797,,,,True
+21,55,The Waters at McGowin,Purchased,12/15/2023,"Mobile, AL",McVay Dr,9.6,,,11/15/2023,True
+22,41,The Heights at Waterpointe,Purchased,4/9/2024,"Flowood, MS",Waterpointe Commerical,3.26,,,3/8/2024,True
+23,39,The Heights at Materra,Purchased,,"Baton Rouge, LA",McCall Dr,8,,,12/14/2023,True
+24,60,The Waters at Promenade,Purchased,7/31/2024,"Marrero, LA","12.26 Acres, Girod Ave",12.26,,,5/30/2024,True
+25,47,The Waters at Crosspointe,Purchased,8/1/2024,"Columbia, SC",20.62 Cosson St,20.62,,,7/18/2024,True
+26,38,The Heights at Inverness,Purchased 2/10/2025,,"Birmingham, AL",45 Inverness Center Parkway,13,,$11.92,12/6/2024,True
+27,44,The Waters at Conway,Purchased,5/27/2025,"Gonzales, LA",TBD,20.08,,,5/2/2025,True
+28,45,The Waters at Covington,Purchased,10/15/2025,"Covington, LA",15274 W Ochsner Blvd,13.73,,,,True
+29,63,The Waters at Robinwood,Purchased,12/18/2025,"Charlotte, NC",10700 Harrisburg Rd,26.84,,,4/28/2025,True
+30,21,Office,Purchased,3/2/2020,"Hammond, LA",210 East Morris Avenue,75x82,,,1/30/2021,True
+31,21,Office,Purchased,3/2/2020,"Hammond, LA",204 South Cherry Street,75x82,,,2/19/2020,True
+32,21,Office,Purchased,6/17/2020,"Hammond, LA",206 East Morris Avenue,68x150,,,5/5/2021,True
+33,21,Office,Purchased,12/6/2021,"Hammond, LA",210 South Cherry Street,0.52,,,1/11/2022,True
+34,20,N/A,Purchased,12/28/2023,"Lafayette, LA",Settlers Trace Blvd,2.473 Acres,,,9/30/2023,True
+35,23,Okaloosa Ophthalmology,Sold,5/31/2024,"Crestview, FL",Crosson St,1.91,,,3/15/2024,True
+36,22,Office space,,,"Hammond, LA",,1.74,,,4/2/2025,

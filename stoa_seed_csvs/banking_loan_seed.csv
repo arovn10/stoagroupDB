@@ -1,0 +1,38 @@
+LoanId,ProjectId,Borrower,LoanType,Location,Units,LenderName,LoanAmount,LoanClosingDate,ConstructionCompletionDate,LeaseUpCompletedDate,MaturityDate,FixedOrFloating,IndexName,Spread,MiniPermMaturity,MiniPermInterestRate,PermPhaseMaturity,PermPhaseInterestRate,PermanentFinancingCloseDate,PermanentFinancingLender,PermanentFinancingLoanAmount
+1,8,"Bauerle Rd Land, LLC",RLOC - Land,,,Fidelity Bank,4250000.0,2025-02-10,,,2027-02-10,Floating,SOFR,0.0275,,,,,,,
+2,1,"210 E Morris Ave, LLC",Owner Occupied Office,,,Renasant Bank,2975000.0,2020-08-28,,,2030-09-05,Fixed,N/A,0.0385,,,,,,,
+3,2,"Amor Fati, LLC",RLOC,LA,,b1Bank,4571200.0,2023-12-28,,,2025-12-28,Floating,WSJ Prime,0.0025,,,,,,,
+4,2,"Amor Fati, LLC",RLOC,MS,,b1Bank,751000.0,2023-12-28,,,2025-12-28,Floating,WSJ Prime,0.0025,,,,,,,
+5,16,"Icarus Development, LLC",RLOC - Plane,,,b1Bank,2150000.0,2023-11-28,,,2025-11-28,Floating,WSJ Prime,0.0025,,,,,,,
+6,51,The Waters at Hammond,,"Hammond, LA",312.0,b1Bank,31520000.0,2020-09-24,2022-08-24,2023-05-30,2023-09-24,Floating,WSJ Prime,0.005,2026-09-24,5yr US Treasury + TBD - 25yr am,,,2024-04-30 00:00:00,Berkadia,39364000
+7,56,The Waters at Millerville,,"Baton Rouge, LA",295.0,First Horizon Bank,36200000.0,2022-06-13,2024-07-02,2025-04-30,2025-07-25,Floating,WSJ Prime,0.005,2027-06-13,SOFR + 2.35% - 30yr am,,,2026-04-30 00:00:00,Berkadia,41741692.29857661
+8,62,The Waters at Redstone,,"Crestview, FL",240.0,Renasant Bank,30000000.0,2022-02-25,2024-07-25,2025-05-31,2025-02-25,Fixed,N/A,0.0425,2027-02-25,WSJ Prime + 0.5% - 25yr am,,,2026-04-30 00:00:00,Berkadia,24849982.953212652
+9,64,The Waters at Settlers Trace,,"Lafayette, LA",348.0,b1Bank,49996842.0,2022-08-24,2025-02-10,2025-12-31,2025-08-24,Floating,WSJ Prime,0.005,2028-08-24,3yr US Treasury + 250 - 25yr am,,,2026-06-30 00:00:00,Berkadia,54163985.822641246
+10,68,The Waters at West Village,,"Scott, LA",216.0,Trustmark Bank,25390000.0,2022-12-15,2024-10-29,2025-12-31,2025-12-15,Floating,SOFR,0.0275,2027-12-15,SOFR + 2.75% - 30yr am,,,2026-06-30 00:00:00,Berkadia,30802504.40090401
+11,43,The Waters at Bluebonnet,LOC - Construction,"Baton Rouge, LA",324.0,Trustmark Bank,39812626.2,2023-04-12,2025-04-03,2025-12-31,2027-04-12,Floating,SOFR,0.03,2028-04-12,SOFR + 3.00% - 30yr am,,,2026-06-30 00:00:00,Berkadia,50618437.7603304
+12,46,The Waters at Crestview,LOC - Construction,"Crestview, FL",288.0,Renasant Bank,31000000.0,2023-08-25,2025-08-06,2026-08-31,2027-01-11,Floating,SOFR,0.025,2028-08-25,3yr Treasury + 2.5% - 30yr am,,,2027-02-28 00:00:00,Berkadia,43012245.737324655
+13,40,The Heights at Picardy,LOC - Construction,"Baton Rouge, LA",232.0,b1Bank,35962776.0,2023-10-11,2025-06-30,2026-08-31,2027-05-11,Floating,SOFR,0.03,2028-10-11,SOFR + 3.00% - 30yr am,,,2027-02-28 00:00:00,Berkadia,40895219.78315295
+14,55,The Waters at McGowin,LOC - Construction,"Mobile, AL",252.0,Fidelity Bank,31815771.0,2024-01-19,2025-11-24,2026-10-31,2027-01-19,Floating,SOFR,0.0275,2028-01-19,SOFR + 2.75% + Principal Reduction,,,2027-04-30 00:00:00,Berkadia,46158946.94998138
+15,49,The Waters at Freeport,LOC - Construction,"Freeport, FL",226.0,Pen-Air,35000000.0,2024-04-24,2026-01-28,2027-01-31,2027-04-24,Fixed,N/A,0.075,2029-04-24,7.5% Fixed - 30yr am,,,2027-07-31 00:00:00,Berkadia,43709325.4032014
+16,41,The Heights at Waterpointe,LOC - Construction,"Flowood, MS",240.0,Trustmark Bank,32467928.0,2024-07-31,2026-09-04,2027-09-30,2028-07-31,Floating,SOFR,0.0325,2029-07-31,SOFR + 3.25% - 30yr am,,,2028-03-31 00:00:00,Berkadia,44729629.53790802
+17,60,The Waters at Promenade,LOC - Construction,"Marerro, LA",324.0,b1Bank,43540541.0,2024-10-15,2026-09-16,2027-09-30,2028-04-15,Floating,SOFR,0.03,2029-10-15,SOFR + 3.00% - 30yr am,,,2028-03-31 00:00:00,Berkadia,56967430.14516415
+18,36,The Flats at Ransley,LOC - Construction,"Pensacola, FL",294.0,Hancock Whitney,38624364.0,2024-12-20,2026-11-12,2027-10-31,2028-06-20,Floating,SOFR,0.0275,2028-12-20,SOFR + 2.75% + Principal Reduction,,,2028-04-30 00:00:00,Berkadia,55343547.413198
+19,39,The Heights at Materra,LOC - Construction,"Baton Rouge, LA",295.0,First Horizon Bank,38002833.44311695,,2026-12-31,2027-06-30,2028-03-25,Floating,SOFR,0.03,2030-03-25,SOFR + 3.00% - 30yr am ,,,2027-12-31 00:00:00,Berkadia,50502547.280997925
+20,47,The Waters at Crosspointe,LOC - Construction,"Columbia, SC",336.0,Wells Fargo,41580000.0,2024-03-27,2027-02-28,2027-07-31,2028-03-27,Floating,SOFR,0.035,2030-03-27,5% 30 year am ,,,2028-01-31 00:00:00,Berkadia,56269711.46821684
+21,53,The Waters at Inverness,LOC - Construction,"Hoover, AL",289.0,Hancock Whitney,39587145.23689532,,2027-03-31,2027-11-30,,,,,,,,,2028-05-31 00:00:00,Berkadia,47025609.10008246
+22,44,The Waters at Conway,LOC - Construction,,,b1Bank,38982446.351114444,,,,,,,,,,,,,,
+23,45,The Waters at Covington,LOC - Construction,"Covington, LA",336.0,Hancock Whitney,41117056.806574404,,2027-12-31,2028-07-31,,,,,,,,,2029-01-31 00:00:00,Berkadia,50451567.99471618
+24,63,The Waters at Robinwood,LOC - Construction,,,Wells Fargo,41383171.8488036,,,,,,,,,,,,,,
+25,58,The Waters at OWA,LOC - Construction,"Foley, AL",300.0,Renasant Bank,33456616.800018646,,2028-08-31,2028-12-31,,,,,,,,,2029-06-30 00:00:00,Berkadia,45186604.65404697
+26,50,The Waters at Greenville,LOC - Construction,,,Trustmark Bank,40237620.29161014,,,,,,,,,,,,,Berkadia,
+27,59,The Waters at Oxford,LOC - Construction,"Oxford, MS",316.0,,49632249.68513396,,2029-02-28,2029-08-31,,,,,,,,,2030-02-28 00:00:00,Berkadia,69525968.56654018
+28,66,The Waters at Southpoint,LOC - Construction,"Hardeeville, SC",288.0,,42468144.893131584,,2028-10-31,2029-02-28,,,,,,,,,2029-08-31 00:00:00,Berkadia,51027667.51820075
+29,31,Silver Oaks,,"Gonzales, LA",336.0,b1Bank,31720000.0,2018-05-03,2019-06-20,2020-03-31,,,,,,,,,10/8/2019 & 7/16/2021,Berkadia,41071000
+30,37,The Heights,,"Hammond, LA",336.0,b1Bank,27000000.0,2018-10-09,2020-02-13,2020-07-31,,,,,,,,,2021-02-24 00:00:00,Berkadia,44880000
+31,34,Sweetwater,,"Addis, LA",276.0,First American,28454715.0,2018-10-31,2020-10-31,2021-05-31,,,,,,,,,N/A,N/A,N/A
+32,65,The Waters at Southpark,,"Lake Charles, LA",220.0,BancorpSouth,20970360.0,2019-09-16,2021-05-18,2021-06-30,,,,,,,,,N/A,N/A,N/A
+33,11,Dawson Park,,"Baton Rouge, LA",155.0,b1Bank,20900000.0,2020-03-12,2022-01-20,2022-05-31,,,,,,,,,N/A,N/A,N/A
+34,54,The Waters at Manhattan,,"Harvey, LA",360.0,b1Bank,38567255.0,2021-03-25,2023-03-28,2023-07-31,2024-03-25,,WSJ Prime + 0.75%,,2027-03-25,5yr US Treasury + TBD - 25yr am,,,N/A,N/A,N/A
+35,52,The Waters at Heritage,,"Gonzales, LA",299.0,b1Bank,37218162.67,2021-10-26,2024-03-06,2024-07-31,2024-12-26,,WSJ Prime + 0.75%,,2027-12-26,5yr US Treasury + TBD - 25yr am,,,2025-07-31 00:00:00,Berkadia,43853734.05937564
+36,61,The Waters at Ransley,,"Pensacola, FL",336.0,The First,37800000.0,2021-05-24,2024-02-15,2024-07-31,2024-05-24,,4.25% Fixed,,2026-05-24,4.25% Fixed - 25yr am,,,2025-08-31 00:00:00,Berkadia,48977051.237597205
+37,35,The Flats at East Bay,,"Fairhope, AL",240.0,Cadence Bank,31599189.0,2022-06-16,2024-08-05,2025-03-31,2025-06-16,Fixed,N/A,0.0425,2027-06-16,4.25% Fixed - 25yr am,2050-06-16,WSJ Prime + 0.5% - 25yr am,2025-10-31 00:00:00,Berkadia,34165220.63973366

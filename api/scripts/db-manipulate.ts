@@ -64,6 +64,8 @@ const config: sql.config = {
     encrypt: process.env.DB_ENCRYPT === 'true',
     trustServerCertificate: process.env.DB_TRUST_SERVER_CERTIFICATE === 'true',
     enableArithAbort: true,
+    requestTimeout: 300000, // 5 minutes for long-running imports
+    connectionTimeout: 30000, // 30 seconds to connect
   },
   pool: {
     max: 10,

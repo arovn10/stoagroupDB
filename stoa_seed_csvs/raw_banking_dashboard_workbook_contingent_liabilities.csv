@@ -1,0 +1,38 @@
+col,col_2,col_3,col_4,col_5,"Stoa Holdings, LLC",col_6,Toby Easterly,col_7,Ryan Nash,col_8,Saun Sullivan,col_9,col_10
+,Property Name,Construction Loan Closing,Construction Loan Amount,Construction Financing Lender,Guaranty %,Guaranty $,Guaranty %,Guaranty $,Guaranty %,Guaranty $,Guaranty %,Guaranty $,Covenants
+Stabilized,,,,,,,,,,,,,
+,,,,,,,,,,,,,
+,,,,,,,,,,,,,
+Under Construction / Lease-Up,,,,,,,,,,,,,
+8,The Waters at Ransley,2021-05-24 00:00:00,45337,45504,1,45337,1,45337,1,45337,1,45337,
+9,The Waters at Heritage,2021-10-26 00:00:00,45357,45504,1,45357,1,45357,1,45357,1,45357,
+10,The Waters at Millerville,2022-06-13 00:00:00,45475,45777,0,0,0,0,0,0,1,45475,
+11,The Waters at Redstone,2022-02-25 00:00:00,45498,45808,1,45498,1,45498,1,45498,1,45498,
+12,The Waters at Settlers Trace,2022-08-24 00:00:00,45698,46022,1,45698,1,45698,1,45698,1,45698,
+13,The Flats at East Bay,2022-06-16 00:00:00,45509,45747,1,45509,1,45509,1,45509,1,45509,
+14,The Waters at West Village,2022-12-15 00:00:00,45594,46022,1,45594,1,45594,1,45594,1,45594,Burn down to 50% Guaranty upon reaching trailing 3 months - 1.25x DSCR
+15,The Waters at Bluebonnet,2023-04-12 00:00:00,45750,46022,1,45750,1,45750,1,45750,1,45750,Burn down to 50% Guaranty upon reaching trailing 3 months - 1.25x DSCR
+16,The Waters at Crestview,2023-08-25 00:00:00,45875,46265,1,45875,1,45875,1,45875,1,45875,"Earn-Out Provision for additional $4,000,000"
+17,The Heights at Picardy,2023-10-11 00:00:00,45838,46265,1,45838,1,45838,1,45838,1,45838,Burn down to 50% Guaranty upon reaching trailing 3 months - 1.25x DSCR
+18,The Waters at McGowin,2024-01-19 00:00:00,45985,46326,1,45985,1,45985,1,45985,1,45985,Borrower and Guarantors to provide financial statements annually Borrower and Guarantors to provide tax returns annually. Verifi cation of liquidity semi-anrrually
+19,The Waters at Freeport,1900-08-13 00:00:00,46050,46418,1,46050,1,46050,1,46050,1,46050,None
+20,The Heights at Waterpointe,1900-08-27 00:00:00,46269,46660,1,46269,1,46269,1,46269,1,46269,Burn down to 50% Guaranty upon reaching trailing 3 months - 1.25x DSCR
+21,The Waters at Promenade,1900-11-19 00:00:00,46281,46660,1,46281,1,46281,1,46281,1,46281,Burn down to 50% Guaranty upon reaching trailing 3 months - 1.25x DSCR
+,,,640516,,,595041,,595041,,595041,,640516,
+,,,,,,,,,,,,,
+Pre-Construction,,,,,,,,,,,,,
+22,The Flats at Ransley,1900-10-20 00:00:00,46338,46691,1,46338,1,46338,1,46338,1,46338,
+23,The Heights at Materra,1900-10-21 00:00:00,46387,46568,1,46387,1,46387,1,46387,1,46387,
+24,The Waters at Crosspointe,1900-12-01 00:00:00,46446,46599,1,46446,1,46446,1,46446,1,46446,
+,,,139171,,,139171,,139171,,139171,,139171,
+,,,,,,,,,,,,,
+Under Contract,,,,,,,,,,,,,
+25,The Waters at Inverness,1900-10-15 00:00:00,46477,,1,46477,1,46477,1,46477,1,46477,
+26,The Waters at OWA,1900-10-26 00:00:00,46996,,1,46996,1,46996,1,46996,1,46996,
+27,NC/SC Deal #2,00:00:00,0,,1,0,1,0,1,0,1,0,
+28,The Waters at Covington,1900-12-01 00:00:00,46752,,1,46752,1,46752,1,46752,1,46752,
+29,The Waters at Oxford,1900-11-11 00:00:00,47177,,1,47177,1,47177,1,47177,1,47177,
+30,The Waters at Southpoint,1900-10-14 00:00:00,47057,,1,47057,1,47057,1,47057,1,47057,
+,,,234459,,,234459,,234459,,234459,,234459,
+,,,,,,,,,,,,,
+,,,1014146,,,968671,,968671,,968671,,1014146,

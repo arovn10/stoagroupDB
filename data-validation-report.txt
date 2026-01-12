@@ -1,0 +1,131 @@
+[Banking Dashboard - Loan] Bauerle Rd Land, LLC
+  Field: Loan
+  CSV: EXISTS
+  DB: NOT FOUND
+  No loan found for project "Bauerle Rd Land, LLC"
+
+[Banking Dashboard - Loan] 210 E Morris Ave, LLC
+  Field: Loan
+  CSV: EXISTS
+  DB: NOT FOUND
+  No loan found for project "210 E Morris Ave, LLC"
+
+[Banking Dashboard - Loan] Amor Fati, LLC
+  Field: Loan
+  CSV: EXISTS
+  DB: NOT FOUND
+  No loan found for project "Amor Fati, LLC"
+
+[Banking Dashboard - Loan] Amor Fati, LLC
+  Field: Loan
+  CSV: EXISTS
+  DB: NOT FOUND
+  No loan found for project "Amor Fati, LLC"
+
+[Banking Dashboard - Loan] Icarus Development, LLC
+  Field: Loan
+  CSV: EXISTS
+  DB: NOT FOUND
+  No loan found for project "Icarus Development, LLC"
+
+[Banking Dashboard - Loan] Tredge
+  Field: Loan
+  CSV: EXISTS
+  DB: NOT FOUND
+  No loan found for project "Tredge"
+
+[Participants] The Heights at Inverness
+  Field: Project
+  CSV: The Heights at Inverness
+  DB: NOT FOUND
+  Project "The Heights at Inverness" not found for participation
+
+[Under Contract] The Waters at Bartlett
+  Field: Record
+  CSV: EXISTS
+  DB: NOT FOUND
+  Under Contract record not found for "The Waters at Bartlett"
+
+[Under Contract] Cahaba Valley Project
+  Field: Record
+  CSV: EXISTS
+  DB: NOT FOUND
+  Under Contract record not found for "Cahaba Valley Project"
+
+[Under Contract] Greenville Project
+  Field: Record
+  CSV: EXISTS
+  DB: NOT FOUND
+  Under Contract record not found for "Greenville Project"
+
+[Under Contract] Fort Walton Beach Project
+  Field: Record
+  CSV: EXISTS
+  DB: NOT FOUND
+  Under Contract record not found for "Fort Walton Beach Project"
+
+[Under Contract] The Waters at New Bern
+  Field: Record
+  CSV: EXISTS
+  DB: NOT FOUND
+  Under Contract record not found for "The Waters at New Bern"
+
+[Under Contract] Lake Murray
+  Field: Record
+  CSV: EXISTS
+  DB: NOT FOUND
+  Under Contract record not found for "Lake Murray"
+
+[Under Contract] The Waters at SweetBay
+  Field: Record
+  CSV: EXISTS
+  DB: NOT FOUND
+  Under Contract record not found for "The Waters at SweetBay"
+
+[Under Contract] The Waters at Fayetteville
+  Field: Record
+  CSV: EXISTS
+  DB: NOT FOUND
+  Under Contract record not found for "The Waters at Fayetteville"
+
+[Closed Properties] The Heights at Inverness
+  Field: Project
+  CSV: The Heights at Inverness
+  DB: NOT FOUND
+  Project "The Heights at Inverness" not found
+
+[Closed Properties] Office
+  Field: Project
+  CSV: Office
+  DB: NOT FOUND
+  Project "Office" not found
+
+[Closed Properties] Office
+  Field: Project
+  CSV: Office
+  DB: NOT FOUND
+  Project "Office" not found
+
+[Closed Properties] Office
+  Field: Project
+  CSV: Office
+  DB: NOT FOUND
+  Project "Office" not found
+
+[Closed Properties] Office
+  Field: Project
+  CSV: Office
+  DB: NOT FOUND
+  Project "Office" not found
+
+[Closed Properties] Okaloosa Ophthalmology
+  Field: Project
+  CSV: Okaloosa Ophthalmology
+  DB: NOT FOUND
+  Project "Okaloosa Ophthalmology" not found
+
+[Closed Properties] Office space
+  Field: Project
+  CSV: Office space
+  DB: NOT FOUND
+  Project "Office space" not found

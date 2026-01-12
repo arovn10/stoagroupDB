@@ -233,7 +233,9 @@ async function importBankingDashboard(pool: sql.ConnectionPool, csvPath: string)
     
     let loanId: number | null = null;
     
-    if (loanAmount && loanClosingDate) {
+    // Process loan even if amount or date is missing (allows updating partial data)
+    // Only skip if we have absolutely no loan data
+    if (loanAmount || loanClosingDate || lenderId || row[2]?.trim() || row[11]?.trim()) {
       const result = await pool.request()
         .input('ProjectId', sql.Int, projectId)
         .input('BirthOrder', sql.Int, birthOrder)
@@ -265,20 +267,20 @@ async function importBankingDashboard(pool: sql.ConnectionPool, csvPath: string)
               LoanType = @LoanType,
               Borrower = @Borrower,
               LenderId = @LenderId,
-              LoanAmount = @LoanAmount,
-              LoanClosingDate = @LoanClosingDate,
-              FixedOrFloating = @FixedOrFloating,
-              IndexName = @IndexName,
-              Spread = @Spread,
-              MiniPermMaturity = @MiniPermMaturity,
-              MiniPermInterestRate = @MiniPermInterestRate,
-              PermPhaseMaturity = @PermPhaseMaturity,
-              PermPhaseInterestRate = @PermPhaseInterestRate,
-              ConstructionCompletionDate = @ConstructionCompletionDate,
-              LeaseUpCompletedDate = @LeaseUpCompletedDate,
-              IOMaturityDate = @IOMaturityDate,
-              PermanentCloseDate = @PermanentCloseDate,
-              PermanentLoanAmount = @PermanentLoanAmount
+              LoanAmount = COALESCE(@LoanAmount, target.LoanAmount),
+              LoanClosingDate = COALESCE(@LoanClosingDate, target.LoanClosingDate),
+              FixedOrFloating = COALESCE(@FixedOrFloating, target.FixedOrFloating),
+              IndexName = COALESCE(@IndexName, target.IndexName),
+              Spread = COALESCE(@Spread, target.Spread),
+              MiniPermMaturity = COALESCE(@MiniPermMaturity, target.MiniPermMaturity),
+              MiniPermInterestRate = COALESCE(@MiniPermInterestRate, target.MiniPermInterestRate),
+              PermPhaseMaturity = COALESCE(@PermPhaseMaturity, target.PermPhaseMaturity),
+              PermPhaseInterestRate = COALESCE(@PermPhaseInterestRate, target.PermPhaseInterestRate),
+              ConstructionCompletionDate = COALESCE(@ConstructionCompletionDate, target.ConstructionCompletionDate),
+              LeaseUpCompletedDate = COALESCE(@LeaseUpCompletedDate, target.LeaseUpCompletedDate),
+              IOMaturityDate = COALESCE(@IOMaturityDate, target.IOMaturityDate),
+              PermanentCloseDate = COALESCE(@PermanentCloseDate, target.PermanentCloseDate),
+              PermanentLoanAmount = COALESCE(@PermanentLoanAmount, target.PermanentLoanAmount)
           WHEN NOT MATCHED THEN
             INSERT (ProjectId, BirthOrder, LoanType, Borrower, LoanPhase, LenderId,
                     LoanAmount, LoanClosingDate, FixedOrFloating, IndexName, Spread,

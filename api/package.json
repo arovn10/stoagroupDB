@@ -15,7 +15,16 @@
     "db:sync-all": "npx ts-node --transpile-only scripts/sync-all-data.ts",
     "db:sync-loans": "npx ts-node --transpile-only scripts/sync-loans-data.ts",
     "db:import-csv": "npx ts-node --transpile-only scripts/import-all-csv-data.ts",
-    "db:test-api": "npx ts-node --transpile-only scripts/test-api.ts"
+    "db:validate-csv": "npx ts-node --transpile-only scripts/validate-csv-data.ts",
+    "db:add-missing-projects": "npx ts-node --transpile-only scripts/add-missing-projects.ts",
+    "db:fix-schema": "npx ts-node --transpile-only scripts/fix-schema.ts",
+    "db:fix-all": "npm run db:fix-schema && npm run db:add-missing-projects",
+    "db:review-flat-exports": "npx ts-node --transpile-only scripts/review-flat-exports.ts",
+    "db:import-flat-exports": "npx ts-node --transpile-only scripts/import-flat-exports.ts",
+    "db:import-ims": "npx ts-node --transpile-only scripts/import-ims-data.ts",
+    "db:seed": "npx ts-node --transpile-only scripts/seed-database.ts",
+    "db:test-api": "npx ts-node --transpile-only scripts/test-api.ts",
+    "db:test-data": "npx ts-node --transpile-only scripts/test-data-import.ts"
   },
   "keywords": ["api", "rest", "azure-sql"],
   "author": "",
@@ -32,9 +41,11 @@
     "@types/node": "^20.10.5",
     "@types/mssql": "^8.1.0",
     "@types/cors": "^2.8.17",
+    "@types/xlsx": "^0.0.36",
     "typescript": "^5.3.3",
     "ts-node-dev": "^2.0.0",
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.2",
+    "xlsx": "^0.18.5"
   }
 }
 

@@ -1,0 +1,54 @@
+col_2,col_3,col_4,col_5,col_6,col_8,HQ State,Bank,# of Projects,Total Exposure,Hold Limit,per Deal Limit,Notes,Deposits,Deposit/Loan
+Recourse,,,,,Thru,TN,First Horizon Bank,2.0,72773000.0,,,,0.0,0.0
+,Existing Commitments,# of Deals,Projected Commitments,# of Deals,2026-12-31 00:00:00,MS,Hancock Whitney,3.0,107167182.48312563,,,,0.0,0.0
+b1Bank,129500159,3,79503317,2,,LA,b1Bank,5.0,106076380.47158,,,,3318890.9299999997,0.03128774676554125
+The First,0,0,0,0,,MS,Renasant Bank,3.0,63000000.0,85000000.0,,,0.0,0.0
+First Horizon Bank,74202833.44311695,2,38002833.44311695,1,,MS,Trustmark Bank,3.0,59049589.11247584,80000000.0,25000000,Also have NRE loan,1750138.58,0.02963845483609361
+Cadence Bank,0,0,0,0,,SD,Wells Fargo,1.0,41580000.0,,,,0.0,0.0
+Pen-Air,35000000,1,35000000,1,,MS,Cadence Bank,0.0,0.0,,,,0.0,0.0
+Hancock Whitney,119328566.04346973,3,119328566.04346973,3,,FL,Pen-Air Credit Union,1.0,19000000.0,45000000.0,15000000,Navy Federal Credit Backing,0.0,0.0
+FirstBank,0,0,0,0,,LA,JD Bank,2.0,14500000.0,,,,753581.17,0.0519711151724138
+Renasant Bank,61000000,2,64456616.800018646,2,,MS,The Citizens National Bank of Meridian,2.0,13733984.0,,,,0.0,0.0
+Pinnacle Bank,0,0,0,0,,LA,Home Bank,2.0,12500000.0,,,,782836.58,0.06262692639999999
+Bank OZK,0,0,0,0,,LA,Fidelity Bank,1.0,12000000.0,,,,0.0,0.0
+Fidelity Bank,31815771,1,31815771,1,,AL,First US Bank,1.0,8733984.0,,,,0.0,0.0
+Trustmark Bank,97670554.2,3,32467928,1,,MS,The Citizens Bank,1.0,7999994.6884200005,,,,0.0,0.0
+12,590097883.6865866,16,442155032.28660536,12,,LA,Gulf Coast Bank and Trust,1.0,7065771.0,,,,700000.0,0.0990691603223484
+,False,False,False,False,,AL,Bryant Bank,1.0,5000000.0,,,,0.0,0.0
+,,,,,,LA,Liberty Bank,1.0,5000000.0,,,,0.0,0.0
+Non-Recourse,,,,,,LA,Red River Bank,1.0,5000000.0,,,,0.0,0.0
+,Existing Commitments,# of Deals,Projected Commitments,# of Deals,,LA,Community Bank of Louisiana,1.0,5000000.0,,,,0.0,0.0
+HUD,211240005.93670648,5,241540603.2356649,6,,LA,United Community Bank - Louisiana,1.0,5000000.0,12000000.0,N/A,,0.0,0.0
+1,211240005.93670648,5,241540603.2356649,6,,LA,BOM Bank,1.0,4999684.2,,,,0.0,0.0
+,True,True,True,True,,LA,Catalyst Bank,1.0,4999684.2,,,,0.0,0.0
+,,,,,,LA,Community First Bank,1.0,4999684.2,,,,0.0,0.0
+Total,,,,,,LA,FNB Jeanerette,1.0,4999684.2,,,,0.0,0.0
+,Existing Commitments,# of Deals,Projected Commitments,# of Deals,,AR,Southern Bancorp,1.0,4750000.0,,,,0.0,0.0
+,801337889.6232932,21,683695635.5222702,18,,LA,Bank of Zachary,1.0,4500000.0,,,,0.0,0.0
+,,,,,,LA,Synergy Bank,1.0,4000000.0,,,,1.0,2.5e-07
+,,,,,,LA,CLB Bank,1.0,3999747.36,,,,0.0,0.0
+,,,,,,LA,Citizens Bank & Trust,1.0,3000000.0,,,,0.0,0.0
+,,,,,,LA,Southern Heritage Bank,1.0,3000000.0,,,,0.0,0.0
+,,,,,,LA,First National Bank USA,1.0,3000000.0,,,,0.0,0.0
+,,,,,,LA,St Landry Bank,1.0,2500000.0,,,,0.0,0.0
+,,,,,,FL,Radifi Federal Credit Union,1.0,2500000.0,,,,0.0,0.0
+,,,,,,AL,Avadian Credit Union,1.0,2000000.0,,,,0.0,0.0
+,,,,,,LA,Rayne State Bank,1.0,1999873.68,,,,0.0,0.0
+,,,,,,LA,Heart of Louisiana Federal Credit Union,1.0,1500000.0,,,,0.0,0.0
+,,,,,,LA,Plaquemine Bank,1.0,1000000.0,,,,0.0,0.0
+,,,,,,MS,Mutual Federal Credit Union,1.0,1000000.0,,,,0.0,0.0
+,,,,,,LA,Aneca Federal Credit Union,1.0,1000000.0,,,,0.0,0.0
+,,,,,,TX,Red River Employees Federal Credit Union,1.0,500000.0,,,,0.0,0.0
+,,,,,,LA,Investar Bank,0.0,0.0,,,,1027850.29,0.0
+,,,,,,MS,Bank Plus,0.0,0.0,,,,0.0,0.0
+,,,,,,LA,Currency Bank,0.0,0.0,,,,0.0,0.0
+,,,,,,LA,Gibsland Bank & Trust,0.0,0.0,,,,0.0,0.0
+,,,,,,MS,United Mississippi,0.0,0.0,,,,0.0,0.0
+,,,,,,MS,Magnolia State Bank,0.0,0.0,,,,0.0,0.0
+,,,,,,LA,American Bank & Trust,0.0,0.0,,,,0.0,0.0
+,,,,,,LA,Farmers State Bank,0.0,0.0,,,,0.0,0.0
+,,,,,,MS,Richton Bank & Trust,0.0,0.0,,,,0.0,0.0
+,,,,,,LA,Winnsboro State Bank & Trust,0.0,0.0,,,,0.0,0.0
+,,,,,,LA,First American Bank & Trust,0.0,0.0,,,,0.0,0.0
+,,,,,,LA,Citizens Savings Bank,0.0,0.0,,,,0.0,0.0
+,,,,,,,Total,,630428243.5956017,,,,8333298.55,0.013218472736043102
