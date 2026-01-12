@@ -1,12 +1,18 @@
 /**
  * Stoa Group Database API Client
  * 
- * Use this file in Domo Custom Scripts to create and update data via the Render API.
+ * Use this file in Domo Custom Scripts to perform full CRUD operations via the Render API.
  * 
  * API URL: https://stoagroupdb.onrender.com
  * 
- * IMPORTANT: This file focuses on POST (create) and PUT (update) endpoints
- * for modifying data from Domo. All endpoints use the Render API.
+ * IMPORTANT: This file provides complete CRUD operations (GET, POST, PUT, DELETE)
+ * for all data points in the database. All endpoints use the Render API.
+ * 
+ * All 16 tables have full CRUD support:
+ * - Core: Projects, Banks, Persons, Equity Partners
+ * - Banking: Loans, DSCR Tests, Participations, Guarantees, Covenants, 
+ *            Liquidity Requirements, Bank Targets, Equity Commitments
+ * - Pipeline: Under Contracts, Commercial Listed, Commercial Acreage, Closed Properties
  */
 
 const API_BASE_URL = 'https://stoagroupdb.onrender.com';
@@ -62,6 +68,10 @@ async function updateProject(projectId, updates) {
   return apiRequest(`/api/core/projects/${projectId}`, 'PUT', updates);
 }
 
+async function deleteProject(projectId) {
+  return apiRequest(`/api/core/projects/${projectId}`, 'DELETE');
+}
+
 // Banks
 async function getAllBanks() {
   return apiRequest('/api/core/banks', 'GET');
@@ -77,6 +87,10 @@ async function createBank(bankData) {
 
 async function updateBank(bankId, updates) {
   return apiRequest(`/api/core/banks/${bankId}`, 'PUT', updates);
+}
+
+async function deleteBank(bankId) {
+  return apiRequest(`/api/core/banks/${bankId}`, 'DELETE');
 }
 
 // Persons
@@ -96,6 +110,10 @@ async function updatePerson(personId, updates) {
   return apiRequest(`/api/core/persons/${personId}`, 'PUT', updates);
 }
 
+async function deletePerson(personId) {
+  return apiRequest(`/api/core/persons/${personId}`, 'DELETE');
+}
+
 // Equity Partners
 async function getAllEquityPartners() {
   return apiRequest('/api/core/equity-partners', 'GET');
@@ -111,6 +129,10 @@ async function createEquityPartner(partnerData) {
 
 async function updateEquityPartner(partnerId, updates) {
   return apiRequest(`/api/core/equity-partners/${partnerId}`, 'PUT', updates);
+}
+
+async function deleteEquityPartner(partnerId) {
+  return apiRequest(`/api/core/equity-partners/${partnerId}`, 'DELETE');
 }
 
 // ============================================================
@@ -145,6 +167,10 @@ async function updateLoan(loanId, updates) {
  */
 async function updateLoanByProject(projectId, updates) {
   return apiRequest(`/api/banking/loans/project/${projectId}`, 'PUT', updates);
+}
+
+async function deleteLoan(loanId) {
+  return apiRequest(`/api/banking/loans/${loanId}`, 'DELETE');
 }
 
 // Participations
@@ -236,6 +262,10 @@ async function updateDSCRTest(testId, updates) {
   return apiRequest(`/api/banking/dscr-tests/${testId}`, 'PUT', updates);
 }
 
+async function deleteDSCRTest(testId) {
+  return apiRequest(`/api/banking/dscr-tests/${testId}`, 'DELETE');
+}
+
 // Covenants
 async function getAllCovenants() {
   return apiRequest('/api/banking/covenants', 'GET');
@@ -291,6 +321,10 @@ async function updateLiquidityRequirement(requirementId, updates) {
   return apiRequest(`/api/banking/liquidity-requirements/${requirementId}`, 'PUT', updates);
 }
 
+async function deleteLiquidityRequirement(requirementId) {
+  return apiRequest(`/api/banking/liquidity-requirements/${requirementId}`, 'DELETE');
+}
+
 // Bank Targets
 async function getAllBankTargets() {
   return apiRequest('/api/banking/bank-targets', 'GET');
@@ -306,6 +340,10 @@ async function createBankTarget(targetData) {
 
 async function updateBankTarget(targetId, updates) {
   return apiRequest(`/api/banking/bank-targets/${targetId}`, 'PUT', updates);
+}
+
+async function deleteBankTarget(targetId) {
+  return apiRequest(`/api/banking/bank-targets/${targetId}`, 'DELETE');
 }
 
 // Equity Commitments
@@ -329,6 +367,10 @@ async function updateEquityCommitment(commitmentId, updates) {
   return apiRequest(`/api/banking/equity-commitments/${commitmentId}`, 'PUT', updates);
 }
 
+async function deleteEquityCommitment(commitmentId) {
+  return apiRequest(`/api/banking/equity-commitments/${commitmentId}`, 'DELETE');
+}
+
 // ============================================================
 // PIPELINE
 // ============================================================
@@ -350,6 +392,10 @@ async function updateUnderContract(contractId, updates) {
   return apiRequest(`/api/pipeline/under-contracts/${contractId}`, 'PUT', updates);
 }
 
+async function deleteUnderContract(contractId) {
+  return apiRequest(`/api/pipeline/under-contracts/${contractId}`, 'DELETE');
+}
+
 // Commercial Listed
 async function getAllCommercialListed() {
   return apiRequest('/api/pipeline/commercial-listed', 'GET');
@@ -365,6 +411,10 @@ async function createCommercialListed(listedData) {
 
 async function updateCommercialListed(listedId, updates) {
   return apiRequest(`/api/pipeline/commercial-listed/${listedId}`, 'PUT', updates);
+}
+
+async function deleteCommercialListed(listedId) {
+  return apiRequest(`/api/pipeline/commercial-listed/${listedId}`, 'DELETE');
 }
 
 // Commercial Acreage
@@ -384,6 +434,10 @@ async function updateCommercialAcreage(acreageId, updates) {
   return apiRequest(`/api/pipeline/commercial-acreage/${acreageId}`, 'PUT', updates);
 }
 
+async function deleteCommercialAcreage(acreageId) {
+  return apiRequest(`/api/pipeline/commercial-acreage/${acreageId}`, 'DELETE');
+}
+
 // Closed Properties
 async function getAllClosedProperties() {
   return apiRequest('/api/pipeline/closed-properties', 'GET');
@@ -399,6 +453,10 @@ async function createClosedProperty(propertyData) {
 
 async function updateClosedProperty(propertyId, updates) {
   return apiRequest(`/api/pipeline/closed-properties/${propertyId}`, 'PUT', updates);
+}
+
+async function deleteClosedProperty(propertyId) {
+  return apiRequest(`/api/pipeline/closed-properties/${propertyId}`, 'DELETE');
 }
 
 // ============================================================
@@ -525,31 +583,44 @@ async function getAPIDocs() {
 //   - updateClosedProperty(propertyId, {field: value}) - Update any closed property field
 //
 // Available DELETE functions:
-//   - deleteParticipation(participationId) - Remove participation
-//   - deleteGuarantee(guaranteeId) - Remove guarantee
-//   - deleteCovenant(covenantId) - Remove covenant
+//   - deleteProject(projectId) - Delete project
+//   - deleteBank(bankId) - Delete bank
+//   - deletePerson(personId) - Delete person
+//   - deleteEquityPartner(partnerId) - Delete equity partner
+//   - deleteLoan(loanId) - Delete loan
+//   - deleteDSCRTest(testId) - Delete DSCR test
+//   - deleteParticipation(participationId) - Delete participation
+//   - deleteGuarantee(guaranteeId) - Delete guarantee
+//   - deleteCovenant(covenantId) - Delete covenant
+//   - deleteLiquidityRequirement(requirementId) - Delete liquidity requirement
+//   - deleteBankTarget(targetId) - Delete bank target
+//   - deleteEquityCommitment(commitmentId) - Delete equity commitment
+//   - deleteUnderContract(contractId) - Delete under contract record
+//   - deleteCommercialListed(listedId) - Delete commercial listed record
+//   - deleteCommercialAcreage(acreageId) - Delete commercial acreage record
+//   - deleteClosedProperty(propertyId) - Delete closed property record
 //
 // For Node.js/ES6 modules, uncomment:
 // export {
-//   // Core - Create & Update
-//   createProject, updateProject,
-//   createBank, updateBank,
-//   createPerson, updatePerson,
-//   createEquityPartner, updateEquityPartner,
-//   // Banking - Create & Update
-//   createLoan, updateLoan,
-//   createParticipation, updateParticipation,
-//   createGuarantee, updateGuarantee,
-//   createDSCRTest, updateDSCRTest,
-//   createCovenant, updateCovenant,
-//   createLiquidityRequirement, updateLiquidityRequirement,
-//   createBankTarget, updateBankTarget,
-//   createEquityCommitment, updateEquityCommitment,
-//   // Pipeline - Create & Update
-//   createUnderContract, updateUnderContract,
-//   createCommercialListed, updateCommercialListed,
-//   createCommercialAcreage, updateCommercialAcreage,
-//   createClosedProperty, updateClosedProperty,
+//   // Core - Full CRUD
+//   getAllProjects, getProjectById, createProject, updateProject, deleteProject,
+//   getAllBanks, getBankById, createBank, updateBank, deleteBank,
+//   getAllPersons, getPersonById, createPerson, updatePerson, deletePerson,
+//   getAllEquityPartners, getEquityPartnerById, createEquityPartner, updateEquityPartner, deleteEquityPartner,
+//   // Banking - Full CRUD
+//   getAllLoans, getLoanById, getLoansByProject, createLoan, updateLoan, updateLoanByProject, deleteLoan,
+//   getAllDSCRTests, getDSCRTestById, getDSCRTestsByProject, createDSCRTest, updateDSCRTest, deleteDSCRTest,
+//   getAllParticipations, getParticipationById, getParticipationsByProject, createParticipation, createParticipationByProject, updateParticipation, deleteParticipation,
+//   getAllGuarantees, getGuaranteeById, getGuaranteesByProject, createGuarantee, createGuaranteeByProject, updateGuarantee, deleteGuarantee,
+//   getAllCovenants, getCovenantById, getCovenantsByProject, createCovenant, createCovenantByProject, updateCovenant, deleteCovenant,
+//   getAllLiquidityRequirements, getLiquidityRequirementById, getLiquidityRequirementsByProject, createLiquidityRequirement, updateLiquidityRequirement, deleteLiquidityRequirement,
+//   getAllBankTargets, getBankTargetById, createBankTarget, updateBankTarget, deleteBankTarget,
+//   getAllEquityCommitments, getEquityCommitmentById, getEquityCommitmentsByProject, createEquityCommitment, updateEquityCommitment, deleteEquityCommitment,
+//   // Pipeline - Full CRUD
+//   getAllUnderContracts, getUnderContractById, createUnderContract, updateUnderContract, deleteUnderContract,
+//   getAllCommercialListed, getCommercialListedById, createCommercialListed, updateCommercialListed, deleteCommercialListed,
+//   getAllCommercialAcreage, getCommercialAcreageById, createCommercialAcreage, updateCommercialAcreage, deleteCommercialAcreage,
+//   getAllClosedProperties, getClosedPropertyById, createClosedProperty, updateClosedProperty, deleteClosedProperty,
 //   // Utility
 //   checkHealth, getAPIDocs
 // };
@@ -770,6 +841,9 @@ await updateParticipation(1, {
 // Delete a participation
 await deleteParticipation(participationId);
 
+// Delete a loan
+await deleteLoan(loanId);
+
 // ============================================================
 // BANKING - CREATE & UPDATE GUARANTEES
 // ============================================================
@@ -818,6 +892,9 @@ const newDSCRTest = await createDSCRTest({
 await updateDSCRTest(1, {
   ProjectedValue: "0.50"
 });
+
+// Delete a DSCR test
+await deleteDSCRTest(testId);
 
 // ============================================================
 // BANKING - CREATE & UPDATE COVENANTS
@@ -868,6 +945,9 @@ await updateLiquidityRequirement(1, {
   TotalAmount: 6000000
 });
 
+// Delete a liquidity requirement
+await deleteLiquidityRequirement(requirementId);
+
 // ============================================================
 // BANKING - CREATE & UPDATE BANK TARGETS
 // ============================================================
@@ -889,6 +969,9 @@ await updateBankTarget(1, {
   Comments: "Updated comments"
 });
 
+// Delete a bank target
+await deleteBankTarget(targetId);
+
 // ============================================================
 // BANKING - CREATE & UPDATE EQUITY COMMITMENTS
 // ============================================================
@@ -907,6 +990,9 @@ await updateEquityCommitment(1, {
   Amount: 6000000
 });
 
+// Delete an equity commitment
+await deleteEquityCommitment(commitmentId);
+
 // ============================================================
 // PIPELINE - CREATE & UPDATE
 // ============================================================
@@ -923,6 +1009,45 @@ const newUnderContract = await createUnderContract({
 await updateUnderContract(1, {
   Price: 11000000
 });
+
+// Delete under contract
+await deleteUnderContract(contractId);
+
+// Update commercial listed
+await updateCommercialListed(1, {
+  Price: 5000000
+});
+
+// Delete commercial listed
+await deleteCommercialListed(listedId);
+
+// Update commercial acreage
+await updateCommercialAcreage(1, {
+  Acreage: 10.5
+});
+
+// Delete commercial acreage
+await deleteCommercialAcreage(acreageId);
+
+// Update closed property
+await updateClosedProperty(1, {
+  Price: 12000000
+});
+
+// Delete closed property
+await deleteClosedProperty(propertyId);
+
+// Delete a project
+await deleteProject(projectId);
+
+// Delete a bank
+await deleteBank(bankId);
+
+// Delete a person
+await deletePerson(personId);
+
+// Delete an equity partner
+await deleteEquityPartner(partnerId);
 
 // ============================================================
 // UTILITY
