@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import coreRoutes from './routes/coreRoutes';
 import bankingRoutes from './routes/bankingRoutes';
 import pipelineRoutes from './routes/pipelineRoutes';
+import authRoutes from './routes/authRoutes';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { getConnection } from './config/database';
 
@@ -41,6 +42,7 @@ app.get('/health', async (req: Request, res: Response) => {
 });
 
 // API Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/core', coreRoutes);
 app.use('/api/banking', bankingRoutes);
 app.use('/api/pipeline', pipelineRoutes);
@@ -52,6 +54,11 @@ app.get('/api', (req: Request, res: Response) => {
     message: 'Stoa Group Database API - Write Operations Only (Domo handles GET)',
     version: '1.0.0',
     endpoints: {
+      auth: {
+        login: 'POST /api/auth/login',
+        verify: 'GET /api/auth/verify (requires Bearer token)',
+        me: 'GET /api/auth/me (requires Bearer token)',
+      },
       core: {
         projects: {
           getAll: 'GET /api/core/projects',

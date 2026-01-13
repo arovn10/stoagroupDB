@@ -10,7 +10,17 @@ export const getAllLoans = async (req: Request, res: Response, next: NextFunctio
   try {
     const pool = await getConnection();
     const result = await pool.request().query(`
-      SELECT l.*, p.ProjectName, b.BankName as LenderName
+      SELECT 
+        l.*, 
+        p.ProjectName, 
+        b.BankName as LenderName,
+        CASE 
+          WHEN l.IOMaturityDate IS NOT NULL AND l.LoanClosingDate IS NOT NULL 
+          THEN DATEDIFF(MONTH, l.LoanClosingDate, l.IOMaturityDate)
+          WHEN l.MaturityDate IS NOT NULL AND l.LoanClosingDate IS NOT NULL 
+          THEN DATEDIFF(MONTH, l.LoanClosingDate, l.MaturityDate)
+          ELSE NULL
+        END AS ConstructionIOTermMonths
       FROM banking.Loan l
       LEFT JOIN core.Project p ON l.ProjectId = p.ProjectId
       LEFT JOIN core.Bank b ON l.LenderId = b.BankId
@@ -28,7 +38,19 @@ export const getLoanById = async (req: Request, res: Response, next: NextFunctio
     const pool = await getConnection();
     const result = await pool.request()
       .input('id', sql.Int, id)
-      .query('SELECT * FROM banking.Loan WHERE LoanId = @id');
+      .query(`
+        SELECT 
+          l.*,
+          CASE 
+            WHEN l.IOMaturityDate IS NOT NULL AND l.LoanClosingDate IS NOT NULL 
+            THEN DATEDIFF(MONTH, l.LoanClosingDate, l.IOMaturityDate)
+            WHEN l.MaturityDate IS NOT NULL AND l.LoanClosingDate IS NOT NULL 
+            THEN DATEDIFF(MONTH, l.LoanClosingDate, l.MaturityDate)
+            ELSE NULL
+          END AS ConstructionIOTermMonths
+        FROM banking.Loan l
+        WHERE l.LoanId = @id
+      `);
     
     if (result.recordset.length === 0) {
       res.status(404).json({ success: false, error: { message: 'Loan not found' } });
@@ -47,7 +69,20 @@ export const getLoansByProject = async (req: Request, res: Response, next: NextF
     const pool = await getConnection();
     const result = await pool.request()
       .input('projectId', sql.Int, projectId)
-      .query('SELECT * FROM banking.Loan WHERE ProjectId = @projectId ORDER BY LoanId');
+      .query(`
+        SELECT 
+          l.*,
+          CASE 
+            WHEN l.IOMaturityDate IS NOT NULL AND l.LoanClosingDate IS NOT NULL 
+            THEN DATEDIFF(MONTH, l.LoanClosingDate, l.IOMaturityDate)
+            WHEN l.MaturityDate IS NOT NULL AND l.LoanClosingDate IS NOT NULL 
+            THEN DATEDIFF(MONTH, l.LoanClosingDate, l.MaturityDate)
+            ELSE NULL
+          END AS ConstructionIOTermMonths
+        FROM banking.Loan l
+        WHERE l.ProjectId = @projectId 
+        ORDER BY l.LoanId
+      `);
     
     res.json({ success: true, data: result.recordset });
   } catch (error) {
@@ -58,7 +93,7 @@ export const getLoansByProject = async (req: Request, res: Response, next: NextF
 export const createLoan = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const {
-      ProjectId, BirthOrder, LoanType, Borrower, LoanPhase, LenderId,
+      ProjectId, BirthOrder, LoanType, Borrower, LoanPhase, FinancingStage, LenderId,
       LoanAmount, LoanClosingDate, MaturityDate, FixedOrFloating, IndexName,
       Spread, InterestRate, MiniPermMaturity, MiniPermInterestRate,
       PermPhaseMaturity, PermPhaseInterestRate, ConstructionCompletionDate,
@@ -78,6 +113,7 @@ export const createLoan = async (req: Request, res: Response, next: NextFunction
       .input('LoanType', sql.NVarChar, LoanType)
       .input('Borrower', sql.NVarChar, Borrower)
       .input('LoanPhase', sql.NVarChar, LoanPhase)
+      .input('FinancingStage', sql.NVarChar, FinancingStage)
       .input('LenderId', sql.Int, LenderId)
       .input('LoanAmount', sql.Decimal(18, 2), LoanAmount)
       .input('LoanClosingDate', sql.Date, LoanClosingDate)
@@ -98,7 +134,7 @@ export const createLoan = async (req: Request, res: Response, next: NextFunction
       .input('Notes', sql.NVarChar(sql.MAX), Notes)
       .query(`
         INSERT INTO banking.Loan (
-          ProjectId, BirthOrder, LoanType, Borrower, LoanPhase, LenderId,
+          ProjectId, BirthOrder, LoanType, Borrower, LoanPhase, FinancingStage, LenderId,
           LoanAmount, LoanClosingDate, MaturityDate, FixedOrFloating, IndexName,
           Spread, InterestRate, MiniPermMaturity, MiniPermInterestRate,
           PermPhaseMaturity, PermPhaseInterestRate, ConstructionCompletionDate,
@@ -107,7 +143,7 @@ export const createLoan = async (req: Request, res: Response, next: NextFunction
         )
         OUTPUT INSERTED.*
         VALUES (
-          @ProjectId, @BirthOrder, @LoanType, @Borrower, @LoanPhase, @LenderId,
+          @ProjectId, @BirthOrder, @LoanType, @Borrower, @LoanPhase, @FinancingStage, @LenderId,
           @LoanAmount, @LoanClosingDate, @MaturityDate, @FixedOrFloating, @IndexName,
           @Spread, @InterestRate, @MiniPermMaturity, @MiniPermInterestRate,
           @PermPhaseMaturity, @PermPhaseInterestRate, @ConstructionCompletionDate,
@@ -164,7 +200,19 @@ export const updateLoan = async (req: Request, res: Response, next: NextFunction
 
     const result = await pool.request()
       .input('id', sql.Int, id)
-      .query('SELECT * FROM banking.Loan WHERE LoanId = @id');
+      .query(`
+        SELECT 
+          l.*,
+          CASE 
+            WHEN l.IOMaturityDate IS NOT NULL AND l.LoanClosingDate IS NOT NULL 
+            THEN DATEDIFF(MONTH, l.LoanClosingDate, l.IOMaturityDate)
+            WHEN l.MaturityDate IS NOT NULL AND l.LoanClosingDate IS NOT NULL 
+            THEN DATEDIFF(MONTH, l.LoanClosingDate, l.MaturityDate)
+            ELSE NULL
+          END AS ConstructionIOTermMonths
+        FROM banking.Loan l
+        WHERE l.LoanId = @id
+      `);
 
     if (result.recordset.length === 0) {
       res.status(404).json({ success: false, error: { message: 'Loan not found' } });
@@ -420,13 +468,55 @@ export const getAllParticipations = async (req: Request, res: Response, next: Ne
   try {
     const pool = await getConnection();
     const result = await pool.request().query(`
-      SELECT p.*, pr.ProjectName, b.BankName
+      SELECT 
+        p.*, 
+        pr.ProjectName, 
+        b.BankName,
+        -- Calculate active exposure (exposure - paid off amount, but we only have PaidOff flag)
+        CASE WHEN p.PaidOff = 1 THEN 0 ELSE p.ExposureAmount END AS ActiveExposure
       FROM banking.Participation p
       LEFT JOIN core.Project pr ON p.ProjectId = pr.ProjectId
       LEFT JOIN core.Bank b ON p.BankId = b.BankId
       ORDER BY p.ParticipationId
     `);
-    res.json({ success: true, data: result.recordset });
+    
+    // Group by project and calculate percentages
+    const projectMap: { [key: number]: any[] } = {};
+    result.recordset.forEach((row: any) => {
+      if (!projectMap[row.ProjectId]) {
+        projectMap[row.ProjectId] = [];
+      }
+      projectMap[row.ProjectId].push(row);
+    });
+    
+    // Calculate total active exposure per project and update percentages
+    const enrichedData: any[] = [];
+    for (const projectId in projectMap) {
+      const participations = projectMap[projectId];
+      const totalActiveExposure = participations.reduce((sum, p) => sum + (parseFloat(p.ActiveExposure) || 0), 0);
+      
+      participations.forEach((p: any) => {
+        const activeExposure = parseFloat(p.ActiveExposure) || 0;
+        let calculatedPercent: string;
+        
+        if (p.PaidOff === true || p.PaidOff === 1) {
+          calculatedPercent = '0.0%';
+        } else if (totalActiveExposure > 0) {
+          const percentValue = (activeExposure / totalActiveExposure) * 100;
+          calculatedPercent = `${percentValue.toFixed(1)}%`;
+        } else {
+          calculatedPercent = '0.0%';
+        }
+        
+        enrichedData.push({
+          ...p,
+          ParticipationPercent: calculatedPercent,
+          CalculatedParticipationPercent: calculatedPercent
+        });
+      });
+    }
+    
+    res.json({ success: true, data: enrichedData });
   } catch (error) {
     next(error);
   }
@@ -457,8 +547,40 @@ export const getParticipationsByProject = async (req: Request, res: Response, ne
     const pool = await getConnection();
     const result = await pool.request()
       .input('projectId', sql.Int, projectId)
-      .query('SELECT * FROM banking.Participation WHERE ProjectId = @projectId ORDER BY ParticipationId');
-    res.json({ success: true, data: result.recordset });
+      .query(`
+        SELECT 
+          p.*,
+          CASE WHEN p.PaidOff = 1 THEN 0 ELSE p.ExposureAmount END AS ActiveExposure
+        FROM banking.Participation p
+        WHERE p.ProjectId = @projectId 
+        ORDER BY p.ParticipationId
+      `);
+    
+    // Calculate total active exposure for this project
+    const totalActiveExposure = result.recordset.reduce((sum, p) => sum + (parseFloat(p.ActiveExposure) || 0), 0);
+    
+    // Calculate percentages based on active exposure
+    const enrichedData = result.recordset.map((p: any) => {
+      const activeExposure = parseFloat(p.ActiveExposure) || 0;
+      let calculatedPercent: string;
+      
+      if (p.PaidOff === true || p.PaidOff === 1) {
+        calculatedPercent = '0.0%';
+      } else if (totalActiveExposure > 0) {
+        const percentValue = (activeExposure / totalActiveExposure) * 100;
+        calculatedPercent = `${percentValue.toFixed(1)}%`;
+      } else {
+        calculatedPercent = '0.0%';
+      }
+      
+      return {
+        ...p,
+        ParticipationPercent: calculatedPercent,
+        CalculatedParticipationPercent: calculatedPercent
+      };
+    });
+    
+    res.json({ success: true, data: enrichedData });
   } catch (error) {
     next(error);
   }

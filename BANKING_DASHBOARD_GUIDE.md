@@ -318,6 +318,180 @@ ORDER BY p.ProjectName, TotalAmount DESC
 
 ---
 
+### SUB-VIEW 4: Contingent Liabilities
+
+#### Data Points to Display (Deal-by-Deal):
+
+| Display Field | Database Field | Table | API Endpoint | CRUD |
+|--------------|---------------|-------|--------------|------|
+| Property Name | `ProjectName` | `core.Project` | `/api/core/projects/:id` | ✅ Full |
+| Construction Loan Closing | `LoanClosingDate` | `banking.Loan` (Construction) | `/api/banking/loans/:id` | ✅ Full |
+| Construction Loan Amount | `LoanAmount` | `banking.Loan` (Construction) | `/api/banking/loans/:id` | ✅ Full |
+| Construction Financing Lender | `BankName` | `core.Bank` (via `LenderId`) | `/api/core/banks/:id` | ✅ Full |
+| Stoa Holdings, LLC Guaranty % | `GuaranteePercent` | `banking.Guarantee` (PersonId = Stoa Holdings) | `/api/banking/guarantees/:id` | ✅ Full |
+| Stoa Holdings, LLC Guaranty $ | `GuaranteeAmount` | `banking.Guarantee` (PersonId = Stoa Holdings) | `/api/banking/guarantees/:id` | ✅ Full |
+| Toby Easterly Guaranty % | `GuaranteePercent` | `banking.Guarantee` (PersonId = Toby Easterly) | `/api/banking/guarantees/:id` | ✅ Full |
+| Toby Easterly Guaranty $ | `GuaranteeAmount` | `banking.Guarantee` (PersonId = Toby Easterly) | `/api/banking/guarantees/:id` | ✅ Full |
+| Ryan Nash Guaranty % | `GuaranteePercent` | `banking.Guarantee` (PersonId = Ryan Nash) | `/api/banking/guarantees/:id` | ✅ Full |
+| Ryan Nash Guaranty $ | `GuaranteeAmount` | `banking.Guarantee` (PersonId = Ryan Nash) | `/api/banking/guarantees/:id` | ✅ Full |
+| Saun Sullivan Guaranty % | `GuaranteePercent` | `banking.Guarantee` (PersonId = Saun Sullivan) | `/api/banking/guarantees/:id` | ✅ Full |
+| Saun Sullivan Guaranty $ | `GuaranteeAmount` | `banking.Guarantee` (PersonId = Saun Sullivan) | `/api/banking/guarantees/:id` | ✅ Full |
+| Covenants | `Notes` | `banking.Covenant` | `/api/banking/covenants/:id` | ✅ Full |
+
+#### API Query for Contingent Liabilities:
+
+```javascript
+async function getContingentLiabilitiesByProject(projectId) {
+  // Get project info
+  const project = await getProjectById(projectId);
+  
+  // Get construction loan for this project
+  const loans = await getLoansByProject(projectId);
+  const constructionLoan = loans.data.find(loan => 
+    loan.LoanPhase === 'Construction' || 
+    loan.LoanPhase === 'Land' ||
+    loan.LoanType?.toLowerCase().includes('construction')
+  );
+  
+  // Get bank info if loan exists
+  let bank = null;
+  if (constructionLoan?.LenderId) {
+    bank = await getBankById(constructionLoan.LenderId);
+  }
+  
+  // Get all guarantees for this project
+  const guarantees = await getGuaranteesByProject(projectId);
+  
+  // Get all persons to map PersonId to names
+  const allPersons = await getAllPersons();
+  const personMap = {};
+  allPersons.data.forEach(person => {
+    personMap[person.PersonId] = person.FullName;
+  });
+  
+  // Organize guarantees by person
+  const guaranteeMap = {
+    'Stoa Holdings, LLC': { percent: null, amount: null },
+    'Toby Easterly': { percent: null, amount: null },
+    'Ryan Nash': { percent: null, amount: null },
+    'Saun Sullivan': { percent: null, amount: null }
+  };
+  
+  guarantees.data.forEach(guarantee => {
+    const personName = personMap[guarantee.PersonId];
+    if (guaranteeMap[personName]) {
+      guaranteeMap[personName].percent = guarantee.GuaranteePercent;
+      guaranteeMap[personName].amount = guarantee.GuaranteeAmount;
+    }
+  });
+  
+  // Get covenants
+  const covenants = await getCovenantsByProject(projectId);
+  const covenantText = covenants.data
+    .map(c => c.Notes)
+    .filter(n => n && n.trim() !== '')
+    .join('; ');
+  
+  return {
+    ProjectId: projectId,
+    PropertyName: project.data.ProjectName,
+    ConstructionLoanClosing: constructionLoan?.LoanClosingDate || null,
+    ConstructionLoanAmount: constructionLoan?.LoanAmount || null,
+    ConstructionFinancingLender: bank?.data?.BankName || 'N/A',
+    StoaHoldingsGuarantyPercent: guaranteeMap['Stoa Holdings, LLC'].percent,
+    StoaHoldingsGuarantyAmount: guaranteeMap['Stoa Holdings, LLC'].amount,
+    TobyEasterlyGuarantyPercent: guaranteeMap['Toby Easterly'].percent,
+    TobyEasterlyGuarantyAmount: guaranteeMap['Toby Easterly'].amount,
+    RyanNashGuarantyPercent: guaranteeMap['Ryan Nash'].percent,
+    RyanNashGuarantyAmount: guaranteeMap['Ryan Nash'].amount,
+    SaunSullivanGuarantyPercent: guaranteeMap['Saun Sullivan'].percent,
+    SaunSullivanGuarantyAmount: guaranteeMap['Saun Sullivan'].amount,
+    Covenants: covenantText || null,
+    // Keep references for editing
+    LoanId: constructionLoan?.LoanId || null,
+    Guarantees: guarantees.data, // Array of all guarantees
+    CovenantIds: covenants.data.map(c => c.CovenantId) // Array of covenant IDs
+  };
+}
+```
+
+#### SQL Query (Alternative):
+
+```sql
+SELECT 
+    p.ProjectId,
+    p.ProjectName AS PropertyName,
+    l.LoanClosingDate AS ConstructionLoanClosing,
+    l.LoanAmount AS ConstructionLoanAmount,
+    b.BankName AS ConstructionFinancingLender,
+    -- Stoa Holdings guarantees
+    MAX(CASE WHEN pe.FullName = 'Stoa Holdings, LLC' THEN g.GuaranteePercent END) AS StoaHoldingsGuarantyPercent,
+    MAX(CASE WHEN pe.FullName = 'Stoa Holdings, LLC' THEN g.GuaranteeAmount END) AS StoaHoldingsGuarantyAmount,
+    -- Toby Easterly guarantees
+    MAX(CASE WHEN pe.FullName = 'Toby Easterly' THEN g.GuaranteePercent END) AS TobyEasterlyGuarantyPercent,
+    MAX(CASE WHEN pe.FullName = 'Toby Easterly' THEN g.GuaranteeAmount END) AS TobyEasterlyGuarantyAmount,
+    -- Ryan Nash guarantees
+    MAX(CASE WHEN pe.FullName = 'Ryan Nash' THEN g.GuaranteePercent END) AS RyanNashGuarantyPercent,
+    MAX(CASE WHEN pe.FullName = 'Ryan Nash' THEN g.GuaranteeAmount END) AS RyanNashGuarantyAmount,
+    -- Saun Sullivan guarantees
+    MAX(CASE WHEN pe.FullName = 'Saun Sullivan' THEN g.GuaranteePercent END) AS SaunSullivanGuarantyPercent,
+    MAX(CASE WHEN pe.FullName = 'Saun Sullivan' THEN g.GuaranteeAmount END) AS SaunSullivanGuarantyAmount,
+    -- Covenants (concatenated)
+    STRING_AGG(c.Notes, '; ') AS Covenants
+FROM core.Project p
+LEFT JOIN banking.Loan l ON l.ProjectId = p.ProjectId 
+    AND (l.LoanPhase IN ('Construction', 'Land') OR l.LoanType LIKE '%Construction%')
+LEFT JOIN core.Bank b ON b.BankId = l.LenderId
+LEFT JOIN banking.Guarantee g ON g.ProjectId = p.ProjectId
+LEFT JOIN core.Person pe ON pe.PersonId = g.PersonId
+LEFT JOIN banking.Covenant c ON c.ProjectId = p.ProjectId
+GROUP BY p.ProjectId, p.ProjectName, l.LoanClosingDate, l.LoanAmount, b.BankName
+ORDER BY p.ProjectName
+```
+
+#### Notes:
+- **Guarantees:** Each person (Stoa Holdings, Toby, Ryan, Saun) can have one guarantee per project
+- **Construction Loan:** Uses the construction loan for the project (LoanPhase = 'Construction' or 'Land')
+- **Covenants:** Multiple covenants can exist per project; concatenate Notes field
+- **CRUD Access:** All fields have full CRUD support via API endpoints
+- **Person Names:** Must match exactly: "Stoa Holdings, LLC", "Toby Easterly", "Ryan Nash", "Saun Sullivan"
+
+#### Example: Creating/Updating a Guarantee
+
+```javascript
+// Create or update Toby Easterly's guarantee for a project
+async function updateTobyGuarantee(projectId, percent, amount) {
+  // First, get Toby's PersonId
+  const allPersons = await getAllPersons();
+  const toby = allPersons.data.find(p => p.FullName === 'Toby Easterly');
+  
+  if (!toby) {
+    throw new Error('Toby Easterly not found in Person table');
+  }
+  
+  // Check if guarantee already exists
+  const guarantees = await getGuaranteesByProject(projectId);
+  const existingGuarantee = guarantees.data.find(g => g.PersonId === toby.PersonId);
+  
+  if (existingGuarantee) {
+    // Update existing guarantee
+    return await updateGuarantee(existingGuarantee.GuaranteeId, {
+      GuaranteePercent: percent,
+      GuaranteeAmount: amount
+    });
+  } else {
+    // Create new guarantee
+    return await createGuaranteeByProject(projectId, {
+      PersonId: toby.PersonId,
+      GuaranteePercent: percent,
+      GuaranteeAmount: amount
+    });
+  }
+}
+```
+
+---
+
 ## 📊 TAB 2: SEARCH BY BANK
 
 #### Data Points to Display:
@@ -605,11 +779,12 @@ ORDER BY Exposure DESC
 │  Data    │    │    Data      │
 └──────────┘    └──────────────┘
     │                 │
-    ├─ Loan           ├─ EquityCommitment
-    ├─ Participation  │
-    ├─ DSCRTest       │
-    ├─ Covenant       │
-    └─ Guarantee      │
+    ├─ Loan              ├─ EquityCommitment
+    ├─ Participation     │
+    ├─ DSCRTest          │
+    ├─ Covenant          │
+    ├─ Guarantee         │
+    └─ LiquidityRequirement │
 ```
 
 ### Key Relationships:
@@ -618,6 +793,8 @@ ORDER BY Exposure DESC
    - `banking.Loan.ProjectId` → `core.Project.ProjectId`
    - `banking.Participation.ProjectId` → `core.Project.ProjectId`
    - `banking.EquityCommitment.ProjectId` → `core.Project.ProjectId`
+   - `banking.Guarantee.ProjectId` → `core.Project.ProjectId`
+   - `banking.Covenant.ProjectId` → `core.Project.ProjectId`
 
 2. **Banking data links to Bank:**
    - `banking.Loan.LenderId` → `core.Bank.BankId`
@@ -625,6 +802,9 @@ ORDER BY Exposure DESC
 
 3. **Equity data links to EquityPartner:**
    - `banking.EquityCommitment.EquityPartnerId` → `core.EquityPartner.EquityPartnerId`
+
+4. **Guarantee data links to Person:**
+   - `banking.Guarantee.PersonId` → `core.Person.PersonId`
 
 ### API Usage Pattern:
 
@@ -639,9 +819,14 @@ const participations = await getParticipationsByProject(projectId);
 // 3. Get related equity data
 const commitments = await getEquityCommitmentsByProject(projectId);
 
-// 4. Enrich with reference data
+// 4. Get contingent liabilities
+const guarantees = await getGuaranteesByProject(projectId);
+const covenants = await getCovenantsByProject(projectId);
+
+// 5. Enrich with reference data
 const bank = await getBankById(loan.LenderId);
 const investor = await getEquityPartnerById(commitment.EquityPartnerId);
+const persons = await getAllPersons(); // For guarantee person names
 ```
 
 ---
@@ -667,6 +852,12 @@ const investor = await getEquityPartnerById(commitment.EquityPartnerId);
 
 #### Equity Partners:
 - ✅ `getAllEquityPartners()`, `getEquityPartnerById()`, `createEquityPartner()`, `updateEquityPartner()`, `deleteEquityPartner()`
+
+#### Guarantees (Contingent Liabilities):
+- ✅ `getAllGuarantees()`, `getGuaranteeById()`, `getGuaranteesByProject()`, `createGuarantee()`, `createGuaranteeByProject()`, `updateGuarantee()`, `deleteGuarantee()`
+
+#### Covenants:
+- ✅ `getAllCovenants()`, `getCovenantById()`, `getCovenantsByProject()`, `createCovenant()`, `createCovenantByProject()`, `updateCovenant()`, `deleteCovenant()`
 
 ---
 
@@ -694,6 +885,9 @@ const investor = await getEquityPartnerById(commitment.EquityPartnerId);
 ### Search By Equity:
 - **Project Cost** (for Last Dollar and LTC calculations)
 
+### Contingent Liabilities:
+- **All fields are in database** - No external sources needed
+
 **Important:** Do NOT fabricate these values. Pull from external sources or leave as NULL/blank.
 
 ---
@@ -709,10 +903,11 @@ const investor = await getEquityPartnerById(commitment.EquityPartnerId);
 
 ### Step 2: By Property Tab
 
-1. Create three sub-view buttons/tabs:
+1. Create four sub-view buttons/tabs:
    - "Construction Financing"
    - "Permanent Financing"
    - "Equity"
+   - "Contingent Liabilities"
 
 2. For each sub-view:
    - Create a card/table
@@ -810,6 +1005,7 @@ async function updateConstructionLoanAmount(loanId, newAmount) {
 | **Construction Loan** | ✅ Lender, Amount, Closing Date, Maturity, Index, Spread | ❌ Project Cost | ❌ LTC |
 | **Permanent Loan** | ✅ Lender, Amount, Close Date, Maturity, Interest Rate | ❌ Property Value | ❌ LTV, Term |
 | **Equity Basic** | ✅ Investor, Amount, Funding Date | ❌ Pref Group, Pref Amount, Common Equity, Interest Rate, Kicker | ❌ Last Dollar, LTC |
+| **Contingent Liabilities** | ✅ All Guaranty % and $ (Stoa Holdings, Toby, Ryan, Saun), Covenants, Construction Loan Info | ❌ None | ❌ None |
 | **Bank Summary** | ✅ Bank Name, Exposure, Hold Limit | ❌ Debt Yield, Project Cost | ❌ Capacity, Last Dollar, LTC |
 | **Equity Summary** | ✅ Investor Name, Exposure | ❌ Project Cost | ❌ Last Dollar, LTC |
 
@@ -818,7 +1014,7 @@ async function updateConstructionLoanAmount(loanId, newAmount) {
 ## 🚀 Quick Start Checklist
 
 - [ ] Set up three main tabs (By Property, Search By Bank, Search By Equity)
-- [ ] Create three sub-views for By Property tab
+- [ ] Create four sub-views for By Property tab (Construction Financing, Permanent Financing, Equity, Contingent Liabilities)
 - [ ] Implement API queries for each view
 - [ ] Add filters/search functionality
 - [ ] Enable CRUD operations for database fields

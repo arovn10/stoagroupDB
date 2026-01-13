@@ -3,14 +3,73 @@
  * 
  * Full CRUD operations for all data points across all departments
  * Use these functions in Domo Custom Scripts or any JavaScript environment
+ * 
+ * AUTHENTICATION REQUIRED FOR BANKING DASHBOARD WRITE OPERATIONS:
+ * - All POST, PUT, DELETE operations on banking routes require authentication
+ * - Use login() to get a token, then pass it to authenticated requests
+ * - Store token in localStorage or sessionStorage for persistence
+ * 
+ * TO CHANGE API URL:
+ * - Set window.API_BASE_URL before importing this file, OR
+ * - Call setApiBaseUrl('your-api-url') after importing
  */
 
-const API_BASE_URL = 'https://stoagroupdb.onrender.com';
+// API Base URL - can be overridden by setting window.API_BASE_URL or calling setApiBaseUrl()
+let API_BASE_URL = (typeof window !== 'undefined' && window.API_BASE_URL) 
+  ? window.API_BASE_URL 
+  : 'https://stoagroupdb-ddre.onrender.com';
+
+/**
+ * Set the API base URL
+ * @param {string} url - The base URL for the API (e.g., 'https://your-api.com' or 'http://localhost:3000')
+ */
+export function setApiBaseUrl(url) {
+  API_BASE_URL = url;
+  console.log(`API Base URL updated to: ${API_BASE_URL}`);
+}
+
+/**
+ * Get the current API base URL
+ * @returns {string} Current API base URL
+ */
+export function getApiBaseUrl() {
+  return API_BASE_URL;
+}
+
+// Store authentication token (can be set via setAuthToken or login)
+let authToken = null;
+
+/**
+ * Set authentication token for subsequent requests
+ * @param {string} token - JWT token from login
+ */
+export function setAuthToken(token) {
+  authToken = token;
+}
+
+/**
+ * Get current authentication token
+ * @returns {string|null} Current auth token or null
+ */
+export function getAuthToken() {
+  return authToken;
+}
+
+/**
+ * Clear authentication token (logout)
+ */
+export function clearAuthToken() {
+  authToken = null;
+}
 
 /**
  * Make an API request
+ * @param {string} endpoint - API endpoint path
+ * @param {string} method - HTTP method (GET, POST, PUT, DELETE)
+ * @param {object|null} data - Request body data (for POST/PUT)
+ * @param {string|null} token - Optional auth token (if not provided, uses stored token)
  */
-async function apiRequest(endpoint, method = 'GET', data = null) {
+async function apiRequest(endpoint, method = 'GET', data = null, token = null) {
   try {
     const options = {
       method,
@@ -18,6 +77,12 @@ async function apiRequest(endpoint, method = 'GET', data = null) {
         'Content-Type': 'application/json',
       },
     };
+
+    // Add authorization header if token is provided or stored
+    const authTokenToUse = token || authToken;
+    if (authTokenToUse) {
+      options.headers['Authorization'] = `Bearer ${authTokenToUse}`;
+    }
 
     if (data && (method === 'POST' || method === 'PUT')) {
       options.body = JSON.stringify(data);
@@ -35,6 +100,57 @@ async function apiRequest(endpoint, method = 'GET', data = null) {
     console.error('API Request Error:', error);
     throw error;
   }
+}
+
+// ============================================================
+// AUTHENTICATION - Capital Markets Users
+// ============================================================
+
+/**
+ * Login with username and password
+ * Returns JWT token for authenticated requests
+ * 
+ * @param {string} username - User email/username (e.g., 'arovner@stoagroup.com')
+ * @param {string} password - User password
+ * @returns {Promise<object>} { success: true, data: { token, user: {...} } }
+ * 
+ * @example
+ * const result = await login('arovner@stoagroup.com', 'CapitalMarkets26');
+ * setAuthToken(result.data.token); // Store token for future requests
+ */
+export async function login(username, password) {
+  const result = await apiRequest('/api/auth/login', 'POST', { username, password });
+  // Automatically store token if login successful
+  if (result.success && result.data.token) {
+    authToken = result.data.token;
+  }
+  return result;
+}
+
+/**
+ * Verify current authentication token
+ * @param {string|null} token - Optional token to verify (uses stored token if not provided)
+ * @returns {Promise<object>} { success: true, data: { user: {...} } }
+ */
+export async function verifyAuth(token = null) {
+  return apiRequest('/api/auth/verify', 'GET', null, token);
+}
+
+/**
+ * Get current authenticated user info
+ * @param {string|null} token - Optional token (uses stored token if not provided)
+ * @returns {Promise<object>} { success: true, data: { userId, username, email, ... } }
+ */
+export async function getCurrentUser(token = null) {
+  return apiRequest('/api/auth/me', 'GET', null, token);
+}
+
+/**
+ * Logout - clears stored token
+ * Note: This only clears the local token. The JWT token itself remains valid until expiration.
+ */
+export function logout() {
+  clearAuthToken();
 }
 
 // ============================================================
@@ -132,6 +248,9 @@ export async function deleteEquityPartner(id) {
 // ============================================================
 // BANKING SCHEMA
 // ============================================================
+// NOTE: All WRITE operations (POST, PUT, DELETE) require authentication
+// Call login() first and store the token, or use setAuthToken()
+// GET operations are public and don't require authentication
 
 // LOANS
 export async function getAllLoans() {
@@ -146,18 +265,41 @@ export async function getLoansByProject(projectId) {
   return apiRequest(`/api/banking/loans/project/${projectId}`);
 }
 
+/**
+ * Create a new loan (REQUIRES AUTHENTICATION)
+ * @param {object} data - Loan data
+ * @example
+ * // First login and store token
+ * await login('arovner@stoagroup.com', 'CapitalMarkets26');
+ * // Then create loan
+ * await createLoan({ ProjectId: 1, LoanPhase: 'Construction', ... });
+ */
 export async function createLoan(data) {
   return apiRequest('/api/banking/loans', 'POST', data);
 }
 
+/**
+ * Update a loan (REQUIRES AUTHENTICATION)
+ * @param {number} id - Loan ID
+ * @param {object} data - Updated loan data
+ */
 export async function updateLoan(id, data) {
   return apiRequest(`/api/banking/loans/${id}`, 'PUT', data);
 }
 
+/**
+ * Update loan by ProjectId (REQUIRES AUTHENTICATION)
+ * @param {number} projectId - Project ID
+ * @param {object} data - Updated loan data
+ */
 export async function updateLoanByProject(projectId, data) {
   return apiRequest(`/api/banking/loans/project/${projectId}`, 'PUT', data);
 }
 
+/**
+ * Delete a loan (REQUIRES AUTHENTICATION)
+ * @param {number} id - Loan ID
+ */
 export async function deleteLoan(id) {
   return apiRequest(`/api/banking/loans/${id}`, 'DELETE');
 }
@@ -585,4 +727,71 @@ console.log('Deal Data:', {
   commitments: commitments.data,
   participations: participations.data
 });
+
+// ============================================================
+// AUTHENTICATION EXAMPLES - Capital Markets Users
+// ============================================================
+
+// Example 8: Login and authenticate for banking dashboard edits
+// Step 1: Login with username and password
+const loginResult = await login('arovner@stoagroup.com', 'CapitalMarkets26');
+if (loginResult.success) {
+  console.log('✅ Logged in as:', loginResult.data.user.username);
+  // Token is automatically stored for future requests
+  // You can also manually store: setAuthToken(loginResult.data.token);
+  
+  // Step 2: Now you can make authenticated banking write operations
+  const loanData = {
+    ProjectId: 1,
+    LoanPhase: 'Construction',
+    LoanAmount: 5000000,
+    LoanClosingDate: '2024-01-15',
+    FinancingStage: 'Construction Loan'
+  };
+  
+  const createResult = await createLoan(loanData);
+  console.log('✅ Loan created:', createResult.data);
+  
+  // Step 3: Update operations also work automatically with stored token
+  await updateLoan(createResult.data.LoanId, { LoanAmount: 5500000 });
+  
+  // Step 4: Verify token is still valid
+  const verifyResult = await verifyAuth();
+  console.log('✅ Current user:', verifyResult.data.user);
+  
+  // Step 5: Get current user info
+  const userInfo = await getCurrentUser();
+  console.log('✅ User details:', userInfo.data);
+  
+  // Step 6: Logout (clears stored token)
+  logout();
+}
+
+// Example 9: Storing token in browser localStorage (for web apps)
+// After login, store token in localStorage for persistence
+const loginResult2 = await login('Mmurray@stoagroup.com', 'CapitalMarkets26');
+if (loginResult2.success) {
+  localStorage.setItem('authToken', loginResult2.data.token);
+  setAuthToken(loginResult2.data.token);
+}
+
+// On page load, restore token from localStorage
+const savedToken = localStorage.getItem('authToken');
+if (savedToken) {
+  setAuthToken(savedToken);
+  // Verify token is still valid
+  try {
+    await verifyAuth();
+    console.log('✅ Token restored and valid');
+  } catch (error) {
+    // Token expired, clear it
+    localStorage.removeItem('authToken');
+    clearAuthToken();
+    console.log('❌ Token expired, please login again');
+  }
+}
+
+// NOTE: All banking write operations (POST, PUT, DELETE) require authentication.
+// GET operations are public and don't require authentication.
+// If you try to make a write operation without being authenticated, you'll get a 401 error.
 */

@@ -985,7 +985,7 @@ async function importClosedProperties(pool: sql.ConnectionPool, csvPath: string)
       City: city,
       State: state,
       Region: region,
-      Stage: (status === 'Sold' || status === 'Purchased') ? 'Closed' : undefined
+      Stage: (status === 'Sold' || status === 'Purchased') ? 'Liquidated' : undefined
     });
     
     // Check if exists (unique constraint on ProjectId)
@@ -1529,11 +1529,10 @@ function getStagePriority(stage: string | null): number {
   const priorities: { [key: string]: number } = {
     'Prospective': 1,
     'Under Contract': 2,
-    'Started': 3,
-    'Under Construction': 4,
+    'Under Construction': 3,
+    'Lease-Up': 4,
     'Stabilized': 5,
-    'Closed': 6,
-    'Liquidated': 7
+    'Liquidated': 6
   };
   return priorities[stage] || 0;
 }
@@ -1635,7 +1634,7 @@ async function updateProjectStages(pool: sql.ConnectionPool) {
       FROM banking.Loan
       WHERE PermanentCloseDate IS NOT NULL
     )
-    AND (Stage IS NULL OR Stage IN ('Prospective', 'Under Contract', 'Started', 'Under Construction'))
+    AND (Stage IS NULL OR Stage IN ('Prospective', 'Under Contract', 'Under Construction', 'Lease-Up'))
   `);
   
   // Set stage to "Under Construction" for projects with construction loans that have closing dates
@@ -1655,14 +1654,14 @@ async function updateProjectStages(pool: sql.ConnectionPool) {
             AND l2.PermanentCloseDate IS NOT NULL
         )
     )
-    AND (Stage IS NULL OR Stage = 'Under Contract' OR Stage = 'Started' OR Stage = 'Prospective')
+    AND (Stage IS NULL OR Stage = 'Under Contract' OR Stage = 'Prospective')
   `);
   
-  // Also set "Under Construction" for projects that have construction completion dates
+  // Set stage to "Lease-Up" for projects that have construction completion dates
   // but no permanent financing yet (lease-up phase)
   await pool.request().query(`
     UPDATE core.Project
-    SET Stage = 'Under Construction', UpdatedAt = SYSDATETIME()
+    SET Stage = 'Lease-Up', UpdatedAt = SYSDATETIME()
     WHERE ProjectId IN (
       SELECT DISTINCT l.ProjectId
       FROM banking.Loan l
@@ -1674,7 +1673,7 @@ async function updateProjectStages(pool: sql.ConnectionPool) {
             AND l2.PermanentCloseDate IS NOT NULL
         )
     )
-    AND (Stage IS NULL OR Stage = 'Under Contract' OR Stage = 'Started' OR Stage = 'Prospective')
+    AND (Stage IS NULL OR Stage = 'Under Contract' OR Stage = 'Under Construction' OR Stage = 'Prospective')
   `);
   
   // Set stage to "Prospective" for projects with no construction loans or only $0 construction loans

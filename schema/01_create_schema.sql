@@ -31,7 +31,7 @@ CREATE TABLE core.Project (
     ProductType NVARCHAR(50) NULL,  -- Heights, Waters, Flats, Other
     
     -- Stage
-    Stage       NVARCHAR(50) NULL,   -- Prospective, Under Contract, Started, Stabilized, Closed, Liquidated
+    Stage       NVARCHAR(50) NULL,   -- Prospective, Under Contract, Under Construction, Lease-Up, Stabilized, Liquidated
     
     -- Estimated dates (targets/plans - actuals come from Procore)
     EstimatedConstructionStartDate DATE NULL,  -- Estimated start date (actual comes from Procore)
@@ -81,6 +81,7 @@ CREATE TABLE banking.Loan (
     LoanType NVARCHAR(100) NULL,  -- LOC - Construction, RLOC - Land, Owner Occupied Office, etc.
     Borrower NVARCHAR(255) NULL,
     LoanPhase NVARCHAR(30) NOT NULL,  -- Construction, Permanent, MiniPerm, Land, Other
+    FinancingStage NVARCHAR(50) NULL,  -- Under Contract Model, Bank Package Model, Construction Loan, Permanent Loan, Liquidated
     
     -- Lender
     LenderId INT NULL,  -- FK to core.Bank

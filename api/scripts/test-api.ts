@@ -7,7 +7,7 @@
  * Usage: npm run db:test-api
  */
 
-const API_BASE_URL = 'https://stoagroupdb.onrender.com';
+const API_BASE_URL = 'https://stoagroupdb-ddre.onrender.com';
 
 async function testAPI() {
   console.log('🧪 Testing API Endpoints...\n');

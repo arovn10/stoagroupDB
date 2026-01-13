@@ -10,7 +10,7 @@
  * 3. The script will automatically detect IDs and resolve them
  */
 
-const API_BASE_URL = 'https://stoagroupdb.onrender.com';
+const API_BASE_URL = 'https://stoagroupdb-ddre.onrender.com';
 
 // Make API request
 async function apiRequest(endpoint, method = 'GET', data = null) {

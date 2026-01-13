@@ -209,9 +209,10 @@ function determineStage(stageBucket: string | null, section: string | null): str
   const bucket = (stageBucket || section || '').toLowerCase();
   
   if (bucket.includes('liquidated')) return 'Liquidated';
-  if (bucket.includes('closed')) return 'Closed';
+  if (bucket.includes('closed')) return 'Liquidated';
   if (bucket.includes('stabilized')) return 'Stabilized';
-  if (bucket.includes('started') || bucket.includes('construction') || bucket.includes('lease-up')) return 'Started';
+  if (bucket.includes('lease-up') || bucket.includes('leaseup')) return 'Lease-Up';
+  if (bucket.includes('started') || bucket.includes('construction')) return 'Under Construction';
   if (bucket.includes('under contract') || bucket.includes('pre-construction')) return 'Under Contract';
   if (bucket.includes('prospective')) return 'Prospective';
   

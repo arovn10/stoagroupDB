@@ -28,7 +28,15 @@
     "db:rescaffold": "npx ts-node --transpile-only scripts/rescaffold-db.ts",
     "db:safe-rescaffold": "npx ts-node --transpile-only scripts/safe-rescaffold-db.ts",
     "db:verify-deal-ids": "npx ts-node --transpile-only scripts/verify-deal-ids.ts",
-    "db:verify-all-deal-ids": "npx ts-node --transpile-only scripts/verify-all-deal-ids.ts"
+    "db:verify-all-deal-ids": "npx ts-node --transpile-only scripts/verify-all-deal-ids.ts",
+    "db:update-stages": "npx ts-node --transpile-only scripts/update-project-stages.ts",
+    "db:update-banks": "npx ts-node --transpile-only scripts/update-bank-profiles.ts",
+    "db:update-participations": "npx ts-node --transpile-only scripts/update-participations.ts",
+    "db:import-contingent-liabilities": "npx ts-node --transpile-only scripts/import-contingent-liabilities-data.ts",
+    "db:import-targeted-banks": "npx ts-node --transpile-only scripts/import-targeted-banks-data.ts",
+    "db:update-banking-dashboard": "npx ts-node --transpile-only scripts/update-banking-dashboard-data.ts",
+    "db:add-birth-order-to-project": "npx ts-node --transpile-only scripts/add-birth-order-to-project.ts",
+    "db:seed-auth-users": "npx ts-node --transpile-only scripts/seed-auth-users.ts"
   },
   "keywords": ["api", "rest", "azure-sql"],
   "author": "",
@@ -38,7 +46,9 @@
     "mssql": "^10.0.1",
     "dotenv": "^16.3.1",
     "cors": "^2.8.5",
-    "helmet": "^7.1.0"
+    "helmet": "^7.1.0",
+    "bcrypt": "^5.1.1",
+    "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
@@ -46,6 +56,8 @@
     "@types/mssql": "^8.1.0",
     "@types/cors": "^2.8.17",
     "@types/xlsx": "^0.0.36",
+    "@types/bcrypt": "^5.0.2",
+    "@types/jsonwebtoken": "^9.0.5",
     "typescript": "^5.3.3",
     "ts-node-dev": "^2.0.0",
     "ts-node": "^10.9.2",

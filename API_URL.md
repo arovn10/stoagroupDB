@@ -2,7 +2,7 @@
 
 ## API URL
 ```
-https://stoagroupdb.onrender.com
+https://stoagroupdb-ddre.onrender.com
 ```
 
 ---
@@ -12,12 +12,12 @@ https://stoagroupdb.onrender.com
 ### Health Check
 Open in browser or use curl:
 ```
-https://stoagroupdb.onrender.com/health
+https://stoagroupdb-ddre.onrender.com/health
 ```
 
 ### API Documentation
 ```
-https://stoagroupdb.onrender.com/api
+https://stoagroupdb-ddre.onrender.com/api
 ```
 
 ---
@@ -26,7 +26,7 @@ https://stoagroupdb.onrender.com/api
 
 ### Create a Project
 ```bash
-curl -X POST https://stoagroupdb.onrender.com/api/core/projects \
+curl -X POST https://stoagroupdb-ddre.onrender.com/api/core/projects \
   -H "Content-Type: application/json" \
   -d '{
     "ProjectName": "Test Project",
@@ -38,7 +38,7 @@ curl -X POST https://stoagroupdb.onrender.com/api/core/projects \
 
 ### Update a Project
 ```bash
-curl -X PUT https://stoagroupdb.onrender.com/api/core/projects/1 \
+curl -X PUT https://stoagroupdb-ddre.onrender.com/api/core/projects/1 \
   -H "Content-Type: application/json" \
   -d '{
     "Units": 150,
@@ -48,7 +48,7 @@ curl -X PUT https://stoagroupdb.onrender.com/api/core/projects/1 \
 
 ### Create a Loan
 ```bash
-curl -X POST https://stoagroupdb.onrender.com/api/banking/loans \
+curl -X POST https://stoagroupdb-ddre.onrender.com/api/banking/loans \
   -H "Content-Type: application/json" \
   -d '{
     "ProjectId": 1,
@@ -65,7 +65,7 @@ curl -X POST https://stoagroupdb.onrender.com/api/banking/loans \
 In Domo DataFlows or Magic ETL Custom Script:
 
 ```javascript
-const apiUrl = 'https://stoagroupdb.onrender.com/api/core/projects';
+const apiUrl = 'https://stoagroupdb-ddre.onrender.com/api/core/projects';
 
 const response = await fetch(apiUrl, {
   method: 'POST',
@@ -103,7 +103,7 @@ return await response.json();
 - `POST /api/pipeline/under-contracts` - Create under contract
 - `PUT /api/pipeline/under-contracts/:id` - Update under contract
 
-**See full list:** `GET https://stoagroupdb.onrender.com/api`
+**See full list:** `GET https://stoagroupdb-ddre.onrender.com/api`
 
 ---
 
