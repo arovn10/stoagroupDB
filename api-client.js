@@ -1,18 +1,8 @@
 /**
- * Stoa Group Database API Client
+ * Complete API Client for STOA Group Database
  * 
- * Use this file in Domo Custom Scripts to perform full CRUD operations via the Render API.
- * 
- * API URL: https://stoagroupdb.onrender.com
- * 
- * IMPORTANT: This file provides complete CRUD operations (GET, POST, PUT, DELETE)
- * for all data points in the database. All endpoints use the Render API.
- * 
- * All 16 tables have full CRUD support:
- * - Core: Projects, Banks, Persons, Equity Partners
- * - Banking: Loans, DSCR Tests, Participations, Guarantees, Covenants, 
- *            Liquidity Requirements, Bank Targets, Equity Commitments
- * - Pipeline: Under Contracts, Commercial Listed, Commercial Acreage, Closed Properties
+ * Full CRUD operations for all data points across all departments
+ * Use these functions in Domo Custom Scripts or any JavaScript environment
  */
 
 const API_BASE_URL = 'https://stoagroupdb.onrender.com';
@@ -48,100 +38,417 @@ async function apiRequest(endpoint, method = 'GET', data = null) {
 }
 
 // ============================================================
-// CORE ENTITIES
+// CORE SCHEMA - Projects, Banks, Persons, Equity Partners
 // ============================================================
 
-// Projects
-async function getAllProjects() {
-  return apiRequest('/api/core/projects', 'GET');
+// PROJECTS
+export async function getAllProjects() {
+  return apiRequest('/api/core/projects');
 }
 
-async function getProjectById(projectId) {
-  return apiRequest(`/api/core/projects/${projectId}`, 'GET');
+export async function getProjectById(id) {
+  return apiRequest(`/api/core/projects/${id}`);
 }
 
-async function createProject(projectData) {
-  return apiRequest('/api/core/projects', 'POST', projectData);
+export async function createProject(data) {
+  return apiRequest('/api/core/projects', 'POST', data);
 }
 
-async function updateProject(projectId, updates) {
-  return apiRequest(`/api/core/projects/${projectId}`, 'PUT', updates);
+export async function updateProject(id, data) {
+  return apiRequest(`/api/core/projects/${id}`, 'PUT', data);
 }
 
-async function deleteProject(projectId) {
-  return apiRequest(`/api/core/projects/${projectId}`, 'DELETE');
+export async function deleteProject(id) {
+  return apiRequest(`/api/core/projects/${id}`, 'DELETE');
 }
 
-// Banks
-async function getAllBanks() {
-  return apiRequest('/api/core/banks', 'GET');
+// BANKS
+export async function getAllBanks() {
+  return apiRequest('/api/core/banks');
 }
 
-async function getBankById(bankId) {
-  return apiRequest(`/api/core/banks/${bankId}`, 'GET');
+export async function getBankById(id) {
+  return apiRequest(`/api/core/banks/${id}`);
 }
 
-async function createBank(bankData) {
-  return apiRequest('/api/core/banks', 'POST', bankData);
+export async function createBank(data) {
+  return apiRequest('/api/core/banks', 'POST', data);
 }
 
-async function updateBank(bankId, updates) {
-  return apiRequest(`/api/core/banks/${bankId}`, 'PUT', updates);
+export async function updateBank(id, data) {
+  return apiRequest(`/api/core/banks/${id}`, 'PUT', data);
 }
 
-async function deleteBank(bankId) {
-  return apiRequest(`/api/core/banks/${bankId}`, 'DELETE');
+export async function deleteBank(id) {
+  return apiRequest(`/api/core/banks/${id}`, 'DELETE');
 }
 
-// Persons
-async function getAllPersons() {
-  return apiRequest('/api/core/persons', 'GET');
+// PERSONS
+export async function getAllPersons() {
+  return apiRequest('/api/core/persons');
 }
 
-async function getPersonById(personId) {
-  return apiRequest(`/api/core/persons/${personId}`, 'GET');
+export async function getPersonById(id) {
+  return apiRequest(`/api/core/persons/${id}`);
 }
 
-async function createPerson(personData) {
-  return apiRequest('/api/core/persons', 'POST', personData);
+export async function createPerson(data) {
+  return apiRequest('/api/core/persons', 'POST', data);
 }
 
-async function updatePerson(personId, updates) {
-  return apiRequest(`/api/core/persons/${personId}`, 'PUT', updates);
+export async function updatePerson(id, data) {
+  return apiRequest(`/api/core/persons/${id}`, 'PUT', data);
 }
 
-async function deletePerson(personId) {
-  return apiRequest(`/api/core/persons/${personId}`, 'DELETE');
+export async function deletePerson(id) {
+  return apiRequest(`/api/core/persons/${id}`, 'DELETE');
 }
 
-// Equity Partners
-async function getAllEquityPartners() {
-  return apiRequest('/api/core/equity-partners', 'GET');
+// EQUITY PARTNERS
+export async function getAllEquityPartners() {
+  return apiRequest('/api/core/equity-partners');
 }
 
-async function getEquityPartnerById(partnerId) {
-  return apiRequest(`/api/core/equity-partners/${partnerId}`, 'GET');
+export async function getEquityPartnerById(id) {
+  return apiRequest(`/api/core/equity-partners/${id}`);
 }
+
+export async function getEquityPartnerByIMSId(imsId) {
+  return apiRequest(`/api/core/equity-partners/ims/${imsId}`);
+}
+
+export async function createEquityPartner(data) {
+  return apiRequest('/api/core/equity-partners', 'POST', data);
+}
+
+export async function updateEquityPartner(id, data) {
+  return apiRequest(`/api/core/equity-partners/${id}`, 'PUT', data);
+}
+
+export async function deleteEquityPartner(id) {
+  return apiRequest(`/api/core/equity-partners/${id}`, 'DELETE');
+}
+
+// ============================================================
+// BANKING SCHEMA
+// ============================================================
+
+// LOANS
+export async function getAllLoans() {
+  return apiRequest('/api/banking/loans');
+}
+
+export async function getLoanById(id) {
+  return apiRequest(`/api/banking/loans/${id}`);
+}
+
+export async function getLoansByProject(projectId) {
+  return apiRequest(`/api/banking/loans/project/${projectId}`);
+}
+
+export async function createLoan(data) {
+  return apiRequest('/api/banking/loans', 'POST', data);
+}
+
+export async function updateLoan(id, data) {
+  return apiRequest(`/api/banking/loans/${id}`, 'PUT', data);
+}
+
+export async function updateLoanByProject(projectId, data) {
+  return apiRequest(`/api/banking/loans/project/${projectId}`, 'PUT', data);
+}
+
+export async function deleteLoan(id) {
+  return apiRequest(`/api/banking/loans/${id}`, 'DELETE');
+}
+
+// DSCR TESTS
+export async function getAllDSCRTests() {
+  return apiRequest('/api/banking/dscr-tests');
+}
+
+export async function getDSCRTestById(id) {
+  return apiRequest(`/api/banking/dscr-tests/${id}`);
+}
+
+export async function getDSCRTestsByProject(projectId) {
+  return apiRequest(`/api/banking/dscr-tests/project/${projectId}`);
+}
+
+export async function createDSCRTest(data) {
+  return apiRequest('/api/banking/dscr-tests', 'POST', data);
+}
+
+export async function updateDSCRTest(id, data) {
+  return apiRequest(`/api/banking/dscr-tests/${id}`, 'PUT', data);
+}
+
+export async function deleteDSCRTest(id) {
+  return apiRequest(`/api/banking/dscr-tests/${id}`, 'DELETE');
+}
+
+// PARTICIPATIONS
+export async function getAllParticipations() {
+  return apiRequest('/api/banking/participations');
+}
+
+export async function getParticipationById(id) {
+  return apiRequest(`/api/banking/participations/${id}`);
+}
+
+export async function getParticipationsByProject(projectId) {
+  return apiRequest(`/api/banking/participations/project/${projectId}`);
+}
+
+export async function createParticipation(data) {
+  return apiRequest('/api/banking/participations', 'POST', data);
+}
+
+export async function createParticipationByProject(projectId, data) {
+  return apiRequest(`/api/banking/participations/project/${projectId}`, 'POST', data);
+}
+
+export async function updateParticipation(id, data) {
+  return apiRequest(`/api/banking/participations/${id}`, 'PUT', data);
+}
+
+export async function deleteParticipation(id) {
+  return apiRequest(`/api/banking/participations/${id}`, 'DELETE');
+}
+
+// GUARANTEES
+export async function getAllGuarantees() {
+  return apiRequest('/api/banking/guarantees');
+}
+
+export async function getGuaranteeById(id) {
+  return apiRequest(`/api/banking/guarantees/${id}`);
+}
+
+export async function getGuaranteesByProject(projectId) {
+  return apiRequest(`/api/banking/guarantees/project/${projectId}`);
+}
+
+export async function createGuarantee(data) {
+  return apiRequest('/api/banking/guarantees', 'POST', data);
+}
+
+export async function createGuaranteeByProject(projectId, data) {
+  return apiRequest(`/api/banking/guarantees/project/${projectId}`, 'POST', data);
+}
+
+export async function updateGuarantee(id, data) {
+  return apiRequest(`/api/banking/guarantees/${id}`, 'PUT', data);
+}
+
+export async function deleteGuarantee(id) {
+  return apiRequest(`/api/banking/guarantees/${id}`, 'DELETE');
+}
+
+// COVENANTS
+export async function getAllCovenants() {
+  return apiRequest('/api/banking/covenants');
+}
+
+export async function getCovenantById(id) {
+  return apiRequest(`/api/banking/covenants/${id}`);
+}
+
+export async function getCovenantsByProject(projectId) {
+  return apiRequest(`/api/banking/covenants/project/${projectId}`);
+}
+
+export async function createCovenant(data) {
+  return apiRequest('/api/banking/covenants', 'POST', data);
+}
+
+export async function createCovenantByProject(projectId, data) {
+  return apiRequest(`/api/banking/covenants/project/${projectId}`, 'POST', data);
+}
+
+export async function updateCovenant(id, data) {
+  return apiRequest(`/api/banking/covenants/${id}`, 'PUT', data);
+}
+
+export async function deleteCovenant(id) {
+  return apiRequest(`/api/banking/covenants/${id}`, 'DELETE');
+}
+
+// LIQUIDITY REQUIREMENTS
+export async function getAllLiquidityRequirements() {
+  return apiRequest('/api/banking/liquidity-requirements');
+}
+
+export async function getLiquidityRequirementById(id) {
+  return apiRequest(`/api/banking/liquidity-requirements/${id}`);
+}
+
+export async function getLiquidityRequirementsByProject(projectId) {
+  return apiRequest(`/api/banking/liquidity-requirements/project/${projectId}`);
+}
+
+export async function createLiquidityRequirement(data) {
+  return apiRequest('/api/banking/liquidity-requirements', 'POST', data);
+}
+
+export async function updateLiquidityRequirement(id, data) {
+  return apiRequest(`/api/banking/liquidity-requirements/${id}`, 'PUT', data);
+}
+
+export async function deleteLiquidityRequirement(id) {
+  return apiRequest(`/api/banking/liquidity-requirements/${id}`, 'DELETE');
+}
+
+// BANK TARGETS
+export async function getAllBankTargets() {
+  return apiRequest('/api/banking/bank-targets');
+}
+
+export async function getBankTargetById(id) {
+  return apiRequest(`/api/banking/bank-targets/${id}`);
+}
+
+export async function createBankTarget(data) {
+  return apiRequest('/api/banking/bank-targets', 'POST', data);
+}
+
+export async function updateBankTarget(id, data) {
+  return apiRequest(`/api/banking/bank-targets/${id}`, 'PUT', data);
+}
+
+export async function deleteBankTarget(id) {
+  return apiRequest(`/api/banking/bank-targets/${id}`, 'DELETE');
+}
+
+// EQUITY COMMITMENTS
+export async function getAllEquityCommitments() {
+  return apiRequest('/api/banking/equity-commitments');
+}
+
+export async function getEquityCommitmentById(id) {
+  return apiRequest(`/api/banking/equity-commitments/${id}`);
+}
+
+export async function getEquityCommitmentsByProject(projectId) {
+  return apiRequest(`/api/banking/equity-commitments/project/${projectId}`);
+}
+
+export async function createEquityCommitment(data) {
+  return apiRequest('/api/banking/equity-commitments', 'POST', data);
+}
+
+export async function updateEquityCommitment(id, data) {
+  return apiRequest(`/api/banking/equity-commitments/${id}`, 'PUT', data);
+}
+
+export async function deleteEquityCommitment(id) {
+  return apiRequest(`/api/banking/equity-commitments/${id}`, 'DELETE');
+}
+
+// ============================================================
+// PIPELINE SCHEMA
+// ============================================================
+
+// UNDER CONTRACTS
+export async function getAllUnderContracts() {
+  return apiRequest('/api/pipeline/under-contracts');
+}
+
+export async function getUnderContractById(id) {
+  return apiRequest(`/api/pipeline/under-contracts/${id}`);
+}
+
+export async function createUnderContract(data) {
+  return apiRequest('/api/pipeline/under-contracts', 'POST', data);
+}
+
+export async function updateUnderContract(id, data) {
+  return apiRequest(`/api/pipeline/under-contracts/${id}`, 'PUT', data);
+}
+
+export async function deleteUnderContract(id) {
+  return apiRequest(`/api/pipeline/under-contracts/${id}`, 'DELETE');
+}
+
+// COMMERCIAL LISTED
+export async function getAllCommercialListed() {
+  return apiRequest('/api/pipeline/commercial-listed');
+}
+
+export async function getCommercialListedById(id) {
+  return apiRequest(`/api/pipeline/commercial-listed/${id}`);
+}
+
+export async function createCommercialListed(data) {
+  return apiRequest('/api/pipeline/commercial-listed', 'POST', data);
+}
+
+export async function updateCommercialListed(id, data) {
+  return apiRequest(`/api/pipeline/commercial-listed/${id}`, 'PUT', data);
+}
+
+export async function deleteCommercialListed(id) {
+  return apiRequest(`/api/pipeline/commercial-listed/${id}`, 'DELETE');
+}
+
+// COMMERCIAL ACREAGE
+export async function getAllCommercialAcreage() {
+  return apiRequest('/api/pipeline/commercial-acreage');
+}
+
+export async function getCommercialAcreageById(id) {
+  return apiRequest(`/api/pipeline/commercial-acreage/${id}`);
+}
+
+export async function createCommercialAcreage(data) {
+  return apiRequest('/api/pipeline/commercial-acreage', 'POST', data);
+}
+
+export async function updateCommercialAcreage(id, data) {
+  return apiRequest(`/api/pipeline/commercial-acreage/${id}`, 'PUT', data);
+}
+
+export async function deleteCommercialAcreage(id) {
+  return apiRequest(`/api/pipeline/commercial-acreage/${id}`, 'DELETE');
+}
+
+// CLOSED PROPERTIES
+export async function getAllClosedProperties() {
+  return apiRequest('/api/pipeline/closed-properties');
+}
+
+export async function getClosedPropertyById(id) {
+  return apiRequest(`/api/pipeline/closed-properties/${id}`);
+}
+
+export async function createClosedProperty(data) {
+  return apiRequest('/api/pipeline/closed-properties', 'POST', data);
+}
+
+export async function updateClosedProperty(id, data) {
+  return apiRequest(`/api/pipeline/closed-properties/${id}`, 'PUT', data);
+}
+
+export async function deleteClosedProperty(id) {
+  return apiRequest(`/api/pipeline/closed-properties/${id}`, 'DELETE');
+}
+
+// ============================================================
+// IMS INVESTOR HELPER FUNCTIONS (Legacy - kept for compatibility)
+// ============================================================
 
 /**
  * Get investor name from IMS Investor Profile ID
- * Example: getEquityPartnerByIMSId('2660555')
- * 
- * Returns full partner object including PartnerName
  */
-async function getEquityPartnerByIMSId(imsInvestorProfileId) {
-  return apiRequest(`/api/core/equity-partners/ims/${imsInvestorProfileId}`, 'GET');
-}
-
-/**
- * Get just the investor name from IMS ID (convenience function)
- * Example: const name = await getInvestorNameFromIMSId('2660619');
- * Returns: "Investor Name" or null if not found
- */
-async function getInvestorNameFromIMSId(imsId) {
+export async function getInvestorNameFromIMSId(imsId) {
+  if (!imsId || typeof imsId !== 'string') return null;
+  
   try {
     const result = await getEquityPartnerByIMSId(imsId);
-    return result.success && result.data ? result.data.PartnerName : null;
+    if (result.success && result.data) {
+      return result.data.PartnerName;
+    }
+    return null;
   } catch (error) {
     console.error(`Error looking up IMS ID ${imsId}:`, error);
     return null;
@@ -149,12 +456,9 @@ async function getInvestorNameFromIMSId(imsId) {
 }
 
 /**
- * Resolve investor name - handles both IMS IDs (all digits) and actual names
- * Example: 
- *   const name1 = await resolveInvestorName('2660619'); // Looks up ID → returns name
- *   const name2 = await resolveInvestorName('Stoa Holdings, LLC'); // Returns as-is
+ * Resolve investor name - handles both IMS IDs and actual names
  */
-async function resolveInvestorName(investorValue) {
+export async function resolveInvestorName(investorValue) {
   if (!investorValue) return null;
   
   const str = String(investorValue).trim();
@@ -169,938 +473,116 @@ async function resolveInvestorName(investorValue) {
   return str;
 }
 
-async function createEquityPartner(partnerData) {
-  return apiRequest('/api/core/equity-partners', 'POST', partnerData);
-}
-
-async function updateEquityPartner(partnerId, updates) {
-  return apiRequest(`/api/core/equity-partners/${partnerId}`, 'PUT', updates);
-}
-
-async function deleteEquityPartner(partnerId) {
-  return apiRequest(`/api/core/equity-partners/${partnerId}`, 'DELETE');
-}
-
-// ============================================================
-// BANKING
-// ============================================================
-
-// Loans
-async function getAllLoans() {
-  return apiRequest('/api/banking/loans', 'GET');
-}
-
-async function getLoanById(loanId) {
-  return apiRequest(`/api/banking/loans/${loanId}`, 'GET');
-}
-
-async function getLoansByProject(projectId) {
-  return apiRequest(`/api/banking/loans/project/${projectId}`, 'GET');
-}
-
-async function createLoan(loanData) {
-  return apiRequest('/api/banking/loans', 'POST', loanData);
-}
-
-async function updateLoan(loanId, updates) {
-  return apiRequest(`/api/banking/loans/${loanId}`, 'PUT', updates);
+/**
+ * Bulk resolve investor names from an array of values
+ */
+export async function bulkResolveInvestorNames(investorValues) {
+  const mapping = {};
+  const uniqueValues = [...new Set(investorValues)];
+  
+  // Process in parallel for better performance
+  const promises = uniqueValues.map(async (value) => {
+    const resolved = await resolveInvestorName(value);
+    mapping[value] = resolved;
+  });
+  
+  await Promise.all(promises);
+  return mapping;
 }
 
 /**
- * Update loan by ProjectId - convenience function for Domo
- * Updates the construction loan (or first loan) for a project
- * Example: updateLoanByProject(4, { Spread: "0.75%" })
+ * Transform a dataset row to resolve investor names
  */
-async function updateLoanByProject(projectId, updates) {
-  return apiRequest(`/api/banking/loans/project/${projectId}`, 'PUT', updates);
-}
-
-async function deleteLoan(loanId) {
-  return apiRequest(`/api/banking/loans/${loanId}`, 'DELETE');
-}
-
-// Participations
-async function getAllParticipations() {
-  return apiRequest('/api/banking/participations', 'GET');
-}
-
-async function getParticipationById(participationId) {
-  return apiRequest(`/api/banking/participations/${participationId}`, 'GET');
-}
-
-async function getParticipationsByProject(projectId) {
-  return apiRequest(`/api/banking/participations/project/${projectId}`, 'GET');
-}
-
-async function createParticipation(participationData) {
-  return apiRequest('/api/banking/participations', 'POST', participationData);
+export async function resolveRowInvestorName(row, investorColumn = 'Investor') {
+  const investorValue = row[investorColumn];
+  const resolvedName = await resolveInvestorName(investorValue);
+  
+  return {
+    ...row,
+    [investorColumn]: resolvedName,
+    InvestorName: resolvedName,
+    OriginalInvestorValue: investorValue
+  };
 }
 
 /**
- * Create participation by ProjectId - convenience function for Domo
- * Automatically finds the construction loan for the project
- * Example: createParticipationByProject(4, { BankId: 4, ParticipationPercent: "32.0%", ExposureAmount: 15998489 })
+ * Transform entire dataset to resolve investor names
  */
-async function createParticipationByProject(projectId, participationData) {
-  return apiRequest(`/api/banking/participations/project/${projectId}`, 'POST', participationData);
-}
-
-async function updateParticipation(participationId, updates) {
-  return apiRequest(`/api/banking/participations/${participationId}`, 'PUT', updates);
-}
-
-async function deleteParticipation(participationId) {
-  return apiRequest(`/api/banking/participations/${participationId}`, 'DELETE');
-}
-
-// Guarantees
-async function getAllGuarantees() {
-  return apiRequest('/api/banking/guarantees', 'GET');
-}
-
-async function getGuaranteeById(guaranteeId) {
-  return apiRequest(`/api/banking/guarantees/${guaranteeId}`, 'GET');
-}
-
-async function getGuaranteesByProject(projectId) {
-  return apiRequest(`/api/banking/guarantees/project/${projectId}`, 'GET');
-}
-
-async function createGuarantee(guaranteeData) {
-  return apiRequest('/api/banking/guarantees', 'POST', guaranteeData);
-}
-
-/**
- * Create guarantee by ProjectId - convenience function for Domo
- * Automatically finds the construction loan for the project
- * Example: createGuaranteeByProject(4, { PersonId: 1, GuaranteePercent: 100, GuaranteeAmount: 45698 })
- */
-async function createGuaranteeByProject(projectId, guaranteeData) {
-  return apiRequest(`/api/banking/guarantees/project/${projectId}`, 'POST', guaranteeData);
-}
-
-async function updateGuarantee(guaranteeId, updates) {
-  return apiRequest(`/api/banking/guarantees/${guaranteeId}`, 'PUT', updates);
-}
-
-async function deleteGuarantee(guaranteeId) {
-  return apiRequest(`/api/banking/guarantees/${guaranteeId}`, 'DELETE');
-}
-
-// DSCR Tests
-async function getAllDSCRTests() {
-  return apiRequest('/api/banking/dscr-tests', 'GET');
-}
-
-async function getDSCRTestById(testId) {
-  return apiRequest(`/api/banking/dscr-tests/${testId}`, 'GET');
-}
-
-async function getDSCRTestsByProject(projectId) {
-  return apiRequest(`/api/banking/dscr-tests/project/${projectId}`, 'GET');
-}
-
-async function createDSCRTest(testData) {
-  return apiRequest('/api/banking/dscr-tests', 'POST', testData);
-}
-
-async function updateDSCRTest(testId, updates) {
-  return apiRequest(`/api/banking/dscr-tests/${testId}`, 'PUT', updates);
-}
-
-async function deleteDSCRTest(testId) {
-  return apiRequest(`/api/banking/dscr-tests/${testId}`, 'DELETE');
-}
-
-// Covenants
-async function getAllCovenants() {
-  return apiRequest('/api/banking/covenants', 'GET');
-}
-
-async function getCovenantById(covenantId) {
-  return apiRequest(`/api/banking/covenants/${covenantId}`, 'GET');
-}
-
-async function getCovenantsByProject(projectId) {
-  return apiRequest(`/api/banking/covenants/project/${projectId}`, 'GET');
-}
-
-async function createCovenant(covenantData) {
-  return apiRequest('/api/banking/covenants', 'POST', covenantData);
-}
-
-/**
- * Create covenant by ProjectId - convenience function for Domo
- * Automatically finds the construction loan for the project
- * Example: createCovenantByProject(4, { CovenantType: "Occupancy", Requirement: "50%", ProjectedValue: "76.5%" })
- */
-async function createCovenantByProject(projectId, covenantData) {
-  return apiRequest(`/api/banking/covenants/project/${projectId}`, 'POST', covenantData);
-}
-
-async function updateCovenant(covenantId, updates) {
-  return apiRequest(`/api/banking/covenants/${covenantId}`, 'PUT', updates);
-}
-
-async function deleteCovenant(covenantId) {
-  return apiRequest(`/api/banking/covenants/${covenantId}`, 'DELETE');
-}
-
-// Liquidity Requirements
-async function getAllLiquidityRequirements() {
-  return apiRequest('/api/banking/liquidity-requirements', 'GET');
-}
-
-async function getLiquidityRequirementById(requirementId) {
-  return apiRequest(`/api/banking/liquidity-requirements/${requirementId}`, 'GET');
-}
-
-async function getLiquidityRequirementsByProject(projectId) {
-  return apiRequest(`/api/banking/liquidity-requirements/project/${projectId}`, 'GET');
-}
-
-async function createLiquidityRequirement(requirementData) {
-  return apiRequest('/api/banking/liquidity-requirements', 'POST', requirementData);
-}
-
-async function updateLiquidityRequirement(requirementId, updates) {
-  return apiRequest(`/api/banking/liquidity-requirements/${requirementId}`, 'PUT', updates);
-}
-
-async function deleteLiquidityRequirement(requirementId) {
-  return apiRequest(`/api/banking/liquidity-requirements/${requirementId}`, 'DELETE');
-}
-
-// Bank Targets
-async function getAllBankTargets() {
-  return apiRequest('/api/banking/bank-targets', 'GET');
-}
-
-async function getBankTargetById(targetId) {
-  return apiRequest(`/api/banking/bank-targets/${targetId}`, 'GET');
-}
-
-async function createBankTarget(targetData) {
-  return apiRequest('/api/banking/bank-targets', 'POST', targetData);
-}
-
-async function updateBankTarget(targetId, updates) {
-  return apiRequest(`/api/banking/bank-targets/${targetId}`, 'PUT', updates);
-}
-
-async function deleteBankTarget(targetId) {
-  return apiRequest(`/api/banking/bank-targets/${targetId}`, 'DELETE');
-}
-
-// Equity Commitments
-async function getAllEquityCommitments() {
-  return apiRequest('/api/banking/equity-commitments', 'GET');
-}
-
-async function getEquityCommitmentById(commitmentId) {
-  return apiRequest(`/api/banking/equity-commitments/${commitmentId}`, 'GET');
-}
-
-async function getEquityCommitmentsByProject(projectId) {
-  return apiRequest(`/api/banking/equity-commitments/project/${projectId}`, 'GET');
-}
-
-async function createEquityCommitment(commitmentData) {
-  return apiRequest('/api/banking/equity-commitments', 'POST', commitmentData);
-}
-
-async function updateEquityCommitment(commitmentId, updates) {
-  return apiRequest(`/api/banking/equity-commitments/${commitmentId}`, 'PUT', updates);
-}
-
-async function deleteEquityCommitment(commitmentId) {
-  return apiRequest(`/api/banking/equity-commitments/${commitmentId}`, 'DELETE');
+export async function resolveDatasetInvestorNames(dataset, investorColumn = 'Investor') {
+  if (!Array.isArray(dataset) || dataset.length === 0) return dataset;
+  
+  // Get unique investor values first
+  const investorValues = [...new Set(dataset.map(row => row[investorColumn]).filter(Boolean))];
+  
+  // Bulk resolve all unique values
+  const nameMapping = await bulkResolveInvestorNames(investorValues);
+  
+  // Apply mapping to dataset
+  return dataset.map(row => ({
+    ...row,
+    [investorColumn]: nameMapping[row[investorColumn]] || row[investorColumn],
+    InvestorName: nameMapping[row[investorColumn]] || row[investorColumn],
+    OriginalInvestorValue: row[investorColumn]
+  }));
 }
 
 // ============================================================
-// PIPELINE
-// ============================================================
-
-// Under Contracts
-async function getAllUnderContracts() {
-  return apiRequest('/api/pipeline/under-contracts', 'GET');
-}
-
-async function getUnderContractById(contractId) {
-  return apiRequest(`/api/pipeline/under-contracts/${contractId}`, 'GET');
-}
-
-async function createUnderContract(contractData) {
-  return apiRequest('/api/pipeline/under-contracts', 'POST', contractData);
-}
-
-async function updateUnderContract(contractId, updates) {
-  return apiRequest(`/api/pipeline/under-contracts/${contractId}`, 'PUT', updates);
-}
-
-async function deleteUnderContract(contractId) {
-  return apiRequest(`/api/pipeline/under-contracts/${contractId}`, 'DELETE');
-}
-
-// Commercial Listed
-async function getAllCommercialListed() {
-  return apiRequest('/api/pipeline/commercial-listed', 'GET');
-}
-
-async function getCommercialListedById(listedId) {
-  return apiRequest(`/api/pipeline/commercial-listed/${listedId}`, 'GET');
-}
-
-async function createCommercialListed(listedData) {
-  return apiRequest('/api/pipeline/commercial-listed', 'POST', listedData);
-}
-
-async function updateCommercialListed(listedId, updates) {
-  return apiRequest(`/api/pipeline/commercial-listed/${listedId}`, 'PUT', updates);
-}
-
-async function deleteCommercialListed(listedId) {
-  return apiRequest(`/api/pipeline/commercial-listed/${listedId}`, 'DELETE');
-}
-
-// Commercial Acreage
-async function getAllCommercialAcreage() {
-  return apiRequest('/api/pipeline/commercial-acreage', 'GET');
-}
-
-async function getCommercialAcreageById(acreageId) {
-  return apiRequest(`/api/pipeline/commercial-acreage/${acreageId}`, 'GET');
-}
-
-async function createCommercialAcreage(acreageData) {
-  return apiRequest('/api/pipeline/commercial-acreage', 'POST', acreageData);
-}
-
-async function updateCommercialAcreage(acreageId, updates) {
-  return apiRequest(`/api/pipeline/commercial-acreage/${acreageId}`, 'PUT', updates);
-}
-
-async function deleteCommercialAcreage(acreageId) {
-  return apiRequest(`/api/pipeline/commercial-acreage/${acreageId}`, 'DELETE');
-}
-
-// Closed Properties
-async function getAllClosedProperties() {
-  return apiRequest('/api/pipeline/closed-properties', 'GET');
-}
-
-async function getClosedPropertyById(propertyId) {
-  return apiRequest(`/api/pipeline/closed-properties/${propertyId}`, 'GET');
-}
-
-async function createClosedProperty(propertyData) {
-  return apiRequest('/api/pipeline/closed-properties', 'POST', propertyData);
-}
-
-async function updateClosedProperty(propertyId, updates) {
-  return apiRequest(`/api/pipeline/closed-properties/${propertyId}`, 'PUT', updates);
-}
-
-async function deleteClosedProperty(propertyId) {
-  return apiRequest(`/api/pipeline/closed-properties/${propertyId}`, 'DELETE');
-}
-
-// ============================================================
-// UTILITY FUNCTIONS
-// ============================================================
-
-/**
- * Check API health
- */
-async function checkHealth() {
-  return apiRequest('/health');
-}
-
-/**
- * Get API documentation
- */
-async function getAPIDocs() {
-  return apiRequest('/api');
-}
-
-// ============================================================
-// EXPORT FOR USE IN DOMO OR OTHER ENVIRONMENTS
-// ============================================================
-
-// ============================================================
-// DOMO INTEGRATION - GET, CREATE, UPDATE, DELETE
-// ============================================================
-// 
-// For Domo Custom Scripts:
-// 1. Copy this entire file into your Domo Custom Script
-// 2. Use GET functions to pull/read data
-// 3. Use CREATE/UPDATE/DELETE functions to modify data
-// 4. All functions use the Render API: https://stoagroupdb.onrender.com
-//
-// 📥 GET DATA (Pull/Read):
-//   getAllProjects() - Get all projects
-//   getProjectById(projectId) - Get one project
-//   getAllBanks() - Get all banks
-//   getBankById(bankId) - Get one bank
-//   getAllLoans() - Get all loans
-//   getLoansByProject(projectId) - Get loans for a deal
-//   getParticipationsByProject(projectId) - Get participations for a deal
-//   getGuaranteesByProject(projectId) - Get guarantees for a deal
-//   getCovenantsByProject(projectId) - Get covenants for a deal
-//   getDSCRTestsByProject(projectId) - Get DSCR tests for a deal
-//   getLiquidityRequirementsByProject(projectId) - Get liquidity requirements for a deal
-//
-// ⚡ UPDATE ANY FIELD BY ID - Just send the fields you want to change:
-//
-//   updateProject(projectId, { Units: 350, Stage: "Stabilized" })
-//   updateLoan(loanId, { Spread: "0.75%", InterestRate: "SOFR + 0.75%" })
-//   updateParticipation(participationId, { ExposureAmount: 16000000 })
-//   updateGuarantee(guaranteeId, { GuaranteePercent: 50 })
-//   updateDSCRTest(testId, { ProjectedValue: "1.25" })
-//   updateCovenant(covenantId, { ProjectedValue: "80%" })
-//   updateLiquidityRequirement(reqId, { TotalAmount: 6000000 })
-//   updateBankTarget(targetId, { ExposureWithStoa: 50000000 })
-//   updateEquityCommitment(commitmentId, { Amount: 6000000 })
-//   updateUnderContract(contractId, { Price: 11000000 })
-//   updateCommercialListed(listedId, { Price: 5000000 })
-//   updateCommercialAcreage(acreageId, { Price: 2000000 })
-//   updateClosedProperty(propertyId, { Price: 12000000 })
-//
-// Available CREATE functions (POST):
-//   - createProject, createBank, createPerson, createEquityPartner
-//   - createLoan, createParticipation, createGuarantee, createDSCRTest
-//   - createCovenant, createLiquidityRequirement, createBankTarget
-//   - createEquityCommitment, createUnderContract, createCommercialListed
-//   - createCommercialAcreage, createClosedProperty
-//
-// Available GET functions (Pull/Read data):
-//   - getAllProjects() - Get all projects
-//   - getProjectById(projectId) - Get one project
-//   - getAllBanks() - Get all banks
-//   - getBankById(bankId) - Get one bank
-//   - getAllPersons() - Get all persons
-//   - getPersonById(personId) - Get one person
-//   - getAllEquityPartners() - Get all equity partners
-//   - getEquityPartnerById(partnerId) - Get one equity partner by database ID
-//   - getEquityPartnerByIMSId(imsId) - Get investor name from IMS Investor Profile ID
-//   - getAllLoans() - Get all loans
-//   - getLoanById(loanId) - Get one loan
-//   - getLoansByProject(projectId) - Get loans for a deal
-//   - getAllParticipations() - Get all participations
-//   - getParticipationsByProject(projectId) - Get participations for a deal
-//   - getAllGuarantees() - Get all guarantees
-//   - getGuaranteesByProject(projectId) - Get guarantees for a deal
-//   - getAllDSCRTests() - Get all DSCR tests
-//   - getDSCRTestsByProject(projectId) - Get DSCR tests for a deal
-//   - getAllCovenants() - Get all covenants
-//   - getCovenantsByProject(projectId) - Get covenants for a deal
-//   - getAllLiquidityRequirements() - Get all liquidity requirements
-//   - getLiquidityRequirementsByProject(projectId) - Get liquidity requirements for a deal
-//   - getAllBankTargets() - Get all bank targets
-//   - getAllEquityCommitments() - Get all equity commitments
-//   - getEquityCommitmentsByProject(projectId) - Get equity commitments for a deal
-//
-// Available CREATE functions (POST):
-//   - createProject, createBank, createPerson, createEquityPartner
-//   - createLoan, createParticipation, createGuarantee, createDSCRTest
-//   - createCovenant, createLiquidityRequirement, createBankTarget
-//   - createEquityCommitment, createUnderContract, createCommercialListed
-//   - createCommercialAcreage, createClosedProperty
-//   - createParticipationByProject(projectId, data) - Add participation to deal
-//   - createGuaranteeByProject(projectId, data) - Add guarantee to deal
-//   - createCovenantByProject(projectId, data) - Add covenant to deal
-//
-// Available UPDATE functions (PUT) - Update ANY field by ID:
-//   - updateProject(projectId, {field: value}) - Update any project field
-//   - updateBank(bankId, {field: value}) - Update any bank field
-//   - updatePerson(personId, {field: value}) - Update any person field
-//   - updateEquityPartner(partnerId, {field: value}) - Update any equity partner field
-//   - updateLoan(loanId, {field: value}) - Update any loan field
-//   - updateLoanByProject(projectId, {field: value}) - Update loan by ProjectId
-//   - updateParticipation(participationId, {field: value}) - Update any participation field
-//   - updateGuarantee(guaranteeId, {field: value}) - Update any guarantee field
-//   - updateDSCRTest(testId, {field: value}) - Update any DSCR test field
-//   - updateCovenant(covenantId, {field: value}) - Update any covenant field
-//   - updateLiquidityRequirement(reqId, {field: value}) - Update any liquidity requirement field
-//   - updateBankTarget(targetId, {field: value}) - Update any bank target field
-//   - updateEquityCommitment(commitmentId, {field: value}) - Update any equity commitment field
-//   - updateUnderContract(contractId, {field: value}) - Update any under contract field
-//   - updateCommercialListed(listedId, {field: value}) - Update any commercial listed field
-//   - updateCommercialAcreage(acreageId, {field: value}) - Update any commercial acreage field
-//   - updateClosedProperty(propertyId, {field: value}) - Update any closed property field
-//
-// Available DELETE functions:
-//   - deleteProject(projectId) - Delete project
-//   - deleteBank(bankId) - Delete bank
-//   - deletePerson(personId) - Delete person
-//   - deleteEquityPartner(partnerId) - Delete equity partner
-//   - deleteLoan(loanId) - Delete loan
-//   - deleteDSCRTest(testId) - Delete DSCR test
-//   - deleteParticipation(participationId) - Delete participation
-//   - deleteGuarantee(guaranteeId) - Delete guarantee
-//   - deleteCovenant(covenantId) - Delete covenant
-//   - deleteLiquidityRequirement(requirementId) - Delete liquidity requirement
-//   - deleteBankTarget(targetId) - Delete bank target
-//   - deleteEquityCommitment(commitmentId) - Delete equity commitment
-//   - deleteUnderContract(contractId) - Delete under contract record
-//   - deleteCommercialListed(listedId) - Delete commercial listed record
-//   - deleteCommercialAcreage(acreageId) - Delete commercial acreage record
-//   - deleteClosedProperty(propertyId) - Delete closed property record
-//
-// For Node.js/ES6 modules, uncomment:
-// export {
-//   // Core - Full CRUD
-//   getAllProjects, getProjectById, createProject, updateProject, deleteProject,
-//   getAllBanks, getBankById, createBank, updateBank, deleteBank,
-//   getAllPersons, getPersonById, createPerson, updatePerson, deletePerson,
-//   getAllEquityPartners, getEquityPartnerById, createEquityPartner, updateEquityPartner, deleteEquityPartner,
-//   // Banking - Full CRUD
-//   getAllLoans, getLoanById, getLoansByProject, createLoan, updateLoan, updateLoanByProject, deleteLoan,
-//   getAllDSCRTests, getDSCRTestById, getDSCRTestsByProject, createDSCRTest, updateDSCRTest, deleteDSCRTest,
-//   getAllParticipations, getParticipationById, getParticipationsByProject, createParticipation, createParticipationByProject, updateParticipation, deleteParticipation,
-//   getAllGuarantees, getGuaranteeById, getGuaranteesByProject, createGuarantee, createGuaranteeByProject, updateGuarantee, deleteGuarantee,
-//   getAllCovenants, getCovenantById, getCovenantsByProject, createCovenant, createCovenantByProject, updateCovenant, deleteCovenant,
-//   getAllLiquidityRequirements, getLiquidityRequirementById, getLiquidityRequirementsByProject, createLiquidityRequirement, updateLiquidityRequirement, deleteLiquidityRequirement,
-//   getAllBankTargets, getBankTargetById, createBankTarget, updateBankTarget, deleteBankTarget,
-//   getAllEquityCommitments, getEquityCommitmentById, getEquityCommitmentsByProject, createEquityCommitment, updateEquityCommitment, deleteEquityCommitment,
-//   // Pipeline - Full CRUD
-//   getAllUnderContracts, getUnderContractById, createUnderContract, updateUnderContract, deleteUnderContract,
-//   getAllCommercialListed, getCommercialListedById, createCommercialListed, updateCommercialListed, deleteCommercialListed,
-//   getAllCommercialAcreage, getCommercialAcreageById, createCommercialAcreage, updateCommercialAcreage, deleteCommercialAcreage,
-//   getAllClosedProperties, getClosedPropertyById, createClosedProperty, updateClosedProperty, deleteClosedProperty,
-//   // Utility
-//   checkHealth, getAPIDocs
-// };
-
-// ============================================================
-// DOMO USAGE EXAMPLES - GET, CREATE, UPDATE, DELETE
+// USAGE EXAMPLES
 // ============================================================
 
 /*
-// ============================================================
-// GET DATA (Pull/Read)
-// ============================================================
-
-// Get all projects
+// Example 1: Get all projects
 const projects = await getAllProjects();
-console.log(`Found ${projects.data.length} projects`);
+console.log('Projects:', projects.data);
 
-// Get a specific project
-const project = await getProjectById(4);
-console.log('Project:', project.data.ProjectName);
-
-// Get all banks
-const banks = await getAllBanks();
-console.log(`Found ${banks.data.length} banks`);
-
-// Get loans for a deal
-const loans = await getLoansByProject(4);
-console.log(`Found ${loans.data.length} loans for project 4`);
-
-// Get participations for a deal
-const participations = await getParticipationsByProject(4);
-console.log(`Found ${participations.data.length} participations`);
-
-// Get guarantees for a deal
-const guarantees = await getGuaranteesByProject(4);
-console.log(`Found ${guarantees.data.length} guarantees`);
-
-// Get covenants for a deal
-const covenants = await getCovenantsByProject(4);
-console.log(`Found ${covenants.data.length} covenants`);
-
-// Get DSCR tests for a deal
-const dscrTests = await getDSCRTestsByProject(4);
-console.log(`Found ${dscrTests.data.length} DSCR tests`);
-
-// Get liquidity requirements for a deal
-const liquidity = await getLiquidityRequirementsByProject(4);
-console.log(`Found ${liquidity.data.length} liquidity requirements`);
-
-// ============================================================
-// UPDATE ANY FIELD BY ID - Just send what you want to change
-// ============================================================
-
-// Update project - change any field
-await updateProject(4, {
-  Units: 350,
-  Stage: "Stabilized",
-  City: "Lafayette"
-});
-
-// Update loan interest rate - change any field
-await updateLoan(4, {
-  Spread: "0.75%",
-  InterestRate: "SOFR + 0.75%",
-  LoanAmount: 50000000
-});
-
-// Update loan by ProjectId (no need to know LoanId)
-await updateLoanByProject(4, {
-  Spread: "0.75%"
-});
-
-// Update participation - change any field
-await updateParticipation(11, {
-  ExposureAmount: 16000000,
-  ParticipationPercent: "32.5%",
-  PaidOff: false
-});
-
-// Update guarantee - change any field
-await updateGuarantee(1, {
-  GuaranteePercent: 50,
-  GuaranteeAmount: 25000
-});
-
-// Update DSCR test - change any field
-await updateDSCRTest(1, {
-  ProjectedValue: "1.30",
-  Requirement: 1.25,
-  TestDate: "2025-12-31"
-});
-
-// Update covenant - change any field
-await updateCovenant(1, {
-  ProjectedValue: "80%",
-  Requirement: "50%"
-});
-
-// Update liquidity requirement - change any field
-await updateLiquidityRequirement(1, {
-  TotalAmount: 7000000,
-  LendingBankAmount: 3000000
-});
-
-// Update bank target - change any field
-await updateBankTarget(1, {
-  ExposureWithStoa: 50000000,
-  Comments: "Updated relationship status"
-});
-
-// Update equity commitment - change any field
-await updateEquityCommitment(1, {
-  Amount: 6000000,
-  FundingDate: "2024-06-30"
-});
-
-// Update under contract - change any field
-await updateUnderContract(1, {
-  Price: 11000000,
-  ClosingDate: "2024-12-31"
-});
-
-// ============================================================
-// CREATE NEW RECORDS
-// ============================================================
-
-// Create a new project
+// Example 2: Create a new project
 const newProject = await createProject({
   ProjectName: "The Heights at Picardy",
   City: "Baton Rouge",
   State: "LA",
+  Region: "Gulf Coast",
   Units: 232,
   ProductType: "Heights",
-  Stage: "Under Construction"
+  Stage: "Started"
 });
-console.log('Created project ID:', newProject.data.ProjectId);
+console.log('Created:', newProject.data);
 
-// Create a bank
-const newBank = await createBank({
-  BankName: "First Horizon Bank",
-  City: "Memphis",
-  State: "TN"
+// Example 3: Update a project
+const updated = await updateProject(1, {
+  Units: 240,
+  Stage: "Stabilized"
 });
+console.log('Updated:', updated.data);
 
-// Update a bank
-await updateBank(1, {
-  Notes: "Updated notes"
-});
+// Example 4: Get all loans for a project
+const loans = await getLoansByProject(1);
+console.log('Loans:', loans.data);
 
-// ============================================================
-// BANKING - CREATE & UPDATE LOANS
-// ============================================================
-
-// Create a construction loan
-const newLoan = await createLoan({
+// Example 5: Create an equity commitment
+const commitment = await createEquityCommitment({
   ProjectId: 1,
-  BirthOrder: 12,
-  LoanType: "LOC - Construction",
-  Borrower: "The Waters at Settlers Trace",
-  LoanPhase: "Construction",
-  LenderId: 4, // b1Bank
-  LoanAmount: 49996842,
-  LoanClosingDate: "2022-08-24",
-  IOMaturityDate: "2025-08-24",
-  FixedOrFloating: "Floating",
-  IndexName: "WSJ Prime",
-  Spread: "0.50%",
-  PermPhaseMaturity: "2028-08-24",
-  PermPhaseInterestRate: "3yr US Treasury + 250 - 25yr am",
-  ConstructionCompletionDate: "Feb-10",
-  LeaseUpCompletedDate: "Dec-25",
-  PermanentCloseDate: "2026-06-30",
-  PermanentLoanAmount: 54163986
-});
-console.log('Created loan ID:', newLoan.data.LoanId);
-
-// Update a loan by LoanId
-await updateLoan(1, {
-  LoanAmount: 50000000,
-  Spread: "0.75%"
-});
-
-// Update loan by ProjectId (easier for Domo!)
-// Just update the interest rate for a project without needing LoanId
-await updateLoanByProject(4, {
-  Spread: "0.75%",
-  InterestRate: "SOFR + 0.75%"
-});
-
-// ============================================================
-// BANKING - CREATE & UPDATE PARTICIPATIONS
-// ============================================================
-
-// Create a participation
-const newParticipation = await createParticipation({
-  ProjectId: 4,
-  LoanId: 4,
-  BankId: 4, // b1Bank
-  ParticipationPercent: "32.0%",
-  ExposureAmount: 15998489,
-  PaidOff: false
-});
-
-// Create participation by ProjectId (no LoanId needed!)
-await createParticipationByProject(4, {
-  BankId: 4, // b1Bank
-  ParticipationPercent: "32.0%",
-  ExposureAmount: 15998489,
-  PaidOff: false
-});
-
-// Update a participation
-await updateParticipation(1, {
-  ExposureAmount: 16000000,
-  PaidOff: true
-});
-
-// Delete a participation
-await deleteParticipation(participationId);
-
-// Delete a loan
-await deleteLoan(loanId);
-
-// ============================================================
-// BANKING - CREATE & UPDATE GUARANTEES
-// ============================================================
-
-// Create a guarantee
-const newGuarantee = await createGuarantee({
-  ProjectId: 4,
-  LoanId: 4,
-  PersonId: 1, // Toby Easterly
-  GuaranteePercent: 100,
-  GuaranteeAmount: 45698
-});
-
-// Create guarantee by ProjectId (no LoanId needed!)
-await createGuaranteeByProject(4, {
-  PersonId: 1, // Toby Easterly
-  GuaranteePercent: 100,
-  GuaranteeAmount: 45698
-});
-
-// Update a guarantee
-await updateGuarantee(1, {
-  GuaranteePercent: 50,
-  GuaranteeAmount: 22849
-});
-
-// Delete a guarantee (remove personal guarantee)
-await deleteGuarantee(guaranteeId);
-
-// ============================================================
-// BANKING - CREATE & UPDATE DSCR TESTS
-// ============================================================
-
-// Create a DSCR test
-const newDSCRTest = await createDSCRTest({
-  ProjectId: 4,
-  LoanId: 4,
-  TestNumber: 1,
-  TestDate: "2025-09-30",
-  ProjectedInterestRate: "8.00%",
-  Requirement: 1.00,
-  ProjectedValue: "0.41"
-});
-
-// Update a DSCR test
-await updateDSCRTest(1, {
-  ProjectedValue: "0.50"
-});
-
-// Delete a DSCR test
-await deleteDSCRTest(testId);
-
-// ============================================================
-// BANKING - CREATE & UPDATE COVENANTS
-// ============================================================
-
-// Create a covenant
-const newCovenant = await createCovenant({
-  ProjectId: 4,
-  LoanId: 4,
-  CovenantType: "Occupancy",
-  CovenantDate: "2027-03-31",
-  Requirement: "50%",
-  ProjectedValue: "76.5%",
-  Notes: "Occupancy covenant"
-});
-
-// Create covenant by ProjectId (no LoanId needed!)
-await createCovenantByProject(4, {
-  CovenantType: "Occupancy",
-  CovenantDate: "2027-03-31",
-  Requirement: "50%",
-  ProjectedValue: "76.5%",
-  Notes: "Occupancy covenant"
-});
-
-// Update a covenant
-await updateCovenant(1, {
-  ProjectedValue: "80%"
-});
-
-// Delete a covenant
-await deleteCovenant(covenantId);
-
-// ============================================================
-// BANKING - CREATE & UPDATE LIQUIDITY REQUIREMENTS
-// ============================================================
-
-// Create a liquidity requirement
-const newLiquidity = await createLiquidityRequirement({
-  ProjectId: 4,
-  LoanId: 4,
-  TotalAmount: 5000000,
-  LendingBankAmount: 2000000
-});
-
-// Update a liquidity requirement
-await updateLiquidityRequirement(1, {
-  TotalAmount: 6000000
-});
-
-// Delete a liquidity requirement
-await deleteLiquidityRequirement(requirementId);
-
-// ============================================================
-// BANKING - CREATE & UPDATE BANK TARGETS
-// ============================================================
-
-// Create a bank target
-const newBankTarget = await createBankTarget({
-  BankId: 6, // Wells Fargo
-  AssetsText: "$1,743,283,000",
-  City: "Sioux Falls",
-  State: "SD",
-  ExposureWithStoa: 41580000,
-  ContactText: "Brady Hutka",
-  Comments: "3/16/21: Showed no interest"
-});
-
-// Update a bank target
-await updateBankTarget(1, {
-  ExposureWithStoa: 50000000,
-  Comments: "Updated comments"
-});
-
-// Delete a bank target
-await deleteBankTarget(targetId);
-
-// ============================================================
-// BANKING - CREATE & UPDATE EQUITY COMMITMENTS
-// ============================================================
-
-// Create an equity commitment
-const newEquityCommitment = await createEquityCommitment({
-  ProjectId: 1,
-  EquityPartnerId: 1,
-  EquityType: "Pref",
-  Amount: 5000000,
+  EquityPartnerId: 5,
+  Amount: 1000000,
   FundingDate: "2024-01-15"
 });
+console.log('Created commitment:', commitment.data);
 
-// Update an equity commitment
-await updateEquityCommitment(1, {
-  Amount: 6000000
+// Example 6: Delete a record
+await deleteEquityCommitment(123);
+console.log('Deleted');
+
+// Example 7: Get all data for a deal
+const projectId = 1;
+const [project, loans, commitments, participations] = await Promise.all([
+  getProjectById(projectId),
+  getLoansByProject(projectId),
+  getEquityCommitmentsByProject(projectId),
+  getParticipationsByProject(projectId)
+]);
+console.log('Deal Data:', {
+  project: project.data,
+  loans: loans.data,
+  commitments: commitments.data,
+  participations: participations.data
 });
-
-// Delete an equity commitment
-await deleteEquityCommitment(commitmentId);
-
-// ============================================================
-// PIPELINE - CREATE & UPDATE
-// ============================================================
-
-// Create under contract
-const newUnderContract = await createUnderContract({
-  ProjectId: 1,
-  Location: "Baton Rouge, LA",
-  Units: 300,
-  Price: 10000000
-});
-
-// Update under contract
-await updateUnderContract(1, {
-  Price: 11000000
-});
-
-// Delete under contract
-await deleteUnderContract(contractId);
-
-// Update commercial listed
-await updateCommercialListed(1, {
-  Price: 5000000
-});
-
-// Delete commercial listed
-await deleteCommercialListed(listedId);
-
-// Update commercial acreage
-await updateCommercialAcreage(1, {
-  Acreage: 10.5
-});
-
-// Delete commercial acreage
-await deleteCommercialAcreage(acreageId);
-
-// Update closed property
-await updateClosedProperty(1, {
-  Price: 12000000
-});
-
-// Delete closed property
-await deleteClosedProperty(propertyId);
-
-// Delete a project
-await deleteProject(projectId);
-
-// Delete a bank
-await deleteBank(bankId);
-
-// Delete a person
-await deletePerson(personId);
-
-// Delete an equity partner
-await deleteEquityPartner(partnerId);
-
-// ============================================================
-// UTILITY
-// ============================================================
-
-// Check API health
-const health = await checkHealth();
-console.log('API Status:', health.message);
 */

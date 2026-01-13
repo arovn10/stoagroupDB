@@ -273,6 +273,12 @@ async function importCommitments(pool: sql.ConnectionPool, filePath: string) {
     const leadPrefGroup = leadPrefCol >= 0 && row[leadPrefCol] ? String(row[leadPrefCol]).trim() : null;
     const lastDollar = lastDollarCol >= 0 ? (String(row[lastDollarCol]).toLowerCase() === 'true' || String(row[lastDollarCol]).toLowerCase() === 'yes') : null;
     
+    // Skip rows with zero or null amounts - these are not valid commitments
+    if (!amount || amount === 0) {
+      skipped++;
+      continue;
+    }
+    
     // Check if commitment already exists (unique by ProjectId + EquityPartnerId + Amount + FundingDate)
     // Use a more flexible check - if ProjectId + Partner + Amount match, consider it duplicate
     const existing = await pool.request()

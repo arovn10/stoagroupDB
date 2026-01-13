@@ -1301,6 +1301,11 @@ async function importParticipations(pool: sql.ConnectionPool, csvPath: string) {
     const exposure = parseAmount(row[3]) || parseAmount(row[7]);
     const paidOff = row.length > 8 ? (parseAmount(row[8]) !== null) : false;
     
+    // Skip rows with zero/null exposure or 0% participation
+    if (!exposure || exposure === 0 || !percentage || percentage === '0' || percentage === '0%' || percentage.trim() === '') {
+      continue;
+    }
+    
     if (bankName && percentage && currentProject && currentProject !== 'Project' && !currentProject.match(/^\d+$/)) {
       const projectId = await getProjectId(pool, currentProject);
       if (!projectId) {
