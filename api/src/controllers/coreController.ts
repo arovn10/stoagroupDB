@@ -459,9 +459,28 @@ export const getEquityPartnerById = async (req: Request, res: Response, next: Ne
   }
 };
 
+export const getEquityPartnerByIMSId = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { imsId } = req.params;
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input('imsId', sql.NVarChar, imsId)
+      .query('SELECT * FROM core.EquityPartner WHERE IMSInvestorProfileId = @imsId');
+    
+    if (result.recordset.length === 0) {
+      res.status(404).json({ success: false, error: { message: 'Equity Partner with this IMS ID not found' } });
+      return;
+    }
+    
+    res.json({ success: true, data: result.recordset[0] });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const createEquityPartner = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { PartnerName, Notes } = req.body;
+    const { PartnerName, Notes, IMSInvestorProfileId } = req.body;
 
     if (!PartnerName) {
       res.status(400).json({ success: false, error: { message: 'PartnerName is required' } });
@@ -472,10 +491,11 @@ export const createEquityPartner = async (req: Request, res: Response, next: Nex
     const result = await pool.request()
       .input('PartnerName', sql.NVarChar(255), PartnerName)
       .input('Notes', sql.NVarChar(sql.MAX), Notes)
+      .input('IMSInvestorProfileId', sql.NVarChar(50), IMSInvestorProfileId)
       .query(`
-        INSERT INTO core.EquityPartner (PartnerName, Notes)
+        INSERT INTO core.EquityPartner (PartnerName, Notes, IMSInvestorProfileId)
         OUTPUT INSERTED.*
-        VALUES (@PartnerName, @Notes)
+        VALUES (@PartnerName, @Notes, @IMSInvestorProfileId)
       `);
 
     res.status(201).json({ success: true, data: result.recordset[0] });
@@ -503,6 +523,8 @@ export const updateEquityPartner = async (req: Request, res: Response, next: Nex
         fields.push(`${key} = @${key}`);
         if (key === 'Notes') {
           request.input(key, sql.NVarChar(sql.MAX), partnerData[key]);
+        } else if (key === 'IMSInvestorProfileId') {
+          request.input(key, sql.NVarChar(50), partnerData[key]);
         } else {
           request.input(key, sql.NVarChar, partnerData[key]);
         }

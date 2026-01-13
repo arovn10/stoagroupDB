@@ -115,24 +115,65 @@ async function getProjectId(pool: sql.ConnectionPool, projectName: string): Prom
   return result.recordset.length > 0 ? result.recordset[0].ProjectId : null;
 }
 
-async function getOrCreateEquityPartner(pool: sql.ConnectionPool, partnerName: string): Promise<number | null> {
+async function getOrCreateEquityPartner(pool: sql.ConnectionPool, partnerName: string, imsInvestorProfileId?: string | null): Promise<number | null> {
   if (!partnerName || partnerName.trim() === '') return null;
   
-  // Check if exists
+  const trimmedName = partnerName.trim();
+  const trimmedIMSId = imsInvestorProfileId ? imsInvestorProfileId.trim() : null;
+  
+  // Check if exists by name
   let result = await pool.request()
-    .input('name', sql.NVarChar, partnerName.trim())
+    .input('name', sql.NVarChar, trimmedName)
     .query('SELECT EquityPartnerId FROM core.EquityPartner WHERE PartnerName = @name');
   
   if (result.recordset.length > 0) {
-    return result.recordset[0].EquityPartnerId;
+    const partnerId = result.recordset[0].EquityPartnerId;
+    
+    // Update IMS ID if provided and not already set
+    if (trimmedIMSId) {
+      await pool.request()
+        .input('EquityPartnerId', sql.Int, partnerId)
+        .input('IMSInvestorProfileId', sql.NVarChar(50), trimmedIMSId)
+        .query(`
+          UPDATE core.EquityPartner
+          SET IMSInvestorProfileId = @IMSInvestorProfileId
+          WHERE EquityPartnerId = @EquityPartnerId
+            AND (IMSInvestorProfileId IS NULL OR IMSInvestorProfileId = '')
+        `);
+    }
+    
+    return partnerId;
+  }
+  
+  // Check if exists by IMS ID (if provided)
+  if (trimmedIMSId) {
+    result = await pool.request()
+      .input('imsId', sql.NVarChar(50), trimmedIMSId)
+      .query('SELECT EquityPartnerId FROM core.EquityPartner WHERE IMSInvestorProfileId = @imsId');
+    
+    if (result.recordset.length > 0) {
+      // Update name if it's currently an ID
+      const partnerId = result.recordset[0].EquityPartnerId;
+      await pool.request()
+        .input('EquityPartnerId', sql.Int, partnerId)
+        .input('PartnerName', sql.NVarChar, trimmedName)
+        .query(`
+          UPDATE core.EquityPartner
+          SET PartnerName = @PartnerName
+          WHERE EquityPartnerId = @EquityPartnerId
+            AND (PartnerName NOT LIKE '%[^0-9]%' OR LEN(PartnerName) < 6)
+        `);
+      return partnerId;
+    }
   }
   
   // Create new
   result = await pool.request()
-    .input('PartnerName', sql.NVarChar, partnerName.trim())
+    .input('PartnerName', sql.NVarChar, trimmedName)
+    .input('IMSInvestorProfileId', sql.NVarChar(50), trimmedIMSId)
     .query(`
-      INSERT INTO core.EquityPartner (PartnerName)
-      VALUES (@PartnerName);
+      INSERT INTO core.EquityPartner (PartnerName, IMSInvestorProfileId)
+      VALUES (@PartnerName, @IMSInvestorProfileId);
       SELECT SCOPE_IDENTITY() AS EquityPartnerId;
     `);
   
@@ -171,6 +212,7 @@ async function importCommitments(pool: sql.ConnectionPool, filePath: string) {
   // Find column indices (flexible matching - try multiple variations)
   const projectCol = findColumnIndex(headers, 'project', 'property', 'name', 'entity', 'deal', 'investment', 'fund');
   const partnerCol = findColumnIndex(headers, 'partner', 'investor', 'equity', 'profile', 'entity', 'investor name');
+  const imsIdCol = findColumnIndex(headers, 'investor profile id', 'investor id', 'profile id', 'ims id', 'ims investor id');
   const equityTypeCol = findColumnIndex(headers, 'type', 'equity type', 'equitytype', 'investment type');
   const amountCol = findColumnIndex(headers, 'amount', 'commitment', 'total', 'value', 'commitment amount', 'investment amount');
   const fundingDateCol = findColumnIndex(headers, 'funding date', 'funding', 'date', 'commitment date', 'investment date', 'transaction date');
@@ -178,7 +220,7 @@ async function importCommitments(pool: sql.ConnectionPool, filePath: string) {
   const leadPrefCol = findColumnIndex(headers, 'lead', 'pref', 'group', 'lead pref', 'preference group');
   const lastDollarCol = findColumnIndex(headers, 'last dollar', 'lastdollar', 'last_dollar');
   
-  console.log(`   Column mapping: project=${projectCol}, partner=${partnerCol}, amount=${amountCol}, date=${fundingDateCol}`);
+  console.log(`   Column mapping: project=${projectCol}, partner=${partnerCol}, imsId=${imsIdCol}, amount=${amountCol}, date=${fundingDateCol}`);
   
   if (projectCol === -1) {
     console.log('⚠️  Project/Property column not found in commitments file');
@@ -208,7 +250,21 @@ async function importCommitments(pool: sql.ConnectionPool, filePath: string) {
     }
     
     const partnerName = partnerCol >= 0 && row[partnerCol] ? String(row[partnerCol]).trim() : null;
-    const equityPartnerId = partnerName ? await getOrCreateEquityPartner(pool, partnerName) : null;
+    const imsInvestorProfileId = imsIdCol >= 0 && row[imsIdCol] ? String(row[imsIdCol]).trim() : null;
+    
+    // If partner name is just an ID (all digits), use it as IMS ID and try to find the name
+    let actualPartnerName = partnerName;
+    let actualIMSId = imsInvestorProfileId || null;
+    
+    if (partnerName && /^\d{6,}$/.test(partnerName)) {
+      // Partner name is actually an IMS ID
+      actualIMSId = partnerName;
+      actualPartnerName = null; // Will try to find name via IMS ID lookup
+    }
+    
+    const equityPartnerId = actualPartnerName || actualIMSId 
+      ? await getOrCreateEquityPartner(pool, actualPartnerName || actualIMSId || '', actualIMSId) 
+      : null;
     
     const equityType = equityTypeCol >= 0 && row[equityTypeCol] ? String(row[equityTypeCol]).trim() : null;
     const amount = amountCol >= 0 ? parseAmount(row[amountCol]) : null;
@@ -302,6 +358,8 @@ async function importInvestments(pool: sql.ConnectionPool, filePath: string) {
   // For amount, look for "Investment Amount", "Contribution Amount", "Amount"
   // For date, look for "Contribution Date", "Received Date", "Investment Date"
   const projectCol = findColumnIndex(headers, 'project name', 'project', 'property', 'name', 'entity', 'deal', 'investment', 'fund');
+  // Look for Investor Profile ID column
+  const imsIdCol = findColumnIndex(headers, 'investor profile id', 'investor id', 'profile id', 'ims id', 'ims investor id');
   // Look for Investor Name first (this is the actual name, not the ID)
   // Prioritize "Investor Name" over "Investor Profile ID" 
   let partnerCol = findColumnIndex(headers, 'investor name', 'investor profile legal name', 'investor legal name', 'investor', 'partner', 'profile', 'entity');
@@ -331,7 +389,7 @@ async function importInvestments(pool: sql.ConnectionPool, filePath: string) {
     }
   }
   
-  console.log(`   Column mapping: project=${projectCol}${projectCol >= 0 ? ` (${headers[projectCol]})` : ''}, partner=${partnerCol}${partnerCol >= 0 ? ` (${headers[partnerCol]})` : ''}, amount=${amountCol}${amountCol >= 0 ? ` (${headers[amountCol]})` : ''}, date=${dateCol}${dateCol >= 0 ? ` (${headers[dateCol]})` : ''}`);
+  console.log(`   Column mapping: project=${projectCol}${projectCol >= 0 ? ` (${headers[projectCol]})` : ''}, partner=${partnerCol}${partnerCol >= 0 ? ` (${headers[partnerCol]})` : ''}, imsId=${imsIdCol}${imsIdCol >= 0 ? ` (${headers[imsIdCol]})` : ''}, amount=${amountCol}${amountCol >= 0 ? ` (${headers[amountCol]})` : ''}, date=${dateCol}${dateCol >= 0 ? ` (${headers[dateCol]})` : ''}`);
   
   if (projectCol === -1) {
     console.log('⚠️  Project/Property column not found in investments file');
@@ -421,7 +479,19 @@ async function importInvestments(pool: sql.ConnectionPool, filePath: string) {
       }
     }
     
-    const equityPartnerId = partnerName && partnerName.length >= 2 ? await getOrCreateEquityPartner(pool, partnerName) : null;
+    // Get IMS ID from dedicated column or from partner name if it's an ID
+    let imsInvestorProfileId = imsIdCol >= 0 && row[imsIdCol] ? String(row[imsIdCol]).trim() : null;
+    let actualPartnerName = partnerName;
+    
+    // If partner name is just an ID (all digits), use it as IMS ID
+    if (partnerName && /^\d{6,}$/.test(partnerName)) {
+      imsInvestorProfileId = partnerName;
+      actualPartnerName = null; // Will use IMS ID as name temporarily
+    }
+    
+    const equityPartnerId = (actualPartnerName && actualPartnerName.length >= 2) || imsInvestorProfileId
+      ? await getOrCreateEquityPartner(pool, actualPartnerName || imsInvestorProfileId || '', imsInvestorProfileId)
+      : null;
     
     const amount = amountCol >= 0 ? parseAmount(row[amountCol]) : null;
     const fundingDate = dateCol >= 0 ? parseDate(row[dateCol]) : null;

@@ -1331,7 +1331,25 @@ export const getAllEquityCommitments = async (req: Request, res: Response, next:
   try {
     const pool = await getConnection();
     const result = await pool.request().query(`
-      SELECT ec.*, p.ProjectName, ep.PartnerName
+      SELECT 
+        ec.*, 
+        p.ProjectName, 
+        ep.PartnerName,
+        ep.IMSInvestorProfileId,
+        -- If PartnerName looks like an ID (all digits, 6+ chars), try to find actual name via IMS ID
+        CASE 
+          WHEN ep.PartnerName IS NOT NULL 
+               AND ISNUMERIC(ep.PartnerName) = 1
+               AND LEN(ep.PartnerName) >= 6
+          THEN COALESCE(
+            (SELECT TOP 1 ep2.PartnerName 
+             FROM core.EquityPartner ep2 
+             WHERE ep2.IMSInvestorProfileId = ep.PartnerName
+               AND ep2.PartnerName != ep.PartnerName),
+            ep.PartnerName
+          )
+          ELSE ep.PartnerName
+        END AS InvestorName
       FROM banking.EquityCommitment ec
       LEFT JOIN core.Project p ON ec.ProjectId = p.ProjectId
       LEFT JOIN core.EquityPartner ep ON ec.EquityPartnerId = ep.EquityPartnerId

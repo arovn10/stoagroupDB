@@ -26,6 +26,7 @@ router.delete('/persons/:id', coreController.deletePerson);
 
 // Equity Partner routes
 router.get('/equity-partners', coreController.getAllEquityPartners);
+router.get('/equity-partners/ims/:imsId', coreController.getEquityPartnerByIMSId); // Get by IMS Investor Profile ID (must come before /:id)
 router.get('/equity-partners/:id', coreController.getEquityPartnerById);
 router.post('/equity-partners', coreController.createEquityPartner);
 router.put('/equity-partners/:id', coreController.updateEquityPartner);

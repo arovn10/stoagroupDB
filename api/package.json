@@ -22,6 +22,7 @@
     "db:review-flat-exports": "npx ts-node --transpile-only scripts/review-flat-exports.ts",
     "db:import-flat-exports": "npx ts-node --transpile-only scripts/import-flat-exports.ts",
     "db:import-ims": "npx ts-node --transpile-only scripts/import-ims-data.ts",
+    "db:populate-ims-ids": "npx ts-node --transpile-only scripts/populate-ims-ids.ts",
     "db:seed": "npx ts-node --transpile-only scripts/seed-database.ts",
     "db:test-api": "npx ts-node --transpile-only scripts/test-api.ts",
     "db:test-data": "npx ts-node --transpile-only scripts/test-data-import.ts"

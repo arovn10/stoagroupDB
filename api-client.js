@@ -123,6 +123,52 @@ async function getEquityPartnerById(partnerId) {
   return apiRequest(`/api/core/equity-partners/${partnerId}`, 'GET');
 }
 
+/**
+ * Get investor name from IMS Investor Profile ID
+ * Example: getEquityPartnerByIMSId('2660555')
+ * 
+ * Returns full partner object including PartnerName
+ */
+async function getEquityPartnerByIMSId(imsInvestorProfileId) {
+  return apiRequest(`/api/core/equity-partners/ims/${imsInvestorProfileId}`, 'GET');
+}
+
+/**
+ * Get just the investor name from IMS ID (convenience function)
+ * Example: const name = await getInvestorNameFromIMSId('2660619');
+ * Returns: "Investor Name" or null if not found
+ */
+async function getInvestorNameFromIMSId(imsId) {
+  try {
+    const result = await getEquityPartnerByIMSId(imsId);
+    return result.success && result.data ? result.data.PartnerName : null;
+  } catch (error) {
+    console.error(`Error looking up IMS ID ${imsId}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Resolve investor name - handles both IMS IDs (all digits) and actual names
+ * Example: 
+ *   const name1 = await resolveInvestorName('2660619'); // Looks up ID → returns name
+ *   const name2 = await resolveInvestorName('Stoa Holdings, LLC'); // Returns as-is
+ */
+async function resolveInvestorName(investorValue) {
+  if (!investorValue) return null;
+  
+  const str = String(investorValue).trim();
+  
+  // If it's all digits and at least 6 characters, treat as IMS ID
+  if (/^\d{6,}$/.test(str)) {
+    const name = await getInvestorNameFromIMSId(str);
+    return name || str; // Return ID if name not found
+  }
+  
+  // Otherwise, return as-is (it's already a name)
+  return str;
+}
+
 async function createEquityPartner(partnerData) {
   return apiRequest('/api/core/equity-partners', 'POST', partnerData);
 }
@@ -535,7 +581,8 @@ async function getAPIDocs() {
 //   - getAllPersons() - Get all persons
 //   - getPersonById(personId) - Get one person
 //   - getAllEquityPartners() - Get all equity partners
-//   - getEquityPartnerById(partnerId) - Get one equity partner
+//   - getEquityPartnerById(partnerId) - Get one equity partner by database ID
+//   - getEquityPartnerByIMSId(imsId) - Get investor name from IMS Investor Profile ID
 //   - getAllLoans() - Get all loans
 //   - getLoanById(loanId) - Get one loan
 //   - getLoansByProject(projectId) - Get loans for a deal
