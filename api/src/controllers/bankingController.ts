@@ -106,6 +106,15 @@ export const createLoan = async (req: Request, res: Response, next: NextFunction
       return;
     }
 
+    // Validate FixedOrFloating: must be NULL, 'Fixed', or 'Floating'
+    if (FixedOrFloating && FixedOrFloating !== 'Fixed' && FixedOrFloating !== 'Floating') {
+      res.status(400).json({ 
+        success: false, 
+        error: { message: 'FixedOrFloating must be NULL, "Fixed", or "Floating"' } 
+      });
+      return;
+    }
+
     // Validate IndexName for Construction loans: must be NULL, 'Prime', or 'SOFR'
     if (LoanPhase === 'Construction' && IndexName && IndexName !== 'Prime' && IndexName !== 'SOFR') {
       res.status(400).json({ 
@@ -177,6 +186,18 @@ export const updateLoan = async (req: Request, res: Response, next: NextFunction
     const loanData = req.body;
 
     const pool = await getConnection();
+
+    // Validate FixedOrFloating: must be NULL, 'Fixed', or 'Floating'
+    if (loanData.FixedOrFloating !== undefined && 
+        loanData.FixedOrFloating !== null &&
+        loanData.FixedOrFloating !== 'Fixed' && 
+        loanData.FixedOrFloating !== 'Floating') {
+      res.status(400).json({ 
+        success: false, 
+        error: { message: 'FixedOrFloating must be NULL, "Fixed", or "Floating"' } 
+      });
+      return;
+    }
 
     // Validate IndexName for Construction loans: must be NULL, 'Prime', or 'SOFR'
     if (loanData.IndexName !== undefined) {
