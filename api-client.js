@@ -10,66 +10,83 @@
  * - Store token in localStorage or sessionStorage for persistence
  * 
  * TO CHANGE API URL:
- * - Set window.API_BASE_URL before importing this file, OR
- * - Call setApiBaseUrl('your-api-url') after importing
+ * - Set window.API_BASE_URL before loading this file, OR
+ * - Call setApiBaseUrl('your-api-url') after loading
+ * 
+ * USAGE:
+ * - In browser: <script src="api-client.js"></script>
+ * - Then use: API.getAllProjects(), API.login(), etc.
  */
 
-// API Base URL - can be overridden by setting window.API_BASE_URL or calling setApiBaseUrl()
-let API_BASE_URL = (typeof window !== 'undefined' && window.API_BASE_URL) 
-  ? window.API_BASE_URL 
-  : 'https://stoagroupdb-ddre.onrender.com';
+(function(global) {
+  'use strict';
 
-/**
- * Set the API base URL
- * @param {string} url - The base URL for the API (e.g., 'https://your-api.com' or 'http://localhost:3000')
- */
-export function setApiBaseUrl(url) {
-  API_BASE_URL = url;
-  console.log(`API Base URL updated to: ${API_BASE_URL}`);
-}
+  // API Base URL - can be overridden by setting window.API_BASE_URL or calling setApiBaseUrl()
+  let API_BASE_URL = (typeof window !== 'undefined' && window.API_BASE_URL) 
+    ? window.API_BASE_URL 
+    : 'https://stoagroupdb-ddre.onrender.com';
 
-/**
- * Get the current API base URL
- * @returns {string} Current API base URL
- */
-export function getApiBaseUrl() {
-  return API_BASE_URL;
-}
+  // Store authentication token (can be set via setAuthToken or login)
+  let authToken = null;
 
-// Store authentication token (can be set via setAuthToken or login)
-let authToken = null;
+  // Create API namespace object
+  const API = {};
 
-/**
- * Set authentication token for subsequent requests
- * @param {string} token - JWT token from login
- */
-export function setAuthToken(token) {
-  authToken = token;
-}
+  /**
+   * Set the API base URL
+   * @param {string} url - The base URL for the API (e.g., 'https://your-api.com' or 'http://localhost:3000')
+   */
+  function setApiBaseUrl(url) {
+    API_BASE_URL = url;
+    console.log(`API Base URL updated to: ${API_BASE_URL}`);
+  }
 
-/**
- * Get current authentication token
- * @returns {string|null} Current auth token or null
- */
-export function getAuthToken() {
-  return authToken;
-}
+  /**
+   * Get the current API base URL
+   * @returns {string} Current API base URL
+   */
+  function getApiBaseUrl() {
+    return API_BASE_URL;
+  }
 
-/**
- * Clear authentication token (logout)
- */
-export function clearAuthToken() {
-  authToken = null;
-}
+  /**
+   * Set authentication token for subsequent requests
+   * @param {string} token - JWT token from login
+   */
+  function setAuthToken(token) {
+    authToken = token;
+  }
 
-/**
- * Make an API request
- * @param {string} endpoint - API endpoint path
- * @param {string} method - HTTP method (GET, POST, PUT, DELETE)
- * @param {object|null} data - Request body data (for POST/PUT)
- * @param {string|null} token - Optional auth token (if not provided, uses stored token)
- */
-async function apiRequest(endpoint, method = 'GET', data = null, token = null) {
+  /**
+   * Get current authentication token
+   * @returns {string|null} Current auth token or null
+   */
+  function getAuthToken() {
+    return authToken;
+  }
+
+  /**
+   * Clear authentication token (logout)
+   */
+  function clearAuthToken() {
+    authToken = null;
+  }
+
+  // Expose these functions
+  API.setApiBaseUrl = setApiBaseUrl;
+  API.getApiBaseUrl = getApiBaseUrl;
+  API.setAuthToken = setAuthToken;
+  API.getAuthToken = getAuthToken;
+  API.clearAuthToken = clearAuthToken;
+
+  /**
+   * Make an API request
+   * @param {string} endpoint - API endpoint path
+   * @param {string} method - HTTP method (GET, POST, PUT, DELETE)
+   * @param {object|null} data - Request body data (for POST/PUT)
+   * @param {string|null} token - Optional auth token (if not provided, uses stored token)
+   */
+  async function apiRequest(endpoint, method = 'GET', data = null, token = null) {
   try {
     const options = {
       method,
@@ -118,7 +135,7 @@ async function apiRequest(endpoint, method = 'GET', data = null, token = null) {
  * const result = await login('arovner@stoagroup.com', 'CapitalMarkets26');
  * setAuthToken(result.data.token); // Store token for future requests
  */
-export async function login(username, password) {
+  async function login(username, password) {
   const result = await apiRequest('/api/auth/login', 'POST', { username, password });
   // Automatically store token if login successful
   if (result.success && result.data.token) {
@@ -132,7 +149,7 @@ export async function login(username, password) {
  * @param {string|null} token - Optional token to verify (uses stored token if not provided)
  * @returns {Promise<object>} { success: true, data: { user: {...} } }
  */
-export async function verifyAuth(token = null) {
+  async function verifyAuth(token = null) {
   return apiRequest('/api/auth/verify', 'GET', null, token);
 }
 
@@ -141,7 +158,7 @@ export async function verifyAuth(token = null) {
  * @param {string|null} token - Optional token (uses stored token if not provided)
  * @returns {Promise<object>} { success: true, data: { userId, username, email, ... } }
  */
-export async function getCurrentUser(token = null) {
+  async function getCurrentUser(token = null) {
   return apiRequest('/api/auth/me', 'GET', null, token);
 }
 
@@ -149,7 +166,7 @@ export async function getCurrentUser(token = null) {
  * Logout - clears stored token
  * Note: This only clears the local token. The JWT token itself remains valid until expiration.
  */
-export function logout() {
+  function logout() {
   clearAuthToken();
 }
 
@@ -158,90 +175,90 @@ export function logout() {
 // ============================================================
 
 // PROJECTS
-export async function getAllProjects() {
+  async function getAllProjects() {
   return apiRequest('/api/core/projects');
 }
 
-export async function getProjectById(id) {
+  async function getProjectById(id) {
   return apiRequest(`/api/core/projects/${id}`);
 }
 
-export async function createProject(data) {
+  async function createProject(data) {
   return apiRequest('/api/core/projects', 'POST', data);
 }
 
-export async function updateProject(id, data) {
+  async function updateProject(id, data) {
   return apiRequest(`/api/core/projects/${id}`, 'PUT', data);
 }
 
-export async function deleteProject(id) {
+  async function deleteProject(id) {
   return apiRequest(`/api/core/projects/${id}`, 'DELETE');
 }
 
 // BANKS
-export async function getAllBanks() {
+  async function getAllBanks() {
   return apiRequest('/api/core/banks');
 }
 
-export async function getBankById(id) {
+  async function getBankById(id) {
   return apiRequest(`/api/core/banks/${id}`);
 }
 
-export async function createBank(data) {
+  async function createBank(data) {
   return apiRequest('/api/core/banks', 'POST', data);
 }
 
-export async function updateBank(id, data) {
+  async function updateBank(id, data) {
   return apiRequest(`/api/core/banks/${id}`, 'PUT', data);
 }
 
-export async function deleteBank(id) {
+  async function deleteBank(id) {
   return apiRequest(`/api/core/banks/${id}`, 'DELETE');
 }
 
 // PERSONS
-export async function getAllPersons() {
+  async function getAllPersons() {
   return apiRequest('/api/core/persons');
 }
 
-export async function getPersonById(id) {
+  async function getPersonById(id) {
   return apiRequest(`/api/core/persons/${id}`);
 }
 
-export async function createPerson(data) {
+  async function createPerson(data) {
   return apiRequest('/api/core/persons', 'POST', data);
 }
 
-export async function updatePerson(id, data) {
+  async function updatePerson(id, data) {
   return apiRequest(`/api/core/persons/${id}`, 'PUT', data);
 }
 
-export async function deletePerson(id) {
+  async function deletePerson(id) {
   return apiRequest(`/api/core/persons/${id}`, 'DELETE');
 }
 
 // EQUITY PARTNERS
-export async function getAllEquityPartners() {
+  async function getAllEquityPartners() {
   return apiRequest('/api/core/equity-partners');
 }
 
-export async function getEquityPartnerById(id) {
+  async function getEquityPartnerById(id) {
   return apiRequest(`/api/core/equity-partners/${id}`);
 }
 
-export async function getEquityPartnerByIMSId(imsId) {
+  async function getEquityPartnerByIMSId(imsId) {
   return apiRequest(`/api/core/equity-partners/ims/${imsId}`);
 }
 
-export async function createEquityPartner(data) {
+  async function createEquityPartner(data) {
   return apiRequest('/api/core/equity-partners', 'POST', data);
 }
 
-export async function updateEquityPartner(id, data) {
+  async function updateEquityPartner(id, data) {
   return apiRequest(`/api/core/equity-partners/${id}`, 'PUT', data);
 }
 
-export async function deleteEquityPartner(id) {
+  async function deleteEquityPartner(id) {
   return apiRequest(`/api/core/equity-partners/${id}`, 'DELETE');
 }
 
@@ -250,7 +267,7 @@ export async function deleteEquityPartner(id) {
  * Get all active product types (for dropdowns)
  * @returns {Promise<object>} { success: true, data: [{ ProductTypeId, ProductTypeName, DisplayOrder, ... }] }
  */
-export async function getAllProductTypes() {
+  async function getAllProductTypes() {
   return apiRequest('/api/core/product-types');
 }
 
@@ -259,7 +276,7 @@ export async function getAllProductTypes() {
  * @param {number} id - Product Type ID
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function getProductTypeById(id) {
+  async function getProductTypeById(id) {
   return apiRequest(`/api/core/product-types/${id}`);
 }
 
@@ -270,7 +287,7 @@ export async function getProductTypeById(id) {
  * @example
  * await createProductType({ ProductTypeName: 'Custom Type', DisplayOrder: 5 });
  */
-export async function createProductType(data) {
+  async function createProductType(data) {
   return apiRequest('/api/core/product-types', 'POST', data);
 }
 
@@ -280,7 +297,7 @@ export async function createProductType(data) {
  * @param {object} data - Fields to update
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function updateProductType(id, data) {
+  async function updateProductType(id, data) {
   return apiRequest(`/api/core/product-types/${id}`, 'PUT', data);
 }
 
@@ -290,7 +307,7 @@ export async function updateProductType(id, data) {
  * @param {number} id - Product Type ID
  * @returns {Promise<object>} { success: true, message: '...' }
  */
-export async function deleteProductType(id) {
+  async function deleteProductType(id) {
   return apiRequest(`/api/core/product-types/${id}`, 'DELETE');
 }
 
@@ -299,7 +316,7 @@ export async function deleteProductType(id) {
  * Get all active regions (for dropdowns)
  * @returns {Promise<object>} { success: true, data: [{ RegionId, RegionName, DisplayOrder, ... }] }
  */
-export async function getAllRegions() {
+  async function getAllRegions() {
   return apiRequest('/api/core/regions');
 }
 
@@ -308,7 +325,7 @@ export async function getAllRegions() {
  * @param {number} id - Region ID
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function getRegionById(id) {
+  async function getRegionById(id) {
   return apiRequest(`/api/core/regions/${id}`);
 }
 
@@ -319,7 +336,7 @@ export async function getRegionById(id) {
  * @example
  * await createRegion({ RegionName: 'Southeast', DisplayOrder: 3 });
  */
-export async function createRegion(data) {
+  async function createRegion(data) {
   return apiRequest('/api/core/regions', 'POST', data);
 }
 
@@ -329,7 +346,7 @@ export async function createRegion(data) {
  * @param {object} data - Fields to update
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function updateRegion(id, data) {
+  async function updateRegion(id, data) {
   return apiRequest(`/api/core/regions/${id}`, 'PUT', data);
 }
 
@@ -339,7 +356,7 @@ export async function updateRegion(id, data) {
  * @param {number} id - Region ID
  * @returns {Promise<object>} { success: true, message: '...' }
  */
-export async function deleteRegion(id) {
+  async function deleteRegion(id) {
   return apiRequest(`/api/core/regions/${id}`, 'DELETE');
 }
 
@@ -351,15 +368,15 @@ export async function deleteRegion(id) {
 // GET operations are public and don't require authentication
 
 // LOANS
-export async function getAllLoans() {
+  async function getAllLoans() {
   return apiRequest('/api/banking/loans');
 }
 
-export async function getLoanById(id) {
+  async function getLoanById(id) {
   return apiRequest(`/api/banking/loans/${id}`);
 }
 
-export async function getLoansByProject(projectId) {
+  async function getLoansByProject(projectId) {
   return apiRequest(`/api/banking/loans/project/${projectId}`);
 }
 
@@ -372,7 +389,7 @@ export async function getLoansByProject(projectId) {
  * // Then create loan
  * await createLoan({ ProjectId: 1, LoanPhase: 'Construction', ... });
  */
-export async function createLoan(data) {
+  async function createLoan(data) {
   return apiRequest('/api/banking/loans', 'POST', data);
 }
 
@@ -381,7 +398,7 @@ export async function createLoan(data) {
  * @param {number} id - Loan ID
  * @param {object} data - Updated loan data
  */
-export async function updateLoan(id, data) {
+  async function updateLoan(id, data) {
   return apiRequest(`/api/banking/loans/${id}`, 'PUT', data);
 }
 
@@ -390,7 +407,7 @@ export async function updateLoan(id, data) {
  * @param {number} projectId - Project ID
  * @param {object} data - Updated loan data
  */
-export async function updateLoanByProject(projectId, data) {
+  async function updateLoanByProject(projectId, data) {
   return apiRequest(`/api/banking/loans/project/${projectId}`, 'PUT', data);
 }
 
@@ -398,7 +415,7 @@ export async function updateLoanByProject(projectId, data) {
  * Delete a loan (REQUIRES AUTHENTICATION)
  * @param {number} id - Loan ID
  */
-export async function deleteLoan(id) {
+  async function deleteLoan(id) {
   return apiRequest(`/api/banking/loans/${id}`, 'DELETE');
 }
 
@@ -407,7 +424,7 @@ export async function deleteLoan(id) {
  * Get all DSCR tests
  * @returns {Promise<object>} { success: true, data: [{...}] }
  */
-export async function getAllDSCRTests() {
+  async function getAllDSCRTests() {
   return apiRequest('/api/banking/dscr-tests');
 }
 
@@ -416,7 +433,7 @@ export async function getAllDSCRTests() {
  * @param {number} id - DSCR Test ID
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function getDSCRTestById(id) {
+  async function getDSCRTestById(id) {
   return apiRequest(`/api/banking/dscr-tests/${id}`);
 }
 
@@ -425,7 +442,7 @@ export async function getDSCRTestById(id) {
  * @param {number} projectId - Project ID
  * @returns {Promise<object>} { success: true, data: [{...}] }
  */
-export async function getDSCRTestsByProject(projectId) {
+  async function getDSCRTestsByProject(projectId) {
   return apiRequest(`/api/banking/dscr-tests/project/${projectId}`);
 }
 
@@ -434,7 +451,7 @@ export async function getDSCRTestsByProject(projectId) {
  * @param {object} data - { ProjectId, TestNumber, TestDate?, ProjectedInterestRate?, Requirement?, ProjectedValue? }
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function createDSCRTest(data) {
+  async function createDSCRTest(data) {
   return apiRequest('/api/banking/dscr-tests', 'POST', data);
 }
 
@@ -444,7 +461,7 @@ export async function createDSCRTest(data) {
  * @param {object} data - Updated DSCR test data
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function updateDSCRTest(id, data) {
+  async function updateDSCRTest(id, data) {
   return apiRequest(`/api/banking/dscr-tests/${id}`, 'PUT', data);
 }
 
@@ -453,7 +470,7 @@ export async function updateDSCRTest(id, data) {
  * @param {number} id - DSCR Test ID
  * @returns {Promise<object>} { success: true, message: '...' }
  */
-export async function deleteDSCRTest(id) {
+  async function deleteDSCRTest(id) {
   return apiRequest(`/api/banking/dscr-tests/${id}`, 'DELETE');
 }
 
@@ -462,7 +479,7 @@ export async function deleteDSCRTest(id) {
  * Get all participations
  * @returns {Promise<object>} { success: true, data: [{...}] }
  */
-export async function getAllParticipations() {
+  async function getAllParticipations() {
   return apiRequest('/api/banking/participations');
 }
 
@@ -471,7 +488,7 @@ export async function getAllParticipations() {
  * @param {number} id - Participation ID
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function getParticipationById(id) {
+  async function getParticipationById(id) {
   return apiRequest(`/api/banking/participations/${id}`);
 }
 
@@ -480,7 +497,7 @@ export async function getParticipationById(id) {
  * @param {number} projectId - Project ID
  * @returns {Promise<object>} { success: true, data: [{...}] }
  */
-export async function getParticipationsByProject(projectId) {
+  async function getParticipationsByProject(projectId) {
   return apiRequest(`/api/banking/participations/project/${projectId}`);
 }
 
@@ -489,7 +506,7 @@ export async function getParticipationsByProject(projectId) {
  * @param {object} data - { ProjectId, BankId, LoanId?, ParticipationPercent?, ExposureAmount?, PaidOff?, Notes? }
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function createParticipation(data) {
+  async function createParticipation(data) {
   return apiRequest('/api/banking/participations', 'POST', data);
 }
 
@@ -500,7 +517,7 @@ export async function createParticipation(data) {
  * @param {object} data - { BankId, ParticipationPercent?, ExposureAmount?, PaidOff?, Notes? }
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function createParticipationByProject(projectId, data) {
+  async function createParticipationByProject(projectId, data) {
   return apiRequest(`/api/banking/participations/project/${projectId}`, 'POST', data);
 }
 
@@ -510,7 +527,7 @@ export async function createParticipationByProject(projectId, data) {
  * @param {object} data - Updated participation data
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function updateParticipation(id, data) {
+  async function updateParticipation(id, data) {
   return apiRequest(`/api/banking/participations/${id}`, 'PUT', data);
 }
 
@@ -519,7 +536,7 @@ export async function updateParticipation(id, data) {
  * @param {number} id - Participation ID
  * @returns {Promise<object>} { success: true, message: '...' }
  */
-export async function deleteParticipation(id) {
+  async function deleteParticipation(id) {
   return apiRequest(`/api/banking/participations/${id}`, 'DELETE');
 }
 
@@ -528,7 +545,7 @@ export async function deleteParticipation(id) {
  * Get all guarantees
  * @returns {Promise<object>} { success: true, data: [{...}] }
  */
-export async function getAllGuarantees() {
+  async function getAllGuarantees() {
   return apiRequest('/api/banking/guarantees');
 }
 
@@ -537,7 +554,7 @@ export async function getAllGuarantees() {
  * @param {number} id - Guarantee ID
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function getGuaranteeById(id) {
+  async function getGuaranteeById(id) {
   return apiRequest(`/api/banking/guarantees/${id}`);
 }
 
@@ -546,7 +563,7 @@ export async function getGuaranteeById(id) {
  * @param {number} projectId - Project ID
  * @returns {Promise<object>} { success: true, data: [{...}] }
  */
-export async function getGuaranteesByProject(projectId) {
+  async function getGuaranteesByProject(projectId) {
   return apiRequest(`/api/banking/guarantees/project/${projectId}`);
 }
 
@@ -555,7 +572,7 @@ export async function getGuaranteesByProject(projectId) {
  * @param {object} data - { ProjectId, PersonId, LoanId?, GuaranteePercent?, GuaranteeAmount?, Notes? }
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function createGuarantee(data) {
+  async function createGuarantee(data) {
   return apiRequest('/api/banking/guarantees', 'POST', data);
 }
 
@@ -566,7 +583,7 @@ export async function createGuarantee(data) {
  * @param {object} data - { PersonId, GuaranteePercent?, GuaranteeAmount?, Notes? }
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function createGuaranteeByProject(projectId, data) {
+  async function createGuaranteeByProject(projectId, data) {
   return apiRequest(`/api/banking/guarantees/project/${projectId}`, 'POST', data);
 }
 
@@ -576,7 +593,7 @@ export async function createGuaranteeByProject(projectId, data) {
  * @param {object} data - Updated guarantee data
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function updateGuarantee(id, data) {
+  async function updateGuarantee(id, data) {
   return apiRequest(`/api/banking/guarantees/${id}`, 'PUT', data);
 }
 
@@ -585,7 +602,7 @@ export async function updateGuarantee(id, data) {
  * @param {number} id - Guarantee ID
  * @returns {Promise<object>} { success: true, message: '...' }
  */
-export async function deleteGuarantee(id) {
+  async function deleteGuarantee(id) {
   return apiRequest(`/api/banking/guarantees/${id}`, 'DELETE');
 }
 
@@ -594,7 +611,7 @@ export async function deleteGuarantee(id) {
  * Get all covenants
  * @returns {Promise<object>} { success: true, data: [{...}] }
  */
-export async function getAllCovenants() {
+  async function getAllCovenants() {
   return apiRequest('/api/banking/covenants');
 }
 
@@ -603,7 +620,7 @@ export async function getAllCovenants() {
  * @param {number} id - Covenant ID
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function getCovenantById(id) {
+  async function getCovenantById(id) {
   return apiRequest(`/api/banking/covenants/${id}`);
 }
 
@@ -612,7 +629,7 @@ export async function getCovenantById(id) {
  * @param {number} projectId - Project ID
  * @returns {Promise<object>} { success: true, data: [{...}] }
  */
-export async function getCovenantsByProject(projectId) {
+  async function getCovenantsByProject(projectId) {
   return apiRequest(`/api/banking/covenants/project/${projectId}`);
 }
 
@@ -621,7 +638,7 @@ export async function getCovenantsByProject(projectId) {
  * @param {object} data - { ProjectId, CovenantType, LoanId?, CovenantDate?, Requirement?, ProjectedValue?, Notes? }
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function createCovenant(data) {
+  async function createCovenant(data) {
   return apiRequest('/api/banking/covenants', 'POST', data);
 }
 
@@ -632,7 +649,7 @@ export async function createCovenant(data) {
  * @param {object} data - { CovenantType, CovenantDate?, Requirement?, ProjectedValue?, Notes? }
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function createCovenantByProject(projectId, data) {
+  async function createCovenantByProject(projectId, data) {
   return apiRequest(`/api/banking/covenants/project/${projectId}`, 'POST', data);
 }
 
@@ -642,7 +659,7 @@ export async function createCovenantByProject(projectId, data) {
  * @param {object} data - Updated covenant data
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function updateCovenant(id, data) {
+  async function updateCovenant(id, data) {
   return apiRequest(`/api/banking/covenants/${id}`, 'PUT', data);
 }
 
@@ -651,7 +668,7 @@ export async function updateCovenant(id, data) {
  * @param {number} id - Covenant ID
  * @returns {Promise<object>} { success: true, message: '...' }
  */
-export async function deleteCovenant(id) {
+  async function deleteCovenant(id) {
   return apiRequest(`/api/banking/covenants/${id}`, 'DELETE');
 }
 
@@ -660,7 +677,7 @@ export async function deleteCovenant(id) {
  * Get all liquidity requirements
  * @returns {Promise<object>} { success: true, data: [{...}] }
  */
-export async function getAllLiquidityRequirements() {
+  async function getAllLiquidityRequirements() {
   return apiRequest('/api/banking/liquidity-requirements');
 }
 
@@ -669,7 +686,7 @@ export async function getAllLiquidityRequirements() {
  * @param {number} id - Liquidity Requirement ID
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function getLiquidityRequirementById(id) {
+  async function getLiquidityRequirementById(id) {
   return apiRequest(`/api/banking/liquidity-requirements/${id}`);
 }
 
@@ -678,7 +695,7 @@ export async function getLiquidityRequirementById(id) {
  * @param {number} projectId - Project ID
  * @returns {Promise<object>} { success: true, data: [{...}] }
  */
-export async function getLiquidityRequirementsByProject(projectId) {
+  async function getLiquidityRequirementsByProject(projectId) {
   return apiRequest(`/api/banking/liquidity-requirements/project/${projectId}`);
 }
 
@@ -687,7 +704,7 @@ export async function getLiquidityRequirementsByProject(projectId) {
  * @param {object} data - { ProjectId, LoanId?, TotalAmount?, LendingBankAmount?, Notes? }
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function createLiquidityRequirement(data) {
+  async function createLiquidityRequirement(data) {
   return apiRequest('/api/banking/liquidity-requirements', 'POST', data);
 }
 
@@ -697,7 +714,7 @@ export async function createLiquidityRequirement(data) {
  * @param {object} data - Updated liquidity requirement data
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function updateLiquidityRequirement(id, data) {
+  async function updateLiquidityRequirement(id, data) {
   return apiRequest(`/api/banking/liquidity-requirements/${id}`, 'PUT', data);
 }
 
@@ -706,7 +723,7 @@ export async function updateLiquidityRequirement(id, data) {
  * @param {number} id - Liquidity Requirement ID
  * @returns {Promise<object>} { success: true, message: '...' }
  */
-export async function deleteLiquidityRequirement(id) {
+  async function deleteLiquidityRequirement(id) {
   return apiRequest(`/api/banking/liquidity-requirements/${id}`, 'DELETE');
 }
 
@@ -715,7 +732,7 @@ export async function deleteLiquidityRequirement(id) {
  * Get all bank targets
  * @returns {Promise<object>} { success: true, data: [{...}] }
  */
-export async function getAllBankTargets() {
+  async function getAllBankTargets() {
   return apiRequest('/api/banking/bank-targets');
 }
 
@@ -724,7 +741,7 @@ export async function getAllBankTargets() {
  * @param {number} id - Bank Target ID
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function getBankTargetById(id) {
+  async function getBankTargetById(id) {
   return apiRequest(`/api/banking/bank-targets/${id}`);
 }
 
@@ -733,7 +750,7 @@ export async function getBankTargetById(id) {
  * @param {object} data - { BankId, AssetsText?, City?, State?, ExposureWithStoa?, ContactText?, Comments? }
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function createBankTarget(data) {
+  async function createBankTarget(data) {
   return apiRequest('/api/banking/bank-targets', 'POST', data);
 }
 
@@ -743,7 +760,7 @@ export async function createBankTarget(data) {
  * @param {object} data - Updated bank target data
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function updateBankTarget(id, data) {
+  async function updateBankTarget(id, data) {
   return apiRequest(`/api/banking/bank-targets/${id}`, 'PUT', data);
 }
 
@@ -752,7 +769,7 @@ export async function updateBankTarget(id, data) {
  * @param {number} id - Bank Target ID
  * @returns {Promise<object>} { success: true, message: '...' }
  */
-export async function deleteBankTarget(id) {
+  async function deleteBankTarget(id) {
   return apiRequest(`/api/banking/bank-targets/${id}`, 'DELETE');
 }
 
@@ -761,7 +778,7 @@ export async function deleteBankTarget(id) {
  * Get all equity commitments
  * @returns {Promise<object>} { success: true, data: [{...}] }
  */
-export async function getAllEquityCommitments() {
+  async function getAllEquityCommitments() {
   return apiRequest('/api/banking/equity-commitments');
 }
 
@@ -770,7 +787,7 @@ export async function getAllEquityCommitments() {
  * @param {number} id - Equity Commitment ID
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function getEquityCommitmentById(id) {
+  async function getEquityCommitmentById(id) {
   return apiRequest(`/api/banking/equity-commitments/${id}`);
 }
 
@@ -779,7 +796,7 @@ export async function getEquityCommitmentById(id) {
  * @param {number} projectId - Project ID
  * @returns {Promise<object>} { success: true, data: [{...}] }
  */
-export async function getEquityCommitmentsByProject(projectId) {
+  async function getEquityCommitmentsByProject(projectId) {
   return apiRequest(`/api/banking/equity-commitments/project/${projectId}`);
 }
 
@@ -788,7 +805,7 @@ export async function getEquityCommitmentsByProject(projectId) {
  * @param {object} data - { ProjectId, EquityPartnerId?, EquityType?, LeadPrefGroup?, FundingDate?, Amount?, InterestRate?, AnnualMonthly?, BackEndKicker?, LastDollar?, Notes? }
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function createEquityCommitment(data) {
+  async function createEquityCommitment(data) {
   return apiRequest('/api/banking/equity-commitments', 'POST', data);
 }
 
@@ -798,7 +815,7 @@ export async function createEquityCommitment(data) {
  * @param {object} data - Updated equity commitment data
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function updateEquityCommitment(id, data) {
+  async function updateEquityCommitment(id, data) {
   return apiRequest(`/api/banking/equity-commitments/${id}`, 'PUT', data);
 }
 
@@ -807,7 +824,7 @@ export async function updateEquityCommitment(id, data) {
  * @param {number} id - Equity Commitment ID
  * @returns {Promise<object>} { success: true, message: '...' }
  */
-export async function deleteEquityCommitment(id) {
+  async function deleteEquityCommitment(id) {
   return apiRequest(`/api/banking/equity-commitments/${id}`, 'DELETE');
 }
 
@@ -825,7 +842,7 @@ export async function deleteEquityCommitment(id) {
  *          plus Land Development specific: Acreage, LandPrice, SqFtPrice, etc.
  * @returns {Promise<object>} { success: true, data: [{...}] }
  */
-export async function getAllUnderContracts() {
+  async function getAllUnderContracts() {
   return apiRequest('/api/pipeline/under-contracts');
 }
 
@@ -834,7 +851,7 @@ export async function getAllUnderContracts() {
  * @param {number} id - Under Contract ID
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function getUnderContractById(id) {
+  async function getUnderContractById(id) {
   return apiRequest(`/api/pipeline/under-contracts/${id}`);
 }
 
@@ -843,7 +860,7 @@ export async function getUnderContractById(id) {
  * @param {number} projectId - Project ID
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function getUnderContractByProjectId(projectId) {
+  async function getUnderContractByProjectId(projectId) {
   return apiRequest(`/api/pipeline/under-contracts/project/${projectId}`);
 }
 
@@ -881,7 +898,7 @@ export async function getUnderContractByProjectId(projectId) {
  *   OpportunityZone: false
  * });
  */
-export async function createUnderContract(data) {
+  async function createUnderContract(data) {
   return apiRequest('/api/pipeline/under-contracts', 'POST', data);
 }
 
@@ -897,7 +914,7 @@ export async function createUnderContract(data) {
  * @param {object} data - Fields to update (same as createUnderContract)
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function updateUnderContract(id, data) {
+  async function updateUnderContract(id, data) {
   return apiRequest(`/api/pipeline/under-contracts/${id}`, 'PUT', data);
 }
 
@@ -906,7 +923,7 @@ export async function updateUnderContract(id, data) {
  * @param {number} id - Under Contract ID
  * @returns {Promise<object>} { success: true, message: '...' }
  */
-export async function deleteUnderContract(id) {
+  async function deleteUnderContract(id) {
   return apiRequest(`/api/pipeline/under-contracts/${id}`, 'DELETE');
 }
 
@@ -919,7 +936,7 @@ export async function deleteUnderContract(id) {
  *          plus Land Development specific: ListedDate, Acreage, LandPrice, ListingStatus, etc.
  * @returns {Promise<object>} { success: true, data: [{...}] }
  */
-export async function getAllCommercialListed() {
+  async function getAllCommercialListed() {
   return apiRequest('/api/pipeline/commercial-listed');
 }
 
@@ -928,7 +945,7 @@ export async function getAllCommercialListed() {
  * @param {number} id - Commercial Listed ID
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function getCommercialListedById(id) {
+  async function getCommercialListedById(id) {
   return apiRequest(`/api/pipeline/commercial-listed/${id}`);
 }
 
@@ -937,7 +954,7 @@ export async function getCommercialListedById(id) {
  * @param {number} projectId - Project ID
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function getCommercialListedByProjectId(projectId) {
+  async function getCommercialListedByProjectId(projectId) {
   return apiRequest(`/api/pipeline/commercial-listed/project/${projectId}`);
 }
 
@@ -972,7 +989,7 @@ export async function getCommercialListedByProjectId(projectId) {
  *   Owner: 'ABC Land Company'
  * });
  */
-export async function createCommercialListed(data) {
+  async function createCommercialListed(data) {
   return apiRequest('/api/pipeline/commercial-listed', 'POST', data);
 }
 
@@ -982,7 +999,7 @@ export async function createCommercialListed(data) {
  * @param {object} data - Fields to update (same as createCommercialListed)
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function updateCommercialListed(id, data) {
+  async function updateCommercialListed(id, data) {
   return apiRequest(`/api/pipeline/commercial-listed/${id}`, 'PUT', data);
 }
 
@@ -991,7 +1008,7 @@ export async function updateCommercialListed(id, data) {
  * @param {number} id - Commercial Listed ID
  * @returns {Promise<object>} { success: true, message: '...' }
  */
-export async function deleteCommercialListed(id) {
+  async function deleteCommercialListed(id) {
   return apiRequest(`/api/pipeline/commercial-listed/${id}`, 'DELETE');
 }
 
@@ -1004,7 +1021,7 @@ export async function deleteCommercialListed(id) {
  *          plus Land Development specific: Acreage, SquareFootage, BuildingFootprintSF
  * @returns {Promise<object>} { success: true, data: [{...}] }
  */
-export async function getAllCommercialAcreage() {
+  async function getAllCommercialAcreage() {
   return apiRequest('/api/pipeline/commercial-acreage');
 }
 
@@ -1013,7 +1030,7 @@ export async function getAllCommercialAcreage() {
  * @param {number} id - Commercial Acreage ID
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function getCommercialAcreageById(id) {
+  async function getCommercialAcreageById(id) {
   return apiRequest(`/api/pipeline/commercial-acreage/${id}`);
 }
 
@@ -1022,7 +1039,7 @@ export async function getCommercialAcreageById(id) {
  * @param {number} projectId - Project ID
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function getCommercialAcreageByProjectId(projectId) {
+  async function getCommercialAcreageByProjectId(projectId) {
   return apiRequest(`/api/pipeline/commercial-acreage/project/${projectId}`);
 }
 
@@ -1048,7 +1065,7 @@ export async function getCommercialAcreageByProjectId(projectId) {
  *   BuildingFootprintSF: 50000
  * });
  */
-export async function createCommercialAcreage(data) {
+  async function createCommercialAcreage(data) {
   return apiRequest('/api/pipeline/commercial-acreage', 'POST', data);
 }
 
@@ -1058,7 +1075,7 @@ export async function createCommercialAcreage(data) {
  * @param {object} data - Fields to update (same as createCommercialAcreage)
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function updateCommercialAcreage(id, data) {
+  async function updateCommercialAcreage(id, data) {
   return apiRequest(`/api/pipeline/commercial-acreage/${id}`, 'PUT', data);
 }
 
@@ -1067,7 +1084,7 @@ export async function updateCommercialAcreage(id, data) {
  * @param {number} id - Commercial Acreage ID
  * @returns {Promise<object>} { success: true, message: '...' }
  */
-export async function deleteCommercialAcreage(id) {
+  async function deleteCommercialAcreage(id) {
   return apiRequest(`/api/pipeline/commercial-acreage/${id}`, 'DELETE');
 }
 
@@ -1080,7 +1097,7 @@ export async function deleteCommercialAcreage(id) {
  *          plus Closed Property specific: Status, ClosingDate (from LandClosingDate), Acreage, Units, Price, PricePerSF, ActOfSale, DueDiligenceDate, PurchasingEntity, CashFlag
  * @returns {Promise<object>} { success: true, data: [{...}] }
  */
-export async function getAllClosedProperties() {
+  async function getAllClosedProperties() {
   return apiRequest('/api/pipeline/closed-properties');
 }
 
@@ -1089,7 +1106,7 @@ export async function getAllClosedProperties() {
  * @param {number} id - Closed Property ID
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function getClosedPropertyById(id) {
+  async function getClosedPropertyById(id) {
   return apiRequest(`/api/pipeline/closed-properties/${id}`);
 }
 
@@ -1132,7 +1149,7 @@ export async function getClosedPropertyById(id) {
  *   CashFlag: true
  * });
  */
-export async function createClosedProperty(data) {
+  async function createClosedProperty(data) {
   return apiRequest('/api/pipeline/closed-properties', 'POST', data);
 }
 
@@ -1149,7 +1166,7 @@ export async function createClosedProperty(data) {
  * @param {object} data - Fields to update (same as createClosedProperty)
  * @returns {Promise<object>} { success: true, data: {...} }
  */
-export async function updateClosedProperty(id, data) {
+  async function updateClosedProperty(id, data) {
   return apiRequest(`/api/pipeline/closed-properties/${id}`, 'PUT', data);
 }
 
@@ -1158,7 +1175,7 @@ export async function updateClosedProperty(id, data) {
  * @param {number} id - Closed Property ID
  * @returns {Promise<object>} { success: true, message: '...' }
  */
-export async function deleteClosedProperty(id) {
+  async function deleteClosedProperty(id) {
   return apiRequest(`/api/pipeline/closed-properties/${id}`, 'DELETE');
 }
 
@@ -1169,7 +1186,7 @@ export async function deleteClosedProperty(id) {
 /**
  * Get investor name from IMS Investor Profile ID
  */
-export async function getInvestorNameFromIMSId(imsId) {
+  async function getInvestorNameFromIMSId(imsId) {
   if (!imsId || typeof imsId !== 'string') return null;
   
   try {
@@ -1187,7 +1204,7 @@ export async function getInvestorNameFromIMSId(imsId) {
 /**
  * Resolve investor name - handles both IMS IDs and actual names
  */
-export async function resolveInvestorName(investorValue) {
+  async function resolveInvestorName(investorValue) {
   if (!investorValue) return null;
   
   const str = String(investorValue).trim();
@@ -1205,7 +1222,7 @@ export async function resolveInvestorName(investorValue) {
 /**
  * Bulk resolve investor names from an array of values
  */
-export async function bulkResolveInvestorNames(investorValues) {
+  async function bulkResolveInvestorNames(investorValues) {
   const mapping = {};
   const uniqueValues = [...new Set(investorValues)];
   
@@ -1222,7 +1239,7 @@ export async function bulkResolveInvestorNames(investorValues) {
 /**
  * Transform a dataset row to resolve investor names
  */
-export async function resolveRowInvestorName(row, investorColumn = 'Investor') {
+  async function resolveRowInvestorName(row, investorColumn = 'Investor') {
   const investorValue = row[investorColumn];
   const resolvedName = await resolveInvestorName(investorValue);
   
@@ -1237,7 +1254,7 @@ export async function resolveRowInvestorName(row, investorColumn = 'Investor') {
 /**
  * Transform entire dataset to resolve investor names
  */
-export async function resolveDatasetInvestorNames(dataset, investorColumn = 'Investor') {
+  async function resolveDatasetInvestorNames(dataset, investorColumn = 'Investor') {
   if (!Array.isArray(dataset) || dataset.length === 0) return dataset;
   
   // Get unique investor values first
@@ -1254,6 +1271,177 @@ export async function resolveDatasetInvestorNames(dataset, investorColumn = 'Inv
     OriginalInvestorValue: row[investorColumn]
   }));
 }
+
+  // ============================================================
+  // EXPOSE ALL FUNCTIONS TO API OBJECT
+  // ============================================================
+  
+  // Authentication functions
+  API.login = login;
+  API.verifyAuth = verifyAuth;
+  API.getCurrentUser = getCurrentUser;
+  API.logout = logout;
+  
+  // Core - Projects
+  API.getAllProjects = getAllProjects;
+  API.getProjectById = getProjectById;
+  API.createProject = createProject;
+  API.updateProject = updateProject;
+  API.deleteProject = deleteProject;
+  
+  // Core - Banks
+  API.getAllBanks = getAllBanks;
+  API.getBankById = getBankById;
+  API.createBank = createBank;
+  API.updateBank = updateBank;
+  API.deleteBank = deleteBank;
+  
+  // Core - Persons
+  API.getAllPersons = getAllPersons;
+  API.getPersonById = getPersonById;
+  API.createPerson = createPerson;
+  API.updatePerson = updatePerson;
+  API.deletePerson = deletePerson;
+  
+  // Core - Equity Partners
+  API.getAllEquityPartners = getAllEquityPartners;
+  API.getEquityPartnerById = getEquityPartnerById;
+  API.getEquityPartnerByIMSId = getEquityPartnerByIMSId;
+  API.createEquityPartner = createEquityPartner;
+  API.updateEquityPartner = updateEquityPartner;
+  API.deleteEquityPartner = deleteEquityPartner;
+  
+  // Core - Product Types
+  API.getAllProductTypes = getAllProductTypes;
+  API.getProductTypeById = getProductTypeById;
+  API.createProductType = createProductType;
+  API.updateProductType = updateProductType;
+  API.deleteProductType = deleteProductType;
+  
+  // Core - Regions
+  API.getAllRegions = getAllRegions;
+  API.getRegionById = getRegionById;
+  API.createRegion = createRegion;
+  API.updateRegion = updateRegion;
+  API.deleteRegion = deleteRegion;
+  
+  // Banking - Loans
+  API.getAllLoans = getAllLoans;
+  API.getLoanById = getLoanById;
+  API.getLoansByProject = getLoansByProject;
+  API.createLoan = createLoan;
+  API.updateLoan = updateLoan;
+  API.updateLoanByProject = updateLoanByProject;
+  API.deleteLoan = deleteLoan;
+  
+  // Banking - DSCR Tests
+  API.getAllDSCRTests = getAllDSCRTests;
+  API.getDSCRTestById = getDSCRTestById;
+  API.getDSCRTestsByProject = getDSCRTestsByProject;
+  API.createDSCRTest = createDSCRTest;
+  API.updateDSCRTest = updateDSCRTest;
+  API.deleteDSCRTest = deleteDSCRTest;
+  
+  // Banking - Participations
+  API.getAllParticipations = getAllParticipations;
+  API.getParticipationById = getParticipationById;
+  API.getParticipationsByProject = getParticipationsByProject;
+  API.createParticipation = createParticipation;
+  API.createParticipationByProject = createParticipationByProject;
+  API.updateParticipation = updateParticipation;
+  API.deleteParticipation = deleteParticipation;
+  
+  // Banking - Guarantees
+  API.getAllGuarantees = getAllGuarantees;
+  API.getGuaranteeById = getGuaranteeById;
+  API.getGuaranteesByProject = getGuaranteesByProject;
+  API.createGuarantee = createGuarantee;
+  API.createGuaranteeByProject = createGuaranteeByProject;
+  API.updateGuarantee = updateGuarantee;
+  API.deleteGuarantee = deleteGuarantee;
+  
+  // Banking - Covenants
+  API.getAllCovenants = getAllCovenants;
+  API.getCovenantById = getCovenantById;
+  API.getCovenantsByProject = getCovenantsByProject;
+  API.createCovenant = createCovenant;
+  API.createCovenantByProject = createCovenantByProject;
+  API.updateCovenant = updateCovenant;
+  API.deleteCovenant = deleteCovenant;
+  
+  // Banking - Liquidity Requirements
+  API.getAllLiquidityRequirements = getAllLiquidityRequirements;
+  API.getLiquidityRequirementById = getLiquidityRequirementById;
+  API.getLiquidityRequirementsByProject = getLiquidityRequirementsByProject;
+  API.createLiquidityRequirement = createLiquidityRequirement;
+  API.updateLiquidityRequirement = updateLiquidityRequirement;
+  API.deleteLiquidityRequirement = deleteLiquidityRequirement;
+  
+  // Banking - Bank Targets
+  API.getAllBankTargets = getAllBankTargets;
+  API.getBankTargetById = getBankTargetById;
+  API.createBankTarget = createBankTarget;
+  API.updateBankTarget = updateBankTarget;
+  API.deleteBankTarget = deleteBankTarget;
+  
+  // Banking - Equity Commitments
+  API.getAllEquityCommitments = getAllEquityCommitments;
+  API.getEquityCommitmentById = getEquityCommitmentById;
+  API.getEquityCommitmentsByProject = getEquityCommitmentsByProject;
+  API.createEquityCommitment = createEquityCommitment;
+  API.updateEquityCommitment = updateEquityCommitment;
+  API.deleteEquityCommitment = deleteEquityCommitment;
+  
+  // Pipeline - Under Contract
+  API.getAllUnderContracts = getAllUnderContracts;
+  API.getUnderContractById = getUnderContractById;
+  API.getUnderContractByProjectId = getUnderContractByProjectId;
+  API.createUnderContract = createUnderContract;
+  API.updateUnderContract = updateUnderContract;
+  API.deleteUnderContract = deleteUnderContract;
+  
+  // Pipeline - Commercial Listed
+  API.getAllCommercialListed = getAllCommercialListed;
+  API.getCommercialListedById = getCommercialListedById;
+  API.getCommercialListedByProjectId = getCommercialListedByProjectId;
+  API.createCommercialListed = createCommercialListed;
+  API.updateCommercialListed = updateCommercialListed;
+  API.deleteCommercialListed = deleteCommercialListed;
+  
+  // Pipeline - Commercial Acreage
+  API.getAllCommercialAcreage = getAllCommercialAcreage;
+  API.getCommercialAcreageById = getCommercialAcreageById;
+  API.getCommercialAcreageByProjectId = getCommercialAcreageByProjectId;
+  API.createCommercialAcreage = createCommercialAcreage;
+  API.updateCommercialAcreage = updateCommercialAcreage;
+  API.deleteCommercialAcreage = deleteCommercialAcreage;
+  
+  // Pipeline - Closed Properties
+  API.getAllClosedProperties = getAllClosedProperties;
+  API.getClosedPropertyById = getClosedPropertyById;
+  API.createClosedProperty = createClosedProperty;
+  API.updateClosedProperty = updateClosedProperty;
+  API.deleteClosedProperty = deleteClosedProperty;
+  
+  // IMS Investor Resolution
+  API.getInvestorNameFromIMSId = getInvestorNameFromIMSId;
+  API.resolveInvestorName = resolveInvestorName;
+  API.bulkResolveInvestorNames = bulkResolveInvestorNames;
+  API.resolveRowInvestorName = resolveRowInvestorName;
+  API.resolveDatasetInvestorNames = resolveDatasetInvestorNames;
+
+  // Expose API to global scope
+  const globalScope = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : this;
+  
+  // Expose API object
+  globalScope.API = API;
+  
+  // Also expose functions directly for backward compatibility
+  Object.keys(API).forEach(key => {
+    globalScope[key] = API[key];
+  });
+
+})(typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : this);
 
 // ============================================================
 // USAGE EXAMPLES
