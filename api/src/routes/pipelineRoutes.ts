@@ -11,8 +11,9 @@ router.post('/under-contracts', pipelineController.createUnderContract);
 router.put('/under-contracts/:id', pipelineController.updateUnderContract);
 router.delete('/under-contracts/:id', pipelineController.deleteUnderContract);
 
-// Commercial Listed routes
+// Commercial Listed routes (Land Development)
 router.get('/commercial-listed', pipelineController.getAllCommercialListed);
+router.get('/commercial-listed/project/:projectId', pipelineController.getCommercialListedByProjectId); // Get by ProjectId (must come before /:id)
 router.get('/commercial-listed/:id', pipelineController.getCommercialListedById);
 router.post('/commercial-listed', pipelineController.createCommercialListed);
 router.put('/commercial-listed/:id', pipelineController.updateCommercialListed);

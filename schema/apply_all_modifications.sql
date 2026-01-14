@@ -502,6 +502,72 @@ END
 GO
 
 -- ============================================================
+-- 9. UPDATE PIPELINE.COMMERCIALLISTED FOR LAND DEVELOPMENT
+-- ============================================================
+PRINT '';
+PRINT '9. Updating pipeline.CommercialListed for Land Development...';
+
+-- Remove redundant columns (Location) - pull from CORE instead
+IF EXISTS (
+    SELECT 1 
+    FROM sys.columns 
+    WHERE object_id = OBJECT_ID('pipeline.CommercialListed') 
+    AND name = 'Location'
+)
+BEGIN
+    ALTER TABLE pipeline.CommercialListed DROP COLUMN Location;
+    PRINT '   ✓ Removed Location column (use City/State from core.Project)';
+END
+ELSE
+BEGIN
+    PRINT '   ✓ Location column does not exist';
+END
+GO
+
+-- Rename columns for clarity
+IF EXISTS (
+    SELECT 1 
+    FROM sys.columns 
+    WHERE object_id = OBJECT_ID('pipeline.CommercialListed') 
+    AND name = 'Price'
+)
+BEGIN
+    EXEC sp_rename 'pipeline.CommercialListed.Price', 'LandPrice', 'COLUMN';
+    PRINT '   ✓ Renamed Price to LandPrice';
+END
+ELSE IF EXISTS (
+    SELECT 1 
+    FROM sys.columns 
+    WHERE object_id = OBJECT_ID('pipeline.CommercialListed') 
+    AND name = 'LandPrice'
+)
+BEGIN
+    PRINT '   ✓ LandPrice column already exists';
+END
+GO
+
+IF EXISTS (
+    SELECT 1 
+    FROM sys.columns 
+    WHERE object_id = OBJECT_ID('pipeline.CommercialListed') 
+    AND name = 'Status'
+)
+BEGIN
+    EXEC sp_rename 'pipeline.CommercialListed.Status', 'ListingStatus', 'COLUMN';
+    PRINT '   ✓ Renamed Status to ListingStatus';
+END
+ELSE IF EXISTS (
+    SELECT 1 
+    FROM sys.columns 
+    WHERE object_id = OBJECT_ID('pipeline.CommercialListed') 
+    AND name = 'ListingStatus'
+)
+BEGIN
+    PRINT '   ✓ ListingStatus column already exists';
+END
+GO
+
+-- ============================================================
 -- SUMMARY
 -- ============================================================
 PRINT '';
@@ -544,6 +610,13 @@ PRINT '    ExecutionDate, DueDiligenceDate, ClosingDate, PurchasingEntity,';
 PRINT '    Cash, OpportunityZone, ClosingNotes';
 PRINT '  → SqFtPrice is auto-calculated: LandPrice / (Acreage * 43560)';
 PRINT '  → Use API endpoints: GET/POST/PUT/DELETE /api/pipeline/under-contracts';
+PRINT '';
+PRINT '  ✓ pipeline.CommercialListed - Removed redundant fields (Location)';
+PRINT '  ✓ Now pulls CORE data from core.Project';
+PRINT '  ✓ Land Development specific fields: ListedDate, Acreage, LandPrice,';
+PRINT '    ListingStatus (Available, Under Contract, Sold), DueDiligenceDate,';
+PRINT '    ClosingDate, Owner, PurchasingEntity, Broker, Notes';
+PRINT '  → Use API endpoints: GET/POST/PUT/DELETE /api/pipeline/commercial-listed';
 PRINT '';
 PRINT 'Next steps:';
 PRINT '  1. Run: npm run db:seed-auth-users (in api directory)';

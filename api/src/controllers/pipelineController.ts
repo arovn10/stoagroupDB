@@ -425,8 +425,26 @@ export const deleteUnderContract = async (req: Request, res: Response, next: Nex
 export const getAllCommercialListed = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const pool = await getConnection();
+    // Pull CORE data and Land Development specific data
     const result = await pool.request().query(`
-      SELECT cl.*, p.ProjectName
+      SELECT 
+        cl.CommercialListedId,
+        cl.ProjectId,
+        -- CORE attributes (from core.Project)
+        p.ProjectName,
+        p.City,
+        p.State,
+        -- Land Development specific attributes
+        cl.ListedDate,
+        cl.Acreage,
+        cl.LandPrice,
+        cl.ListingStatus,
+        cl.DueDiligenceDate,
+        cl.ClosingDate,
+        cl.Owner,
+        cl.PurchasingEntity,
+        cl.Broker,
+        cl.Notes
       FROM pipeline.CommercialListed cl
       LEFT JOIN core.Project p ON cl.ProjectId = p.ProjectId
       ORDER BY cl.CommercialListedId
@@ -441,9 +459,32 @@ export const getCommercialListedById = async (req: Request, res: Response, next:
   try {
     const { id } = req.params;
     const pool = await getConnection();
+    // Pull CORE data and Land Development specific data
     const result = await pool.request()
       .input('id', sql.Int, id)
-      .query('SELECT * FROM pipeline.CommercialListed WHERE CommercialListedId = @id');
+      .query(`
+        SELECT 
+          cl.CommercialListedId,
+          cl.ProjectId,
+          -- CORE attributes (from core.Project)
+          p.ProjectName,
+          p.City,
+          p.State,
+          -- Land Development specific attributes
+          cl.ListedDate,
+          cl.Acreage,
+          cl.LandPrice,
+          cl.ListingStatus,
+          cl.DueDiligenceDate,
+          cl.ClosingDate,
+          cl.Owner,
+          cl.PurchasingEntity,
+          cl.Broker,
+          cl.Notes
+        FROM pipeline.CommercialListed cl
+        LEFT JOIN core.Project p ON cl.ProjectId = p.ProjectId
+        WHERE cl.CommercialListedId = @id
+      `);
     
     if (result.recordset.length === 0) {
       res.status(404).json({ success: false, error: { message: 'Commercial Listed record not found' } });
@@ -456,11 +497,63 @@ export const getCommercialListedById = async (req: Request, res: Response, next:
   }
 };
 
+export const getCommercialListedByProjectId = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { projectId } = req.params;
+    const pool = await getConnection();
+    // Pull CORE data and Land Development specific data
+    const result = await pool.request()
+      .input('projectId', sql.Int, projectId)
+      .query(`
+        SELECT 
+          cl.CommercialListedId,
+          cl.ProjectId,
+          -- CORE attributes (from core.Project)
+          p.ProjectName,
+          p.City,
+          p.State,
+          -- Land Development specific attributes
+          cl.ListedDate,
+          cl.Acreage,
+          cl.LandPrice,
+          cl.ListingStatus,
+          cl.DueDiligenceDate,
+          cl.ClosingDate,
+          cl.Owner,
+          cl.PurchasingEntity,
+          cl.Broker,
+          cl.Notes
+        FROM pipeline.CommercialListed cl
+        LEFT JOIN core.Project p ON cl.ProjectId = p.ProjectId
+        WHERE cl.ProjectId = @projectId
+      `);
+    
+    if (result.recordset.length === 0) {
+      res.status(404).json({ success: false, error: { message: 'Commercial Listed record for this project not found' } });
+      return;
+    }
+    
+    res.json({ success: true, data: result.recordset[0] });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const createCommercialListed = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const {
-      ProjectId, Location, ListedDate, Acreage, Price, Status,
-      DueDiligenceDate, ClosingDate, Owner, PurchasingEntity, Broker, Notes
+      ProjectId,
+      // Land Development specific attributes
+      ListedDate,
+      Acreage,
+      LandPrice,
+      ListingStatus,
+      DueDiligenceDate,
+      ClosingDate,
+      Owner,
+      PurchasingEntity,
+      Broker,
+      Notes
     } = req.body;
 
     if (!ProjectId) {
@@ -469,13 +562,14 @@ export const createCommercialListed = async (req: Request, res: Response, next: 
     }
 
     const pool = await getConnection();
+    
+    // Insert Land Development specific data
     const result = await pool.request()
       .input('ProjectId', sql.Int, ProjectId)
-      .input('Location', sql.NVarChar, Location)
       .input('ListedDate', sql.Date, ListedDate)
       .input('Acreage', sql.Decimal(18, 4), Acreage)
-      .input('Price', sql.Decimal(18, 2), Price)
-      .input('Status', sql.NVarChar, Status)
+      .input('LandPrice', sql.Decimal(18, 2), LandPrice)
+      .input('ListingStatus', sql.NVarChar(50), ListingStatus)
       .input('DueDiligenceDate', sql.Date, DueDiligenceDate)
       .input('ClosingDate', sql.Date, ClosingDate)
       .input('Owner', sql.NVarChar, Owner)
@@ -484,17 +578,42 @@ export const createCommercialListed = async (req: Request, res: Response, next: 
       .input('Notes', sql.NVarChar(sql.MAX), Notes)
       .query(`
         INSERT INTO pipeline.CommercialListed (
-          ProjectId, Location, ListedDate, Acreage, Price, Status,
+          ProjectId, ListedDate, Acreage, LandPrice, ListingStatus,
           DueDiligenceDate, ClosingDate, Owner, PurchasingEntity, Broker, Notes
         )
         OUTPUT INSERTED.*
         VALUES (
-          @ProjectId, @Location, @ListedDate, @Acreage, @Price, @Status,
+          @ProjectId, @ListedDate, @Acreage, @LandPrice, @ListingStatus,
           @DueDiligenceDate, @ClosingDate, @Owner, @PurchasingEntity, @Broker, @Notes
         )
       `);
 
-    res.status(201).json({ success: true, data: result.recordset[0] });
+    // Get the full record with CORE data
+    const fullRecord = await pool.request()
+      .input('id', sql.Int, result.recordset[0].CommercialListedId)
+      .query(`
+        SELECT 
+          cl.CommercialListedId,
+          cl.ProjectId,
+          p.ProjectName,
+          p.City,
+          p.State,
+          cl.ListedDate,
+          cl.Acreage,
+          cl.LandPrice,
+          cl.ListingStatus,
+          cl.DueDiligenceDate,
+          cl.ClosingDate,
+          cl.Owner,
+          cl.PurchasingEntity,
+          cl.Broker,
+          cl.Notes
+        FROM pipeline.CommercialListed cl
+        LEFT JOIN core.Project p ON cl.ProjectId = p.ProjectId
+        WHERE cl.CommercialListedId = @id
+      `);
+
+    res.status(201).json({ success: true, data: fullRecord.recordset[0] });
   } catch (error: any) {
     if (error.number === 2627) {
       res.status(409).json({ success: false, error: { message: 'Commercial Listed record for this project already exists' } });
@@ -511,50 +630,109 @@ export const createCommercialListed = async (req: Request, res: Response, next: 
 export const updateCommercialListed = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
-    const listedData = req.body;
+    const {
+      // Land Development specific attributes
+      ListedDate,
+      Acreage,
+      LandPrice,
+      ListingStatus,
+      DueDiligenceDate,
+      ClosingDate,
+      Owner,
+      PurchasingEntity,
+      Broker,
+      Notes
+    } = req.body;
 
     const pool = await getConnection();
+    
+    // Build dynamic update query for Land Development fields
+    const fields: string[] = [];
     const request = pool.request().input('id', sql.Int, id);
 
-    // Build dynamic update query - only update fields that are provided
-    const fields: string[] = [];
-    Object.keys(listedData).forEach((key) => {
-      if (key !== 'CommercialListedId' && listedData[key] !== undefined) {
-        fields.push(`${key} = @${key}`);
-        if (key === 'ProjectId') {
-          request.input(key, sql.Int, listedData[key]);
-        } else if (key === 'Acreage') {
-          request.input(key, sql.Decimal(18, 4), listedData[key]);
-        } else if (key === 'Price') {
-          request.input(key, sql.Decimal(18, 2), listedData[key]);
-        } else if (key.includes('Date')) {
-          request.input(key, sql.Date, listedData[key]);
-        } else if (key === 'Notes') {
-          request.input(key, sql.NVarChar(sql.MAX), listedData[key]);
-        } else {
-          request.input(key, sql.NVarChar, listedData[key]);
-        }
-      }
-    });
+    if (ListedDate !== undefined) {
+      fields.push('ListedDate = @ListedDate');
+      request.input('ListedDate', sql.Date, ListedDate);
+    }
+    if (Acreage !== undefined) {
+      fields.push('Acreage = @Acreage');
+      request.input('Acreage', sql.Decimal(18, 4), Acreage);
+    }
+    if (LandPrice !== undefined) {
+      fields.push('LandPrice = @LandPrice');
+      request.input('LandPrice', sql.Decimal(18, 2), LandPrice);
+    }
+    if (ListingStatus !== undefined) {
+      fields.push('ListingStatus = @ListingStatus');
+      request.input('ListingStatus', sql.NVarChar(50), ListingStatus);
+    }
+    if (DueDiligenceDate !== undefined) {
+      fields.push('DueDiligenceDate = @DueDiligenceDate');
+      request.input('DueDiligenceDate', sql.Date, DueDiligenceDate);
+    }
+    if (ClosingDate !== undefined) {
+      fields.push('ClosingDate = @ClosingDate');
+      request.input('ClosingDate', sql.Date, ClosingDate);
+    }
+    if (Owner !== undefined) {
+      fields.push('Owner = @Owner');
+      request.input('Owner', sql.NVarChar, Owner);
+    }
+    if (PurchasingEntity !== undefined) {
+      fields.push('PurchasingEntity = @PurchasingEntity');
+      request.input('PurchasingEntity', sql.NVarChar, PurchasingEntity);
+    }
+    if (Broker !== undefined) {
+      fields.push('Broker = @Broker');
+      request.input('Broker', sql.NVarChar, Broker);
+    }
+    if (Notes !== undefined) {
+      fields.push('Notes = @Notes');
+      request.input('Notes', sql.NVarChar(sql.MAX), Notes);
+    }
 
     if (fields.length === 0) {
       res.status(400).json({ success: false, error: { message: 'No fields to update' } });
       return;
     }
 
-    const result = await request.query(`
+    await request.query(`
       UPDATE pipeline.CommercialListed
       SET ${fields.join(', ')}
-      WHERE CommercialListedId = @id;
-      SELECT * FROM pipeline.CommercialListed WHERE CommercialListedId = @id;
+      WHERE CommercialListedId = @id
     `);
 
-    if (result.recordset.length === 0) {
+    // Get the updated record with CORE data
+    const updated = await pool.request()
+      .input('id', sql.Int, id)
+      .query(`
+        SELECT 
+          cl.CommercialListedId,
+          cl.ProjectId,
+          p.ProjectName,
+          p.City,
+          p.State,
+          cl.ListedDate,
+          cl.Acreage,
+          cl.LandPrice,
+          cl.ListingStatus,
+          cl.DueDiligenceDate,
+          cl.ClosingDate,
+          cl.Owner,
+          cl.PurchasingEntity,
+          cl.Broker,
+          cl.Notes
+        FROM pipeline.CommercialListed cl
+        LEFT JOIN core.Project p ON cl.ProjectId = p.ProjectId
+        WHERE cl.CommercialListedId = @id
+      `);
+
+    if (updated.recordset.length === 0) {
       res.status(404).json({ success: false, error: { message: 'Commercial Listed record not found' } });
       return;
     }
 
-    res.json({ success: true, data: result.recordset[0] });
+    res.json({ success: true, data: updated.recordset[0] });
   } catch (error: any) {
     if (error.number === 547) {
       res.status(400).json({ success: false, error: { message: 'Invalid ProjectId' } });

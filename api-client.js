@@ -684,23 +684,87 @@ export async function deleteUnderContract(id) {
   return apiRequest(`/api/pipeline/under-contracts/${id}`, 'DELETE');
 }
 
-// COMMERCIAL LISTED
+// ============================================================
+// LAND DEVELOPMENT - COMMERCIAL LISTED (Stoa Properties Tracker)
+// ============================================================
+/**
+ * Get all commercial listed deals with CORE and Land Development data
+ * Returns: ProjectName, City, State (from CORE),
+ *          plus Land Development specific: ListedDate, Acreage, LandPrice, ListingStatus, etc.
+ * @returns {Promise<object>} { success: true, data: [{...}] }
+ */
 export async function getAllCommercialListed() {
   return apiRequest('/api/pipeline/commercial-listed');
 }
 
+/**
+ * Get commercial listed deal by ID
+ * @param {number} id - Commercial Listed ID
+ * @returns {Promise<object>} { success: true, data: {...} }
+ */
 export async function getCommercialListedById(id) {
   return apiRequest(`/api/pipeline/commercial-listed/${id}`);
 }
 
+/**
+ * Get commercial listed deal by Project ID
+ * @param {number} projectId - Project ID
+ * @returns {Promise<object>} { success: true, data: {...} }
+ */
+export async function getCommercialListedByProjectId(projectId) {
+  return apiRequest(`/api/pipeline/commercial-listed/project/${projectId}`);
+}
+
+/**
+ * Create a new commercial listed deal (Land Development)
+ * 
+ * CORE attributes (pulled from core.Project):
+ * - ProjectName, City, State (from CORE)
+ * 
+ * Land Development specific attributes (stored in pipeline.CommercialListed):
+ * @param {object} data - {
+ *   ProjectId: number (required),
+ *   ListedDate?: string (YYYY-MM-DD),
+ *   Acreage?: number,
+ *   LandPrice?: number,
+ *   ListingStatus?: string ('Available', 'Under Contract', 'Sold'),
+ *   DueDiligenceDate?: string (YYYY-MM-DD),
+ *   ClosingDate?: string (YYYY-MM-DD),
+ *   Owner?: string,
+ *   PurchasingEntity?: string,
+ *   Broker?: string,
+ *   Notes?: string
+ * }
+ * @returns {Promise<object>} { success: true, data: {...} }
+ * @example
+ * await createCommercialListed({
+ *   ProjectId: 1,
+ *   ListedDate: '2024-01-15',
+ *   Acreage: 15.5,
+ *   LandPrice: 7500000,
+ *   ListingStatus: 'Available',
+ *   Owner: 'ABC Land Company'
+ * });
+ */
 export async function createCommercialListed(data) {
   return apiRequest('/api/pipeline/commercial-listed', 'POST', data);
 }
 
+/**
+ * Update a commercial listed deal (Land Development)
+ * @param {number} id - Commercial Listed ID
+ * @param {object} data - Fields to update (same as createCommercialListed)
+ * @returns {Promise<object>} { success: true, data: {...} }
+ */
 export async function updateCommercialListed(id, data) {
   return apiRequest(`/api/pipeline/commercial-listed/${id}`, 'PUT', data);
 }
 
+/**
+ * Delete a commercial listed deal
+ * @param {number} id - Commercial Listed ID
+ * @returns {Promise<object>} { success: true, message: '...' }
+ */
 export async function deleteCommercialListed(id) {
   return apiRequest(`/api/pipeline/commercial-listed/${id}`, 'DELETE');
 }

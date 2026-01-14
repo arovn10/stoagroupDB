@@ -295,19 +295,21 @@ CREATE TABLE pipeline.UnderContract (
 );
 
 -- ============================================================
--- PIPELINE: COMMERCIAL LAND LISTED
+-- PIPELINE: COMMERCIAL LAND LISTED (Land Development)
 -- ============================================================
+-- Note: CORE attributes (ProjectName, City, State) are pulled from core.Project
+--       Only Land Development specific attributes are stored here
 CREATE TABLE pipeline.CommercialListed (
     CommercialListedId INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_CommercialListed PRIMARY KEY,
     ProjectId          INT NOT NULL,
     
-    Location           NVARCHAR(255) NULL,
-    ListedDate         DATE NULL,
+    -- Land Development specific attributes (no redundant CORE data)
+    ListedDate         DATE NULL,           -- Date land was listed
     Acreage            DECIMAL(18,4) NULL,
-    Price              DECIMAL(18,2) NULL,
-    Status             NVARCHAR(50) NULL,
-    DueDiligenceDate   DATE NULL,
-    ClosingDate        DATE NULL,
+    LandPrice          DECIMAL(18,2) NULL,  -- Listing price
+    ListingStatus      NVARCHAR(50) NULL,    -- Available, Under Contract, Sold
+    DueDiligenceDate   DATE NULL,            -- Date due diligence is closing
+    ClosingDate        DATE NULL,             -- Closing date for listed land
     
     Owner              NVARCHAR(255) NULL,
     PurchasingEntity   NVARCHAR(255) NULL,
