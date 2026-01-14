@@ -10,7 +10,14 @@ import { buildSelectQuery, buildInsertQuery, buildUpdateQuery, buildDeleteQuery 
 export const getAllProjects = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const pool = await getConnection();
-    const result = await pool.request().query('SELECT * FROM core.Project ORDER BY ProjectName');
+    const result = await pool.request().query(`
+      SELECT 
+        ProjectId, ProjectName, City, State, Region, Address, Units,
+        ProductType, Stage, EstimatedConstructionStartDate,
+        CreatedAt, UpdatedAt
+      FROM core.Project 
+      ORDER BY ProjectName
+    `);
     res.json({ success: true, data: result.recordset });
   } catch (error) {
     next(error);
@@ -23,7 +30,14 @@ export const getProjectById = async (req: Request, res: Response, next: NextFunc
     const pool = await getConnection();
     const result = await pool.request()
       .input('id', sql.Int, id)
-      .query('SELECT * FROM core.Project WHERE ProjectId = @id');
+      .query(`
+        SELECT 
+          ProjectId, ProjectName, City, State, Region, Address, Units,
+          ProductType, Stage, EstimatedConstructionStartDate,
+          CreatedAt, UpdatedAt
+        FROM core.Project 
+        WHERE ProjectId = @id
+      `);
     
     if (result.recordset.length === 0) {
       res.status(404).json({ success: false, error: { message: 'Project not found' } });
@@ -69,7 +83,14 @@ export const createProject = async (req: Request, res: Response, next: NextFunct
     
     const result = await pool.request()
       .input('id', sql.Int, projectId)
-      .query('SELECT * FROM core.Project WHERE ProjectId = @id');
+      .query(`
+        SELECT 
+          ProjectId, ProjectName, City, State, Region, Address, Units,
+          ProductType, Stage, EstimatedConstructionStartDate,
+          CreatedAt, UpdatedAt
+        FROM core.Project 
+        WHERE ProjectId = @id
+      `);
 
     res.status(201).json({ success: true, data: result.recordset[0] });
   } catch (error: any) {
@@ -123,10 +144,17 @@ export const updateProject = async (req: Request, res: Response, next: NextFunct
       return;
     }
 
-    // Get the updated record
+    // Get the updated record - explicitly list columns to avoid Location column issues
     const updated = await pool.request()
       .input('id', sql.Int, id)
-      .query('SELECT * FROM core.Project WHERE ProjectId = @id');
+      .query(`
+        SELECT 
+          ProjectId, ProjectName, City, State, Region, Address, Units,
+          ProductType, Stage, EstimatedConstructionStartDate,
+          CreatedAt, UpdatedAt
+        FROM core.Project 
+        WHERE ProjectId = @id
+      `);
 
     res.json({ success: true, data: updated.recordset[0] });
   } catch (error: any) {
