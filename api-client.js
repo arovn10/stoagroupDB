@@ -403,184 +403,410 @@ export async function deleteLoan(id) {
 }
 
 // DSCR TESTS
+/**
+ * Get all DSCR tests
+ * @returns {Promise<object>} { success: true, data: [{...}] }
+ */
 export async function getAllDSCRTests() {
   return apiRequest('/api/banking/dscr-tests');
 }
 
+/**
+ * Get DSCR test by ID
+ * @param {number} id - DSCR Test ID
+ * @returns {Promise<object>} { success: true, data: {...} }
+ */
 export async function getDSCRTestById(id) {
   return apiRequest(`/api/banking/dscr-tests/${id}`);
 }
 
+/**
+ * Get DSCR tests by Project ID
+ * @param {number} projectId - Project ID
+ * @returns {Promise<object>} { success: true, data: [{...}] }
+ */
 export async function getDSCRTestsByProject(projectId) {
   return apiRequest(`/api/banking/dscr-tests/project/${projectId}`);
 }
 
+/**
+ * Create a new DSCR test (REQUIRES AUTHENTICATION)
+ * @param {object} data - { ProjectId, TestNumber, TestDate?, ProjectedInterestRate?, Requirement?, ProjectedValue? }
+ * @returns {Promise<object>} { success: true, data: {...} }
+ */
 export async function createDSCRTest(data) {
   return apiRequest('/api/banking/dscr-tests', 'POST', data);
 }
 
+/**
+ * Update a DSCR test (REQUIRES AUTHENTICATION)
+ * @param {number} id - DSCR Test ID
+ * @param {object} data - Updated DSCR test data
+ * @returns {Promise<object>} { success: true, data: {...} }
+ */
 export async function updateDSCRTest(id, data) {
   return apiRequest(`/api/banking/dscr-tests/${id}`, 'PUT', data);
 }
 
+/**
+ * Delete a DSCR test (REQUIRES AUTHENTICATION)
+ * @param {number} id - DSCR Test ID
+ * @returns {Promise<object>} { success: true, message: '...' }
+ */
 export async function deleteDSCRTest(id) {
   return apiRequest(`/api/banking/dscr-tests/${id}`, 'DELETE');
 }
 
 // PARTICIPATIONS
+/**
+ * Get all participations
+ * @returns {Promise<object>} { success: true, data: [{...}] }
+ */
 export async function getAllParticipations() {
   return apiRequest('/api/banking/participations');
 }
 
+/**
+ * Get participation by ID
+ * @param {number} id - Participation ID
+ * @returns {Promise<object>} { success: true, data: {...} }
+ */
 export async function getParticipationById(id) {
   return apiRequest(`/api/banking/participations/${id}`);
 }
 
+/**
+ * Get participations by Project ID
+ * @param {number} projectId - Project ID
+ * @returns {Promise<object>} { success: true, data: [{...}] }
+ */
 export async function getParticipationsByProject(projectId) {
   return apiRequest(`/api/banking/participations/project/${projectId}`);
 }
 
+/**
+ * Create a new participation (REQUIRES AUTHENTICATION)
+ * @param {object} data - { ProjectId, BankId, LoanId?, ParticipationPercent?, ExposureAmount?, PaidOff?, Notes? }
+ * @returns {Promise<object>} { success: true, data: {...} }
+ */
 export async function createParticipation(data) {
   return apiRequest('/api/banking/participations', 'POST', data);
 }
 
+/**
+ * Create participation by Project ID (REQUIRES AUTHENTICATION)
+ * Automatically finds the construction loan for the project
+ * @param {number} projectId - Project ID
+ * @param {object} data - { BankId, ParticipationPercent?, ExposureAmount?, PaidOff?, Notes? }
+ * @returns {Promise<object>} { success: true, data: {...} }
+ */
 export async function createParticipationByProject(projectId, data) {
   return apiRequest(`/api/banking/participations/project/${projectId}`, 'POST', data);
 }
 
+/**
+ * Update a participation (REQUIRES AUTHENTICATION)
+ * @param {number} id - Participation ID
+ * @param {object} data - Updated participation data
+ * @returns {Promise<object>} { success: true, data: {...} }
+ */
 export async function updateParticipation(id, data) {
   return apiRequest(`/api/banking/participations/${id}`, 'PUT', data);
 }
 
+/**
+ * Delete a participation (REQUIRES AUTHENTICATION)
+ * @param {number} id - Participation ID
+ * @returns {Promise<object>} { success: true, message: '...' }
+ */
 export async function deleteParticipation(id) {
   return apiRequest(`/api/banking/participations/${id}`, 'DELETE');
 }
 
 // GUARANTEES
+/**
+ * Get all guarantees
+ * @returns {Promise<object>} { success: true, data: [{...}] }
+ */
 export async function getAllGuarantees() {
   return apiRequest('/api/banking/guarantees');
 }
 
+/**
+ * Get guarantee by ID
+ * @param {number} id - Guarantee ID
+ * @returns {Promise<object>} { success: true, data: {...} }
+ */
 export async function getGuaranteeById(id) {
   return apiRequest(`/api/banking/guarantees/${id}`);
 }
 
+/**
+ * Get guarantees by Project ID
+ * @param {number} projectId - Project ID
+ * @returns {Promise<object>} { success: true, data: [{...}] }
+ */
 export async function getGuaranteesByProject(projectId) {
   return apiRequest(`/api/banking/guarantees/project/${projectId}`);
 }
 
+/**
+ * Create a new guarantee (REQUIRES AUTHENTICATION)
+ * @param {object} data - { ProjectId, PersonId, LoanId?, GuaranteePercent?, GuaranteeAmount?, Notes? }
+ * @returns {Promise<object>} { success: true, data: {...} }
+ */
 export async function createGuarantee(data) {
   return apiRequest('/api/banking/guarantees', 'POST', data);
 }
 
+/**
+ * Create guarantee by Project ID (REQUIRES AUTHENTICATION)
+ * Automatically finds the construction loan for the project
+ * @param {number} projectId - Project ID
+ * @param {object} data - { PersonId, GuaranteePercent?, GuaranteeAmount?, Notes? }
+ * @returns {Promise<object>} { success: true, data: {...} }
+ */
 export async function createGuaranteeByProject(projectId, data) {
   return apiRequest(`/api/banking/guarantees/project/${projectId}`, 'POST', data);
 }
 
+/**
+ * Update a guarantee (REQUIRES AUTHENTICATION)
+ * @param {number} id - Guarantee ID
+ * @param {object} data - Updated guarantee data
+ * @returns {Promise<object>} { success: true, data: {...} }
+ */
 export async function updateGuarantee(id, data) {
   return apiRequest(`/api/banking/guarantees/${id}`, 'PUT', data);
 }
 
+/**
+ * Delete a guarantee (REQUIRES AUTHENTICATION)
+ * @param {number} id - Guarantee ID
+ * @returns {Promise<object>} { success: true, message: '...' }
+ */
 export async function deleteGuarantee(id) {
   return apiRequest(`/api/banking/guarantees/${id}`, 'DELETE');
 }
 
 // COVENANTS
+/**
+ * Get all covenants
+ * @returns {Promise<object>} { success: true, data: [{...}] }
+ */
 export async function getAllCovenants() {
   return apiRequest('/api/banking/covenants');
 }
 
+/**
+ * Get covenant by ID
+ * @param {number} id - Covenant ID
+ * @returns {Promise<object>} { success: true, data: {...} }
+ */
 export async function getCovenantById(id) {
   return apiRequest(`/api/banking/covenants/${id}`);
 }
 
+/**
+ * Get covenants by Project ID
+ * @param {number} projectId - Project ID
+ * @returns {Promise<object>} { success: true, data: [{...}] }
+ */
 export async function getCovenantsByProject(projectId) {
   return apiRequest(`/api/banking/covenants/project/${projectId}`);
 }
 
+/**
+ * Create a new covenant (REQUIRES AUTHENTICATION)
+ * @param {object} data - { ProjectId, CovenantType, LoanId?, CovenantDate?, Requirement?, ProjectedValue?, Notes? }
+ * @returns {Promise<object>} { success: true, data: {...} }
+ */
 export async function createCovenant(data) {
   return apiRequest('/api/banking/covenants', 'POST', data);
 }
 
+/**
+ * Create covenant by Project ID (REQUIRES AUTHENTICATION)
+ * Automatically finds the construction loan for the project
+ * @param {number} projectId - Project ID
+ * @param {object} data - { CovenantType, CovenantDate?, Requirement?, ProjectedValue?, Notes? }
+ * @returns {Promise<object>} { success: true, data: {...} }
+ */
 export async function createCovenantByProject(projectId, data) {
   return apiRequest(`/api/banking/covenants/project/${projectId}`, 'POST', data);
 }
 
+/**
+ * Update a covenant (REQUIRES AUTHENTICATION)
+ * @param {number} id - Covenant ID
+ * @param {object} data - Updated covenant data
+ * @returns {Promise<object>} { success: true, data: {...} }
+ */
 export async function updateCovenant(id, data) {
   return apiRequest(`/api/banking/covenants/${id}`, 'PUT', data);
 }
 
+/**
+ * Delete a covenant (REQUIRES AUTHENTICATION)
+ * @param {number} id - Covenant ID
+ * @returns {Promise<object>} { success: true, message: '...' }
+ */
 export async function deleteCovenant(id) {
   return apiRequest(`/api/banking/covenants/${id}`, 'DELETE');
 }
 
 // LIQUIDITY REQUIREMENTS
+/**
+ * Get all liquidity requirements
+ * @returns {Promise<object>} { success: true, data: [{...}] }
+ */
 export async function getAllLiquidityRequirements() {
   return apiRequest('/api/banking/liquidity-requirements');
 }
 
+/**
+ * Get liquidity requirement by ID
+ * @param {number} id - Liquidity Requirement ID
+ * @returns {Promise<object>} { success: true, data: {...} }
+ */
 export async function getLiquidityRequirementById(id) {
   return apiRequest(`/api/banking/liquidity-requirements/${id}`);
 }
 
+/**
+ * Get liquidity requirements by Project ID
+ * @param {number} projectId - Project ID
+ * @returns {Promise<object>} { success: true, data: [{...}] }
+ */
 export async function getLiquidityRequirementsByProject(projectId) {
   return apiRequest(`/api/banking/liquidity-requirements/project/${projectId}`);
 }
 
+/**
+ * Create a new liquidity requirement (REQUIRES AUTHENTICATION)
+ * @param {object} data - { ProjectId, LoanId?, TotalAmount?, LendingBankAmount?, Notes? }
+ * @returns {Promise<object>} { success: true, data: {...} }
+ */
 export async function createLiquidityRequirement(data) {
   return apiRequest('/api/banking/liquidity-requirements', 'POST', data);
 }
 
+/**
+ * Update a liquidity requirement (REQUIRES AUTHENTICATION)
+ * @param {number} id - Liquidity Requirement ID
+ * @param {object} data - Updated liquidity requirement data
+ * @returns {Promise<object>} { success: true, data: {...} }
+ */
 export async function updateLiquidityRequirement(id, data) {
   return apiRequest(`/api/banking/liquidity-requirements/${id}`, 'PUT', data);
 }
 
+/**
+ * Delete a liquidity requirement (REQUIRES AUTHENTICATION)
+ * @param {number} id - Liquidity Requirement ID
+ * @returns {Promise<object>} { success: true, message: '...' }
+ */
 export async function deleteLiquidityRequirement(id) {
   return apiRequest(`/api/banking/liquidity-requirements/${id}`, 'DELETE');
 }
 
 // BANK TARGETS
+/**
+ * Get all bank targets
+ * @returns {Promise<object>} { success: true, data: [{...}] }
+ */
 export async function getAllBankTargets() {
   return apiRequest('/api/banking/bank-targets');
 }
 
+/**
+ * Get bank target by ID
+ * @param {number} id - Bank Target ID
+ * @returns {Promise<object>} { success: true, data: {...} }
+ */
 export async function getBankTargetById(id) {
   return apiRequest(`/api/banking/bank-targets/${id}`);
 }
 
+/**
+ * Create a new bank target (REQUIRES AUTHENTICATION)
+ * @param {object} data - { BankId, AssetsText?, City?, State?, ExposureWithStoa?, ContactText?, Comments? }
+ * @returns {Promise<object>} { success: true, data: {...} }
+ */
 export async function createBankTarget(data) {
   return apiRequest('/api/banking/bank-targets', 'POST', data);
 }
 
+/**
+ * Update a bank target (REQUIRES AUTHENTICATION)
+ * @param {number} id - Bank Target ID
+ * @param {object} data - Updated bank target data
+ * @returns {Promise<object>} { success: true, data: {...} }
+ */
 export async function updateBankTarget(id, data) {
   return apiRequest(`/api/banking/bank-targets/${id}`, 'PUT', data);
 }
 
+/**
+ * Delete a bank target (REQUIRES AUTHENTICATION)
+ * @param {number} id - Bank Target ID
+ * @returns {Promise<object>} { success: true, message: '...' }
+ */
 export async function deleteBankTarget(id) {
   return apiRequest(`/api/banking/bank-targets/${id}`, 'DELETE');
 }
 
 // EQUITY COMMITMENTS
+/**
+ * Get all equity commitments
+ * @returns {Promise<object>} { success: true, data: [{...}] }
+ */
 export async function getAllEquityCommitments() {
   return apiRequest('/api/banking/equity-commitments');
 }
 
+/**
+ * Get equity commitment by ID
+ * @param {number} id - Equity Commitment ID
+ * @returns {Promise<object>} { success: true, data: {...} }
+ */
 export async function getEquityCommitmentById(id) {
   return apiRequest(`/api/banking/equity-commitments/${id}`);
 }
 
+/**
+ * Get equity commitments by Project ID
+ * @param {number} projectId - Project ID
+ * @returns {Promise<object>} { success: true, data: [{...}] }
+ */
 export async function getEquityCommitmentsByProject(projectId) {
   return apiRequest(`/api/banking/equity-commitments/project/${projectId}`);
 }
 
+/**
+ * Create a new equity commitment (REQUIRES AUTHENTICATION)
+ * @param {object} data - { ProjectId, EquityPartnerId?, EquityType?, LeadPrefGroup?, FundingDate?, Amount?, InterestRate?, AnnualMonthly?, BackEndKicker?, LastDollar?, Notes? }
+ * @returns {Promise<object>} { success: true, data: {...} }
+ */
 export async function createEquityCommitment(data) {
   return apiRequest('/api/banking/equity-commitments', 'POST', data);
 }
 
+/**
+ * Update an equity commitment (REQUIRES AUTHENTICATION)
+ * @param {number} id - Equity Commitment ID
+ * @param {object} data - Updated equity commitment data
+ * @returns {Promise<object>} { success: true, data: {...} }
+ */
 export async function updateEquityCommitment(id, data) {
   return apiRequest(`/api/banking/equity-commitments/${id}`, 'PUT', data);
 }
 
+/**
+ * Delete an equity commitment (REQUIRES AUTHENTICATION)
+ * @param {number} id - Equity Commitment ID
+ * @returns {Promise<object>} { success: true, message: '...' }
+ */
 export async function deleteEquityCommitment(id) {
   return apiRequest(`/api/banking/equity-commitments/${id}`, 'DELETE');
 }
@@ -845,23 +1071,93 @@ export async function deleteCommercialAcreage(id) {
   return apiRequest(`/api/pipeline/commercial-acreage/${id}`, 'DELETE');
 }
 
-// CLOSED PROPERTIES
+// ============================================================
+// PIPELINE - CLOSED PROPERTIES (Land Acquisition Status: Closed)
+// ============================================================
+/**
+ * Get all closed properties with CORE and Closed Property data
+ * Returns: ProjectName, City, State, Address (from CORE),
+ *          plus Closed Property specific: Status, ClosingDate (from LandClosingDate), Acreage, Units, Price, PricePerSF, ActOfSale, DueDiligenceDate, PurchasingEntity, CashFlag
+ * @returns {Promise<object>} { success: true, data: [{...}] }
+ */
 export async function getAllClosedProperties() {
   return apiRequest('/api/pipeline/closed-properties');
 }
 
+/**
+ * Get closed property by ID
+ * @param {number} id - Closed Property ID
+ * @returns {Promise<object>} { success: true, data: {...} }
+ */
 export async function getClosedPropertyById(id) {
   return apiRequest(`/api/pipeline/closed-properties/${id}`);
 }
 
+/**
+ * Create a new closed property (Land Acquisition Status: Closed)
+ * 
+ * CORE attributes (pulled from core.Project, can be updated):
+ * - ProjectName, City, State, Address (from CORE)
+ * 
+ * Closed Property specific attributes (stored in pipeline.ClosedProperty):
+ * @param {object} data - {
+ *   ProjectId: number (required),
+ *   City?: string (updates CORE.Project.City),
+ *   State?: string (updates CORE.Project.State),
+ *   Address?: string (updates CORE.Project.Address),
+ *   Status?: string (e.g., 'Multifamily', 'Commercial'),
+ *   ClosingDate?: string (YYYY-MM-DD) - stored as LandClosingDate in pipeline,
+ *   Acreage?: number,
+ *   Units?: number,
+ *   Price?: number,
+ *   PricePerSF?: number,
+ *   ActOfSale?: string,
+ *   DueDiligenceDate?: string (YYYY-MM-DD),
+ *   PurchasingEntity?: string,
+ *   CashFlag?: boolean
+ * }
+ * @returns {Promise<object>} { success: true, data: {...} }
+ * @example
+ * await createClosedProperty({
+ *   ProjectId: 1,
+ *   City: 'Baton Rouge',
+ *   State: 'LA',
+ *   Address: '123 Main St, Baton Rouge, LA 70801',
+ *   Status: 'Multifamily',
+ *   ClosingDate: '2024-01-15',
+ *   Acreage: 10.5,
+ *   Units: 200,
+ *   Price: 5000000,
+ *   PricePerSF: 45.50,
+ *   CashFlag: true
+ * });
+ */
 export async function createClosedProperty(data) {
   return apiRequest('/api/pipeline/closed-properties', 'POST', data);
 }
 
+/**
+ * Update a closed property (Land Acquisition Status: Closed)
+ * 
+ * Can update:
+ * - City, State, Address (updates CORE.Project)
+ * - Any Closed Property specific fields
+ * 
+ * Note: ClosingDate is stored as LandClosingDate in the database
+ * 
+ * @param {number} id - Closed Property ID
+ * @param {object} data - Fields to update (same as createClosedProperty)
+ * @returns {Promise<object>} { success: true, data: {...} }
+ */
 export async function updateClosedProperty(id, data) {
   return apiRequest(`/api/pipeline/closed-properties/${id}`, 'PUT', data);
 }
 
+/**
+ * Delete a closed property
+ * @param {number} id - Closed Property ID
+ * @returns {Promise<object>} { success: true, message: '...' }
+ */
 export async function deleteClosedProperty(id) {
   return apiRequest(`/api/pipeline/closed-properties/${id}`, 'DELETE');
 }

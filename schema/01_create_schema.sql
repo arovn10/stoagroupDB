@@ -347,8 +347,6 @@ CREATE TABLE pipeline.ClosedProperty (
     
     Status           NVARCHAR(50) NULL,  -- Multifamily, Commercial, etc.
     ClosingDate      DATE NULL,
-    Location         NVARCHAR(255) NULL,
-    Address          NVARCHAR(500) NULL,
     Acreage          DECIMAL(18,4) NULL,
     Units            INT NULL,
     Price            DECIMAL(18,2) NULL,

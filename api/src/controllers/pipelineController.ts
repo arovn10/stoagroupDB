@@ -1021,8 +1021,27 @@ export const deleteCommercialAcreage = async (req: Request, res: Response, next:
 export const getAllClosedProperties = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const pool = await getConnection();
+    // Pull CORE data (ProjectName, City, State, Address) and Closed Property specific data
     const result = await pool.request().query(`
-      SELECT cp.*, p.ProjectName
+      SELECT 
+        cp.ClosedPropertyId,
+        cp.ProjectId,
+        -- CORE attributes (from core.Project)
+        p.ProjectName,
+        p.City,
+        p.State,
+        p.Address,
+        -- Closed Property specific attributes
+        cp.Status,
+        cp.LandClosingDate AS ClosingDate,
+        cp.Acreage,
+        cp.Units,
+        cp.Price,
+        cp.PricePerSF,
+        cp.ActOfSale,
+        cp.DueDiligenceDate,
+        cp.PurchasingEntity,
+        cp.CashFlag
       FROM pipeline.ClosedProperty cp
       LEFT JOIN core.Project p ON cp.ProjectId = p.ProjectId
       ORDER BY cp.ClosedPropertyId
@@ -1037,9 +1056,33 @@ export const getClosedPropertyById = async (req: Request, res: Response, next: N
   try {
     const { id } = req.params;
     const pool = await getConnection();
+    // Pull CORE data (ProjectName, City, State, Address) and Closed Property specific data
     const result = await pool.request()
       .input('id', sql.Int, id)
-      .query('SELECT * FROM pipeline.ClosedProperty WHERE ClosedPropertyId = @id');
+      .query(`
+        SELECT 
+          cp.ClosedPropertyId,
+          cp.ProjectId,
+          -- CORE attributes (from core.Project)
+          p.ProjectName,
+          p.City,
+          p.State,
+          p.Address,
+          -- Closed Property specific attributes
+          cp.Status,
+          cp.LandClosingDate AS ClosingDate,
+          cp.Acreage,
+          cp.Units,
+          cp.Price,
+          cp.PricePerSF,
+          cp.ActOfSale,
+          cp.DueDiligenceDate,
+          cp.PurchasingEntity,
+          cp.CashFlag
+        FROM pipeline.ClosedProperty cp
+        LEFT JOIN core.Project p ON cp.ProjectId = p.ProjectId
+        WHERE cp.ClosedPropertyId = @id
+      `);
     
     if (result.recordset.length === 0) {
       res.status(404).json({ success: false, error: { message: 'Closed Property record not found' } });
@@ -1055,9 +1098,22 @@ export const getClosedPropertyById = async (req: Request, res: Response, next: N
 export const createClosedProperty = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const {
-      ProjectId, Status, ClosingDate, Location, Address, Acreage,
-      Units, Price, PricePerSF, ActOfSale, DueDiligenceDate,
-      PurchasingEntity, CashFlag
+      ProjectId,
+      // CORE attributes (can be updated in CORE if provided)
+      City,
+      State,
+      Address,
+      // Closed Property specific attributes
+      Status,
+      ClosingDate, // Will be stored as LandClosingDate
+      Acreage,
+      Units,
+      Price,
+      PricePerSF,
+      ActOfSale,
+      DueDiligenceDate,
+      PurchasingEntity,
+      CashFlag
     } = req.body;
 
     if (!ProjectId) {
@@ -1066,12 +1122,38 @@ export const createClosedProperty = async (req: Request, res: Response, next: Ne
     }
 
     const pool = await getConnection();
+    
+    // Update City, State, and Address in CORE if provided
+    if (City !== undefined || State !== undefined || Address !== undefined) {
+      const updateFields: string[] = [];
+      const updateRequest = pool.request().input('ProjectId', sql.Int, ProjectId);
+      
+      if (City !== undefined) {
+        updateFields.push('City = @City');
+        updateRequest.input('City', sql.NVarChar, City);
+      }
+      if (State !== undefined) {
+        updateFields.push('State = @State');
+        updateRequest.input('State', sql.NVarChar, State);
+      }
+      if (Address !== undefined) {
+        updateFields.push('Address = @Address');
+        updateRequest.input('Address', sql.NVarChar(500), Address);
+      }
+      
+      updateFields.push('UpdatedAt = SYSDATETIME()');
+      await updateRequest.query(`
+        UPDATE core.Project
+        SET ${updateFields.join(', ')}
+        WHERE ProjectId = @ProjectId
+      `);
+    }
+    
+    // Insert Closed Property specific data (Address is stored in CORE, ClosingDate stored as LandClosingDate)
     const result = await pool.request()
       .input('ProjectId', sql.Int, ProjectId)
       .input('Status', sql.NVarChar, Status)
-      .input('ClosingDate', sql.Date, ClosingDate)
-      .input('Location', sql.NVarChar, Location)
-      .input('Address', sql.NVarChar(500), Address)
+      .input('LandClosingDate', sql.Date, ClosingDate)
       .input('Acreage', sql.Decimal(18, 4), Acreage)
       .input('Units', sql.Int, Units)
       .input('Price', sql.Decimal(18, 2), Price)
@@ -1082,19 +1164,45 @@ export const createClosedProperty = async (req: Request, res: Response, next: Ne
       .input('CashFlag', sql.Bit, CashFlag)
       .query(`
         INSERT INTO pipeline.ClosedProperty (
-          ProjectId, Status, ClosingDate, Location, Address, Acreage,
+          ProjectId, Status, LandClosingDate, Acreage,
           Units, Price, PricePerSF, ActOfSale, DueDiligenceDate,
           PurchasingEntity, CashFlag
         )
         OUTPUT INSERTED.*
         VALUES (
-          @ProjectId, @Status, @ClosingDate, @Location, @Address, @Acreage,
+          @ProjectId, @Status, @LandClosingDate, @Acreage,
           @Units, @Price, @PricePerSF, @ActOfSale, @DueDiligenceDate,
           @PurchasingEntity, @CashFlag
         )
       `);
 
-    res.status(201).json({ success: true, data: result.recordset[0] });
+    // Get the full record with CORE data
+    const fullRecord = await pool.request()
+      .input('id', sql.Int, result.recordset[0].ClosedPropertyId)
+      .query(`
+        SELECT 
+          cp.ClosedPropertyId,
+          cp.ProjectId,
+          p.ProjectName,
+          p.City,
+          p.State,
+          p.Address,
+          cp.Status,
+          cp.LandClosingDate AS ClosingDate,
+          cp.Acreage,
+          cp.Units,
+          cp.Price,
+          cp.PricePerSF,
+          cp.ActOfSale,
+          cp.DueDiligenceDate,
+          cp.PurchasingEntity,
+          cp.CashFlag
+        FROM pipeline.ClosedProperty cp
+        LEFT JOIN core.Project p ON cp.ProjectId = p.ProjectId
+        WHERE cp.ClosedPropertyId = @id
+      `);
+
+    res.status(201).json({ success: true, data: fullRecord.recordset[0] });
   } catch (error: any) {
     if (error.number === 2627) {
       res.status(409).json({ success: false, error: { message: 'Closed Property record for this project already exists' } });
@@ -1111,52 +1219,154 @@ export const createClosedProperty = async (req: Request, res: Response, next: Ne
 export const updateClosedProperty = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
-    const propertyData = req.body;
+    const {
+      // CORE attributes (can be updated in CORE if provided)
+      City,
+      State,
+      Address,
+      // Closed Property specific attributes
+      Status,
+      ClosingDate, // Will be stored as LandClosingDate
+      Acreage,
+      Units,
+      Price,
+      PricePerSF,
+      ActOfSale,
+      DueDiligenceDate,
+      PurchasingEntity,
+      CashFlag
+    } = req.body;
 
     const pool = await getConnection();
-    const request = pool.request().input('id', sql.Int, id);
-
-    // Build dynamic update query - only update fields that are provided
-    const fields: string[] = [];
-    Object.keys(propertyData).forEach((key) => {
-      if (key !== 'ClosedPropertyId' && propertyData[key] !== undefined) {
-        fields.push(`${key} = @${key}`);
-        if (key === 'ProjectId' || key === 'Units') {
-          request.input(key, sql.Int, propertyData[key]);
-        } else if (key === 'Acreage') {
-          request.input(key, sql.Decimal(18, 4), propertyData[key]);
-        } else if (key === 'Price' || key === 'PricePerSF') {
-          request.input(key, sql.Decimal(18, 2), propertyData[key]);
-        } else if (key.includes('Date')) {
-          request.input(key, sql.Date, propertyData[key]);
-        } else if (key === 'CashFlag') {
-          request.input(key, sql.Bit, propertyData[key]);
-        } else if (key === 'Address') {
-          request.input(key, sql.NVarChar(500), propertyData[key]);
-        } else {
-          request.input(key, sql.NVarChar, propertyData[key]);
-        }
-      }
-    });
-
-    if (fields.length === 0) {
-      res.status(400).json({ success: false, error: { message: 'No fields to update' } });
-      return;
-    }
-
-    const result = await request.query(`
-      UPDATE pipeline.ClosedProperty
-      SET ${fields.join(', ')}
-      WHERE ClosedPropertyId = @id;
-      SELECT * FROM pipeline.ClosedProperty WHERE ClosedPropertyId = @id;
-    `);
-
-    if (result.recordset.length === 0) {
+    
+    // Get ProjectId first
+    const cpResult = await pool.request()
+      .input('id', sql.Int, id)
+      .query('SELECT ProjectId FROM pipeline.ClosedProperty WHERE ClosedPropertyId = @id');
+    
+    if (cpResult.recordset.length === 0) {
       res.status(404).json({ success: false, error: { message: 'Closed Property record not found' } });
       return;
     }
 
-    res.json({ success: true, data: result.recordset[0] });
+    const projectId = cpResult.recordset[0].ProjectId;
+    
+    // Update City, State, and Address in CORE if provided
+    if (City !== undefined || State !== undefined || Address !== undefined) {
+      const updateFields: string[] = [];
+      const updateRequest = pool.request().input('ProjectId', sql.Int, projectId);
+      
+      if (City !== undefined) {
+        updateFields.push('City = @City');
+        updateRequest.input('City', sql.NVarChar, City);
+      }
+      if (State !== undefined) {
+        updateFields.push('State = @State');
+        updateRequest.input('State', sql.NVarChar, State);
+      }
+      if (Address !== undefined) {
+        updateFields.push('Address = @Address');
+        updateRequest.input('Address', sql.NVarChar(500), Address);
+      }
+      
+      updateFields.push('UpdatedAt = SYSDATETIME()');
+      await updateRequest.query(`
+        UPDATE core.Project
+        SET ${updateFields.join(', ')}
+        WHERE ProjectId = @ProjectId
+      `);
+    }
+
+    // Build dynamic update query for Closed Property fields
+    const fields: string[] = [];
+    const request = pool.request().input('id', sql.Int, id);
+
+    if (Status !== undefined) {
+      fields.push('Status = @Status');
+      request.input('Status', sql.NVarChar, Status);
+    }
+    if (ClosingDate !== undefined) {
+      fields.push('LandClosingDate = @LandClosingDate');
+      request.input('LandClosingDate', sql.Date, ClosingDate);
+    }
+    if (Acreage !== undefined) {
+      fields.push('Acreage = @Acreage');
+      request.input('Acreage', sql.Decimal(18, 4), Acreage);
+    }
+    if (Units !== undefined) {
+      fields.push('Units = @Units');
+      request.input('Units', sql.Int, Units);
+    }
+    if (Price !== undefined) {
+      fields.push('Price = @Price');
+      request.input('Price', sql.Decimal(18, 2), Price);
+    }
+    if (PricePerSF !== undefined) {
+      fields.push('PricePerSF = @PricePerSF');
+      request.input('PricePerSF', sql.Decimal(18, 2), PricePerSF);
+    }
+    if (ActOfSale !== undefined) {
+      fields.push('ActOfSale = @ActOfSale');
+      request.input('ActOfSale', sql.NVarChar, ActOfSale);
+    }
+    if (DueDiligenceDate !== undefined) {
+      fields.push('DueDiligenceDate = @DueDiligenceDate');
+      request.input('DueDiligenceDate', sql.Date, DueDiligenceDate);
+    }
+    if (PurchasingEntity !== undefined) {
+      fields.push('PurchasingEntity = @PurchasingEntity');
+      request.input('PurchasingEntity', sql.NVarChar, PurchasingEntity);
+    }
+    if (CashFlag !== undefined) {
+      fields.push('CashFlag = @CashFlag');
+      request.input('CashFlag', sql.Bit, CashFlag);
+    }
+
+    if (fields.length === 0 && City === undefined && State === undefined && Address === undefined) {
+      res.status(400).json({ success: false, error: { message: 'No fields to update' } });
+      return;
+    }
+
+    if (fields.length > 0) {
+      await request.query(`
+        UPDATE pipeline.ClosedProperty
+        SET ${fields.join(', ')}
+        WHERE ClosedPropertyId = @id
+      `);
+    }
+
+    // Get the updated record with CORE data
+    const updated = await pool.request()
+      .input('id', sql.Int, id)
+      .query(`
+        SELECT 
+          cp.ClosedPropertyId,
+          cp.ProjectId,
+          p.ProjectName,
+          p.City,
+          p.State,
+          p.Address,
+          cp.Status,
+          cp.LandClosingDate AS ClosingDate,
+          cp.Acreage,
+          cp.Units,
+          cp.Price,
+          cp.PricePerSF,
+          cp.ActOfSale,
+          cp.DueDiligenceDate,
+          cp.PurchasingEntity,
+          cp.CashFlag
+        FROM pipeline.ClosedProperty cp
+        LEFT JOIN core.Project p ON cp.ProjectId = p.ProjectId
+        WHERE cp.ClosedPropertyId = @id
+      `);
+
+    if (updated.recordset.length === 0) {
+      res.status(404).json({ success: false, error: { message: 'Closed Property record not found' } });
+      return;
+    }
+
+    res.json({ success: true, data: updated.recordset[0] });
   } catch (error: any) {
     if (error.number === 547) {
       res.status(400).json({ success: false, error: { message: 'Invalid ProjectId' } });

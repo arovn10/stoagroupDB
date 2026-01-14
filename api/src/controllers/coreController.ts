@@ -39,7 +39,7 @@ export const getProjectById = async (req: Request, res: Response, next: NextFunc
 export const createProject = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const {
-      ProjectName, City, State, Region, Location, Units,
+      ProjectName, City, State, Region, Address, Units,
       ProductType, Stage, EstimatedConstructionStartDate
     } = req.body;
 
@@ -54,14 +54,14 @@ export const createProject = async (req: Request, res: Response, next: NextFunct
       .input('City', sql.NVarChar, City)
       .input('State', sql.NVarChar, State)
       .input('Region', sql.NVarChar, Region)
-      .input('Location', sql.NVarChar, Location)
+      .input('Address', sql.NVarChar(500), Address)
       .input('Units', sql.Int, Units)
       .input('ProductType', sql.NVarChar, ProductType)
       .input('Stage', sql.NVarChar, Stage)
       .input('EstimatedConstructionStartDate', sql.Date, EstimatedConstructionStartDate)
       .query(`
-        INSERT INTO core.Project (ProjectName, City, State, Region, Location, Units, ProductType, Stage, EstimatedConstructionStartDate)
-        VALUES (@ProjectName, @City, @State, @Region, @Location, @Units, @ProductType, @Stage, @EstimatedConstructionStartDate);
+        INSERT INTO core.Project (ProjectName, City, State, Region, Address, Units, ProductType, Stage, EstimatedConstructionStartDate)
+        VALUES (@ProjectName, @City, @State, @Region, @Address, @Units, @ProductType, @Stage, @EstimatedConstructionStartDate);
         SELECT SCOPE_IDENTITY() AS ProjectId;
       `);
 
