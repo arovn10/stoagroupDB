@@ -167,98 +167,131 @@ export const updateProject = async (req: Request, res: Response, next: NextFunct
 };
 
 export const deleteProject = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  let transaction: sql.Transaction | null = null;
+  
   try {
     const { id } = req.params;
     const pool = await getConnection();
     
-    // First, check what records are preventing deletion
-    const checkResult = await pool.request()
+    // First verify project exists
+    const checkProject = await pool.request()
       .input('id', sql.Int, id)
-      .query(`
-        DECLARE @ProjectId INT = @id;
-        DECLARE @AssociatedRecords TABLE (
-          TableName NVARCHAR(255),
-          RecordCount INT,
-          TableDescription NVARCHAR(255)
-        );
-        
-        -- Check banking tables
-        IF EXISTS (SELECT 1 FROM banking.Loan WHERE ProjectId = @ProjectId)
-          INSERT INTO @AssociatedRecords VALUES ('banking.Loan', (SELECT COUNT(*) FROM banking.Loan WHERE ProjectId = @ProjectId), 'Loans');
-        
-        IF EXISTS (SELECT 1 FROM banking.DSCRTest WHERE ProjectId = @ProjectId)
-          INSERT INTO @AssociatedRecords VALUES ('banking.DSCRTest', (SELECT COUNT(*) FROM banking.DSCRTest WHERE ProjectId = @ProjectId), 'DSCR Tests');
-        
-        IF EXISTS (SELECT 1 FROM banking.Participation WHERE ProjectId = @ProjectId)
-          INSERT INTO @AssociatedRecords VALUES ('banking.Participation', (SELECT COUNT(*) FROM banking.Participation WHERE ProjectId = @ProjectId), 'Participations');
-        
-        IF EXISTS (SELECT 1 FROM banking.Guarantee WHERE ProjectId = @ProjectId)
-          INSERT INTO @AssociatedRecords VALUES ('banking.Guarantee', (SELECT COUNT(*) FROM banking.Guarantee WHERE ProjectId = @ProjectId), 'Guarantees');
-        
-        IF EXISTS (SELECT 1 FROM banking.Covenant WHERE ProjectId = @ProjectId)
-          INSERT INTO @AssociatedRecords VALUES ('banking.Covenant', (SELECT COUNT(*) FROM banking.Covenant WHERE ProjectId = @ProjectId), 'Covenants');
-        
-        IF EXISTS (SELECT 1 FROM banking.LiquidityRequirement WHERE ProjectId = @ProjectId)
-          INSERT INTO @AssociatedRecords VALUES ('banking.LiquidityRequirement', (SELECT COUNT(*) FROM banking.LiquidityRequirement WHERE ProjectId = @ProjectId), 'Liquidity Requirements');
-        
-        IF EXISTS (SELECT 1 FROM banking.EquityCommitment WHERE ProjectId = @ProjectId)
-          INSERT INTO @AssociatedRecords VALUES ('banking.EquityCommitment', (SELECT COUNT(*) FROM banking.EquityCommitment WHERE ProjectId = @ProjectId), 'Equity Commitments');
-        
-        IF EXISTS (SELECT 1 FROM banking.LoanProceeds WHERE ProjectId = @ProjectId)
-          INSERT INTO @AssociatedRecords VALUES ('banking.LoanProceeds', (SELECT COUNT(*) FROM banking.LoanProceeds WHERE ProjectId = @ProjectId), 'Loan Proceeds');
-        
-        IF EXISTS (SELECT 1 FROM banking.GuaranteeBurndown WHERE ProjectId = @ProjectId)
-          INSERT INTO @AssociatedRecords VALUES ('banking.GuaranteeBurndown', (SELECT COUNT(*) FROM banking.GuaranteeBurndown WHERE ProjectId = @ProjectId), 'Guarantee Burndowns');
-        
-        -- Check pipeline tables
-        IF EXISTS (SELECT 1 FROM pipeline.UnderContract WHERE ProjectId = @ProjectId)
-          INSERT INTO @AssociatedRecords VALUES ('pipeline.UnderContract', (SELECT COUNT(*) FROM pipeline.UnderContract WHERE ProjectId = @ProjectId), 'Under Contract Properties');
-        
-        IF EXISTS (SELECT 1 FROM pipeline.CommercialListed WHERE ProjectId = @ProjectId)
-          INSERT INTO @AssociatedRecords VALUES ('pipeline.CommercialListed', (SELECT COUNT(*) FROM pipeline.CommercialListed WHERE ProjectId = @ProjectId), 'Commercial Listed Properties');
-        
-        IF EXISTS (SELECT 1 FROM pipeline.CommercialAcreage WHERE ProjectId = @ProjectId)
-          INSERT INTO @AssociatedRecords VALUES ('pipeline.CommercialAcreage', (SELECT COUNT(*) FROM pipeline.CommercialAcreage WHERE ProjectId = @ProjectId), 'Commercial Acreage');
-        
-        IF EXISTS (SELECT 1 FROM pipeline.ClosedProperty WHERE ProjectId = @ProjectId)
-          INSERT INTO @AssociatedRecords VALUES ('pipeline.ClosedProperty', (SELECT COUNT(*) FROM pipeline.ClosedProperty WHERE ProjectId = @ProjectId), 'Closed Properties');
-        
-        SELECT * FROM @AssociatedRecords ORDER BY TableName;
-      `);
+      .query('SELECT ProjectId, ProjectName FROM core.Project WHERE ProjectId = @id');
     
-    if (checkResult.recordset.length > 0) {
-      const associatedRecords = checkResult.recordset.map((r: any) => ({
-        table: r.TableName,
-        count: r.RecordCount,
-        description: r.TableDescription
-      }));
-      
-      const recordList = associatedRecords.map((r: any) => `${r.description} (${r.count})`).join(', ');
-      
-      res.status(409).json({ 
-        success: false, 
-        error: { 
-          message: `Cannot delete project: it has associated records in the following tables: ${recordList}`,
-          associatedRecords: associatedRecords
-        } 
-      });
-      return;
-    }
-    
-    // If no associated records, proceed with deletion
-    const result = await pool.request()
-      .input('id', sql.Int, id)
-      .query('DELETE FROM core.Project WHERE ProjectId = @id');
-
-    if (result.rowsAffected[0] === 0) {
+    if (checkProject.recordset.length === 0) {
       res.status(404).json({ success: false, error: { message: 'Project not found' } });
       return;
     }
-
-    res.json({ success: true, message: 'Project deleted successfully' });
+    
+    const projectName = checkProject.recordset[0].ProjectName;
+    
+    // Begin transaction for atomic deletion
+    transaction = new sql.Transaction(pool);
+    await transaction.begin();
+    
+    const request = new sql.Request(transaction);
+    request.input('id', sql.Int, id);
+    
+    // Track what gets deleted
+    const deletedCounts: Record<string, number> = {};
+    
+    // Delete in order: child records first, then parent
+    // 1. Banking: Loan Proceeds (references Loan)
+    const loanProceedsResult = await request.query('DELETE FROM banking.LoanProceeds WHERE ProjectId = @id');
+    deletedCounts['LoanProceeds'] = loanProceedsResult.rowsAffected[0] || 0;
+    
+    // 2. Banking: Guarantee Burndowns (references Guarantee)
+    const guaranteeBurndownResult = await request.query('DELETE FROM banking.GuaranteeBurndown WHERE ProjectId = @id');
+    deletedCounts['GuaranteeBurndowns'] = guaranteeBurndownResult.rowsAffected[0] || 0;
+    
+    // 3. Banking: DSCR Tests (references Loan, but can exist without)
+    const dscrResult = await request.query('DELETE FROM banking.DSCRTest WHERE ProjectId = @id');
+    deletedCounts['DSCRTests'] = dscrResult.rowsAffected[0] || 0;
+    
+    // 4. Banking: Participations (references Loan, but can exist without)
+    const participationResult = await request.query('DELETE FROM banking.Participation WHERE ProjectId = @id');
+    deletedCounts['Participations'] = participationResult.rowsAffected[0] || 0;
+    
+    // 5. Banking: Guarantees (references Loan, but can exist without)
+    const guaranteeResult = await request.query('DELETE FROM banking.Guarantee WHERE ProjectId = @id');
+    deletedCounts['Guarantees'] = guaranteeResult.rowsAffected[0] || 0;
+    
+    // 6. Banking: Covenants (references Loan, but can exist without)
+    const covenantResult = await request.query('DELETE FROM banking.Covenant WHERE ProjectId = @id');
+    deletedCounts['Covenants'] = covenantResult.rowsAffected[0] || 0;
+    
+    // 7. Banking: Liquidity Requirements
+    const liquidityResult = await request.query('DELETE FROM banking.LiquidityRequirement WHERE ProjectId = @id');
+    deletedCounts['LiquidityRequirements'] = liquidityResult.rowsAffected[0] || 0;
+    
+    // 8. Banking: Equity Commitments
+    const equityResult = await request.query('DELETE FROM banking.EquityCommitment WHERE ProjectId = @id');
+    deletedCounts['EquityCommitments'] = equityResult.rowsAffected[0] || 0;
+    
+    // 9. Banking: Loans (must be deleted after all loan-related records)
+    const loanResult = await request.query('DELETE FROM banking.Loan WHERE ProjectId = @id');
+    deletedCounts['Loans'] = loanResult.rowsAffected[0] || 0;
+    
+    // 10. Pipeline: Under Contract
+    const underContractResult = await request.query('DELETE FROM pipeline.UnderContract WHERE ProjectId = @id');
+    deletedCounts['UnderContract'] = underContractResult.rowsAffected[0] || 0;
+    
+    // 11. Pipeline: Commercial Listed
+    const commercialListedResult = await request.query('DELETE FROM pipeline.CommercialListed WHERE ProjectId = @id');
+    deletedCounts['CommercialListed'] = commercialListedResult.rowsAffected[0] || 0;
+    
+    // 12. Pipeline: Commercial Acreage
+    const commercialAcreageResult = await request.query('DELETE FROM pipeline.CommercialAcreage WHERE ProjectId = @id');
+    deletedCounts['CommercialAcreage'] = commercialAcreageResult.rowsAffected[0] || 0;
+    
+    // 13. Pipeline: Closed Property
+    const closedPropertyResult = await request.query('DELETE FROM pipeline.ClosedProperty WHERE ProjectId = @id');
+    deletedCounts['ClosedProperties'] = closedPropertyResult.rowsAffected[0] || 0;
+    
+    // 14. Finally, delete the project itself
+    const projectResult = await request.query('DELETE FROM core.Project WHERE ProjectId = @id');
+    
+    if (projectResult.rowsAffected[0] === 0) {
+      await transaction.rollback();
+      res.status(404).json({ success: false, error: { message: 'Project not found' } });
+      return;
+    }
+    
+    // Commit transaction
+    await transaction.commit();
+    
+    // Build summary message
+    const deletedItems = Object.entries(deletedCounts)
+      .filter(([_, count]) => count > 0)
+      .map(([name, count]) => `${name} (${count})`)
+      .join(', ');
+    
+    const summaryMessage = deletedItems 
+      ? `Project "${projectName}" and associated records deleted successfully. Deleted: ${deletedItems}`
+      : `Project "${projectName}" deleted successfully.`;
+    
+    res.json({ 
+      success: true, 
+      message: summaryMessage,
+      deletedCounts: deletedCounts
+    });
   } catch (error: any) {
-    if (error.number === 547) { // Foreign key constraint violation (fallback)
-      res.status(409).json({ success: false, error: { message: 'Cannot delete project with associated records. Please delete associated records first.' } });
+    // Rollback transaction on error
+    if (transaction) {
+      try {
+        await transaction.rollback();
+      } catch (rollbackError) {
+        // Ignore rollback errors
+      }
+    }
+    
+    if (error.number === 547) { // Foreign key constraint violation
+      res.status(409).json({ 
+        success: false, 
+        error: { 
+          message: 'Cannot delete project: unexpected foreign key constraint violation. Some records may still be referenced by other tables.' 
+        } 
+      });
       return;
     }
     next(error);
