@@ -31,7 +31,7 @@ CREATE TABLE core.Project (
     ProductType NVARCHAR(50) NULL,  -- Heights, Prototype, Flats, Other
     
     -- Stage
-    Stage       NVARCHAR(50) NULL,   -- Prospective, Under Contract, Under Construction, Lease-Up, Stabilized, Liquidated
+    Stage       NVARCHAR(50) NULL,   -- Prospective, Under Contract, Under Construction, Lease-Up, Stabilized, Liquidated, Dead
     
     -- Estimated dates (targets/plans - actuals come from Procore)
     EstimatedConstructionStartDate DATE NULL,  -- Estimated start date (actual comes from Procore)
