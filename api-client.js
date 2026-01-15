@@ -703,8 +703,59 @@
 
 /**
  * Create a new covenant (REQUIRES AUTHENTICATION)
- * @param {object} data - { ProjectId, CovenantType, LoanId?, CovenantDate?, Requirement?, ProjectedValue?, Notes? }
+ * 
+ * CovenantType options: 'DSCR', 'Occupancy', 'Liquidity Requirement', 'Other'
+ * 
+ * Fields vary by CovenantType:
+ * - DSCR: DSCRTestDate (Date), ProjectedInterestRate (string), DSCRRequirement (string), ProjectedDSCR (string)
+ * - Occupancy: OccupancyCovenantDate (Date), OccupancyRequirement (string), ProjectedOccupancy (string, e.g., "76.5%")
+ * - Liquidity Requirement: LiquidityRequirementLendingBank (number/decimal)
+ * - Other: CovenantDate (Date), Requirement (string), ProjectedValue (string)
+ * 
+ * @param {object} data - { 
+ *   ProjectId (required), 
+ *   CovenantType (required: 'DSCR' | 'Occupancy' | 'Liquidity Requirement' | 'Other'),
+ *   LoanId?,
+ *   // DSCR fields:
+ *   DSCRTestDate?, ProjectedInterestRate?, DSCRRequirement?, ProjectedDSCR?,
+ *   // Occupancy fields:
+ *   OccupancyCovenantDate?, OccupancyRequirement?, ProjectedOccupancy?,
+ *   // Liquidity Requirement fields:
+ *   LiquidityRequirementLendingBank?,
+ *   // Other fields:
+ *   CovenantDate?, Requirement?, ProjectedValue?,
+ *   Notes?
+ * }
  * @returns {Promise<object>} { success: true, data: {...} }
+ * 
+ * @example
+ * // Create a DSCR covenant
+ * await createCovenant({
+ *   ProjectId: 1,
+ *   CovenantType: 'DSCR',
+ *   DSCRTestDate: '2027-03-31',
+ *   ProjectedInterestRate: '5.25%',
+ *   DSCRRequirement: '1.25',
+ *   ProjectedDSCR: '1.35'
+ * });
+ * 
+ * @example
+ * // Create an Occupancy covenant
+ * await createCovenant({
+ *   ProjectId: 1,
+ *   CovenantType: 'Occupancy',
+ *   OccupancyCovenantDate: '2027-03-31',
+ *   OccupancyRequirement: '50%',
+ *   ProjectedOccupancy: '76.5%'
+ * });
+ * 
+ * @example
+ * // Create a Liquidity Requirement covenant
+ * await createCovenant({
+ *   ProjectId: 1,
+ *   CovenantType: 'Liquidity Requirement',
+ *   LiquidityRequirementLendingBank: 5000000
+ * });
  */
   async function createCovenant(data) {
   return apiRequest('/api/banking/covenants', 'POST', data);
@@ -713,9 +764,39 @@
 /**
  * Create covenant by Project ID (REQUIRES AUTHENTICATION)
  * Automatically finds the construction loan for the project
+ * 
+ * CovenantType options: 'DSCR', 'Occupancy', 'Liquidity Requirement', 'Other'
+ * 
+ * Fields vary by CovenantType:
+ * - DSCR: DSCRTestDate (Date), ProjectedInterestRate (string), DSCRRequirement (string), ProjectedDSCR (string)
+ * - Occupancy: OccupancyCovenantDate (Date), OccupancyRequirement (string), ProjectedOccupancy (string, e.g., "76.5%")
+ * - Liquidity Requirement: LiquidityRequirementLendingBank (number/decimal)
+ * - Other: CovenantDate (Date), Requirement (string), ProjectedValue (string)
+ * 
  * @param {number} projectId - Project ID
- * @param {object} data - { CovenantType, CovenantDate?, Requirement?, ProjectedValue?, Notes? }
+ * @param {object} data - { 
+ *   CovenantType (required: 'DSCR' | 'Occupancy' | 'Liquidity Requirement' | 'Other'),
+ *   // DSCR fields:
+ *   DSCRTestDate?, ProjectedInterestRate?, DSCRRequirement?, ProjectedDSCR?,
+ *   // Occupancy fields:
+ *   OccupancyCovenantDate?, OccupancyRequirement?, ProjectedOccupancy?,
+ *   // Liquidity Requirement fields:
+ *   LiquidityRequirementLendingBank?,
+ *   // Other fields:
+ *   CovenantDate?, Requirement?, ProjectedValue?,
+ *   Notes?
+ * }
  * @returns {Promise<object>} { success: true, data: {...} }
+ * 
+ * @example
+ * // Create a DSCR covenant for a project
+ * await createCovenantByProject(1, {
+ *   CovenantType: 'DSCR',
+ *   DSCRTestDate: '2027-03-31',
+ *   ProjectedInterestRate: '5.25%',
+ *   DSCRRequirement: '1.25',
+ *   ProjectedDSCR: '1.35'
+ * });
  */
   async function createCovenantByProject(projectId, data) {
   return apiRequest(`/api/banking/covenants/project/${projectId}`, 'POST', data);
@@ -894,6 +975,168 @@
  */
   async function deleteEquityCommitment(id) {
   return apiRequest(`/api/banking/equity-commitments/${id}`, 'DELETE');
+}
+
+// LOAN PROCEEDS (Additional Draws/Disbursements)
+/**
+ * Get all loan proceeds
+ * @returns {Promise<object>} { success: true, data: [{...}] }
+ */
+  async function getAllLoanProceeds() {
+  return apiRequest('/api/banking/loan-proceeds');
+}
+
+/**
+ * Get loan proceeds by ID
+ * @param {number} id - Loan Proceeds ID
+ * @returns {Promise<object>} { success: true, data: {...} }
+ */
+  async function getLoanProceedsById(id) {
+  return apiRequest(`/api/banking/loan-proceeds/${id}`);
+}
+
+/**
+ * Get loan proceeds by Project ID
+ * @param {number} projectId - Project ID
+ * @returns {Promise<object>} { success: true, data: [{...}] }
+ */
+  async function getLoanProceedsByProject(projectId) {
+  return apiRequest(`/api/banking/loan-proceeds/project/${projectId}`);
+}
+
+/**
+ * Get loan proceeds by Loan ID
+ * @param {number} loanId - Loan ID
+ * @returns {Promise<object>} { success: true, data: [{...}] }
+ */
+  async function getLoanProceedsByLoan(loanId) {
+  return apiRequest(`/api/banking/loan-proceeds/loan/${loanId}`);
+}
+
+/**
+ * Create loan proceeds (additional draw/disbursement) (REQUIRES AUTHENTICATION)
+ * @param {object} data - { 
+ *   ProjectId (required), 
+ *   ProceedsDate (required), 
+ *   ProceedsAmount (required),
+ *   LoanId?, CumulativeAmount?, DrawNumber?, DrawDescription?, Notes?
+ * }
+ * @returns {Promise<object>} { success: true, data: {...} }
+ * 
+ * @example
+ * await createLoanProceeds({
+ *   ProjectId: 1,
+ *   LoanId: 5,
+ *   ProceedsDate: '2024-01-15',
+ *   ProceedsAmount: 500000,
+ *   DrawNumber: 1,
+ *   DrawDescription: 'First draw - site work'
+ * });
+ */
+  async function createLoanProceeds(data) {
+  return apiRequest('/api/banking/loan-proceeds', 'POST', data);
+}
+
+/**
+ * Update loan proceeds (REQUIRES AUTHENTICATION)
+ * @param {number} id - Loan Proceeds ID
+ * @param {object} data - Updated loan proceeds data
+ * @returns {Promise<object>} { success: true, data: {...} }
+ */
+  async function updateLoanProceeds(id, data) {
+  return apiRequest(`/api/banking/loan-proceeds/${id}`, 'PUT', data);
+}
+
+/**
+ * Delete loan proceeds (REQUIRES AUTHENTICATION)
+ * @param {number} id - Loan Proceeds ID
+ * @returns {Promise<object>} { success: true, message: '...' }
+ */
+  async function deleteLoanProceeds(id) {
+  return apiRequest(`/api/banking/loan-proceeds/${id}`, 'DELETE');
+}
+
+// GUARANTEE BURNDOWNS
+/**
+ * Get all guarantee burndowns
+ * @returns {Promise<object>} { success: true, data: [{...}] }
+ */
+  async function getAllGuaranteeBurndowns() {
+  return apiRequest('/api/banking/guarantee-burndowns');
+}
+
+/**
+ * Get guarantee burndown by ID
+ * @param {number} id - Guarantee Burndown ID
+ * @returns {Promise<object>} { success: true, data: {...} }
+ */
+  async function getGuaranteeBurndownById(id) {
+  return apiRequest(`/api/banking/guarantee-burndowns/${id}`);
+}
+
+/**
+ * Get guarantee burndowns by Project ID
+ * @param {number} projectId - Project ID
+ * @returns {Promise<object>} { success: true, data: [{...}] }
+ */
+  async function getGuaranteeBurndownsByProject(projectId) {
+  return apiRequest(`/api/banking/guarantee-burndowns/project/${projectId}`);
+}
+
+/**
+ * Get guarantee burndowns by Person ID (guarantor)
+ * @param {number} personId - Person ID (1=Toby, 2=Ryan, 3=Saun)
+ * @returns {Promise<object>} { success: true, data: [{...}] }
+ */
+  async function getGuaranteeBurndownsByPerson(personId) {
+  return apiRequest(`/api/banking/guarantee-burndowns/person/${personId}`);
+}
+
+/**
+ * Create guarantee burndown (guarantee reduction) (REQUIRES AUTHENTICATION)
+ * @param {object} data - { 
+ *   ProjectId (required), 
+ *   PersonId (required), 
+ *   BurndownDate (required), 
+ *   NewAmount (required),
+ *   LoanId?, PreviousAmount?, ReductionAmount?, PreviousPercent?, NewPercent?, 
+ *   BurndownReason?, TriggeredBy?, Notes?
+ * }
+ * @returns {Promise<object>} { success: true, data: {...} }
+ * 
+ * @example
+ * await createGuaranteeBurndown({
+ *   ProjectId: 1,
+ *   PersonId: 1, // Toby
+ *   BurndownDate: '2027-03-31',
+ *   PreviousAmount: 1000000,
+ *   NewAmount: 500000,
+ *   ReductionAmount: 500000,
+ *   BurndownReason: 'DSCR reached 1.25x',
+ *   TriggeredBy: 'DSCR Test 1'
+ * });
+ */
+  async function createGuaranteeBurndown(data) {
+  return apiRequest('/api/banking/guarantee-burndowns', 'POST', data);
+}
+
+/**
+ * Update guarantee burndown (REQUIRES AUTHENTICATION)
+ * @param {number} id - Guarantee Burndown ID
+ * @param {object} data - Updated guarantee burndown data
+ * @returns {Promise<object>} { success: true, data: {...} }
+ */
+  async function updateGuaranteeBurndown(id, data) {
+  return apiRequest(`/api/banking/guarantee-burndowns/${id}`, 'PUT', data);
+}
+
+/**
+ * Delete guarantee burndown (REQUIRES AUTHENTICATION)
+ * @param {number} id - Guarantee Burndown ID
+ * @returns {Promise<object>} { success: true, message: '...' }
+ */
+  async function deleteGuaranteeBurndown(id) {
+  return apiRequest(`/api/banking/guarantee-burndowns/${id}`, 'DELETE');
 }
 
 // ============================================================
@@ -1459,6 +1702,24 @@
   API.createEquityCommitment = createEquityCommitment;
   API.updateEquityCommitment = updateEquityCommitment;
   API.deleteEquityCommitment = deleteEquityCommitment;
+  
+  // Banking - Loan Proceeds
+  API.getAllLoanProceeds = getAllLoanProceeds;
+  API.getLoanProceedsById = getLoanProceedsById;
+  API.getLoanProceedsByProject = getLoanProceedsByProject;
+  API.getLoanProceedsByLoan = getLoanProceedsByLoan;
+  API.createLoanProceeds = createLoanProceeds;
+  API.updateLoanProceeds = updateLoanProceeds;
+  API.deleteLoanProceeds = deleteLoanProceeds;
+  
+  // Banking - Guarantee Burndowns
+  API.getAllGuaranteeBurndowns = getAllGuaranteeBurndowns;
+  API.getGuaranteeBurndownById = getGuaranteeBurndownById;
+  API.getGuaranteeBurndownsByProject = getGuaranteeBurndownsByProject;
+  API.getGuaranteeBurndownsByPerson = getGuaranteeBurndownsByPerson;
+  API.createGuaranteeBurndown = createGuaranteeBurndown;
+  API.updateGuaranteeBurndown = updateGuaranteeBurndown;
+  API.deleteGuaranteeBurndown = deleteGuaranteeBurndown;
   
   // Pipeline - Under Contract
   API.getAllUnderContracts = getAllUnderContracts;
