@@ -33,10 +33,18 @@ BEGIN TRY
         PRINT '   ✓ PartnerType column already exists';
     END
     PRINT '';
-    
-    -- ============================================================
-    -- 2. ADD CHECK CONSTRAINT
-    -- ============================================================
+
+END TRY
+BEGIN CATCH
+    PRINT '❌ ERROR during PartnerType column addition: ' + ERROR_MESSAGE();
+    THROW;
+END CATCH
+GO
+
+-- ============================================================
+-- 2. ADD CHECK CONSTRAINT
+-- ============================================================
+BEGIN TRY
     PRINT '2. Adding CHECK constraint for PartnerType...';
     
     IF NOT EXISTS (
