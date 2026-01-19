@@ -34,10 +34,18 @@ BEGIN TRY
         PRINT '   ✓ FinancingType column already exists';
     END
     PRINT '';
-    
-    -- ============================================================
-    -- 2. ADD CHECK CONSTRAINT
-    -- ============================================================
+
+END TRY
+BEGIN CATCH
+    PRINT '❌ ERROR during FinancingType column addition: ' + ERROR_MESSAGE();
+    THROW;
+END CATCH
+GO
+
+-- ============================================================
+-- 2. ADD CHECK CONSTRAINT
+-- ============================================================
+BEGIN TRY
     PRINT '2. Adding CHECK constraint for FinancingType...';
     
     IF NOT EXISTS (
@@ -57,10 +65,19 @@ BEGIN TRY
         PRINT '   ✓ CHECK constraint CK_Participation_FinancingType already exists';
     END
     PRINT '';
-    
-    -- ============================================================
-    -- 3. SET DEFAULT TO 'Construction' FOR ALL EXISTING RECORDS
-    -- ============================================================
+
+END TRY
+BEGIN CATCH
+    PRINT '❌ ERROR during CHECK constraint addition: ' + ERROR_MESSAGE();
+    THROW;
+END CATCH
+GO
+
+-- ============================================================
+-- 3. SET DEFAULT TO 'Construction' FOR ALL EXISTING RECORDS
+-- ============================================================
+BEGIN TRY
+    PRINT '3. Setting default FinancingType to ''Construction'' for all existing participations...';
     PRINT '3. Setting default FinancingType to ''Construction'' for all existing participations...';
     
     -- First, set based on Loan Phase if LoanId exists
@@ -70,16 +87,14 @@ BEGIN TRY
             WHEN l.LoanPhase = 'Construction' THEN 'Construction'
             WHEN l.LoanPhase = 'Permanent' THEN 'Permanent'
             ELSE 'Construction'
-        END,
-        p.UpdatedAt = SYSDATETIME()
+        END
     FROM banking.Participation p
     LEFT JOIN banking.Loan l ON p.LoanId = l.LoanId
     WHERE p.FinancingType IS NULL;
     
     -- Then, set any remaining NULLs to 'Construction'
     UPDATE banking.Participation
-    SET FinancingType = 'Construction',
-        UpdatedAt = SYSDATETIME()
+    SET FinancingType = 'Construction'
     WHERE FinancingType IS NULL;
     
     DECLARE @UpdatedCount INT = @@ROWCOUNT;
@@ -95,7 +110,7 @@ BEGIN TRY
 
 END TRY
 BEGIN CATCH
-    PRINT '❌ ERROR during FinancingType addition: ' + ERROR_MESSAGE();
+    PRINT '❌ ERROR during FinancingType seeding: ' + ERROR_MESSAGE();
     THROW;
 END CATCH
 GO

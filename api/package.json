@@ -37,7 +37,8 @@
     "db:update-banking-dashboard": "npx ts-node --transpile-only scripts/update-banking-dashboard-data.ts",
     "db:add-birth-order-to-project": "npx ts-node --transpile-only scripts/add-birth-order-to-project.ts",
     "db:seed-auth-users": "npx ts-node --transpile-only scripts/seed-auth-users.ts",
-    "db:seed-participation-financing-type": "npx ts-node --transpile-only scripts/seed-participation-financing-type.ts"
+    "db:seed-participation-financing-type": "npx ts-node --transpile-only scripts/seed-participation-financing-type.ts",
+    "db:run-migration": "npx ts-node --transpile-only scripts/run-migration.ts"
   },
   "keywords": ["api", "rest", "azure-sql"],
   "author": "",
