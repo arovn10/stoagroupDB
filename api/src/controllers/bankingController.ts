@@ -646,10 +646,20 @@ export const getParticipationsByProject = async (req: Request, res: Response, ne
 
 export const createParticipation = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { ProjectId, LoanId, BankId, ParticipationPercent, ExposureAmount, PaidOff, Notes } = req.body;
+    const { ProjectId, LoanId, BankId, FinancingType, ParticipationPercent, ExposureAmount, PaidOff, Notes } = req.body;
 
     if (!ProjectId || !BankId) {
       res.status(400).json({ success: false, error: { message: 'ProjectId and BankId are required' } });
+      return;
+    }
+
+    // Validate FinancingType if provided, otherwise default to 'Construction'
+    const finalFinancingType = FinancingType || 'Construction';
+    if (finalFinancingType !== 'Construction' && finalFinancingType !== 'Permanent') {
+      res.status(400).json({ 
+        success: false, 
+        error: { message: 'FinancingType must be "Construction" or "Permanent"' } 
+      });
       return;
     }
 
@@ -658,20 +668,28 @@ export const createParticipation = async (req: Request, res: Response, next: Nex
       .input('ProjectId', sql.Int, ProjectId)
       .input('LoanId', sql.Int, LoanId)
       .input('BankId', sql.Int, BankId)
+      .input('FinancingType', sql.NVarChar, finalFinancingType)
       .input('ParticipationPercent', sql.NVarChar, ParticipationPercent)
       .input('ExposureAmount', sql.Decimal(18, 2), ExposureAmount)
       .input('PaidOff', sql.Bit, PaidOff)
       .input('Notes', sql.NVarChar(sql.MAX), Notes)
       .query(`
-        INSERT INTO banking.Participation (ProjectId, LoanId, BankId, ParticipationPercent, ExposureAmount, PaidOff, Notes)
+        INSERT INTO banking.Participation (ProjectId, LoanId, BankId, FinancingType, ParticipationPercent, ExposureAmount, PaidOff, Notes)
         OUTPUT INSERTED.*
-        VALUES (@ProjectId, @LoanId, @BankId, @ParticipationPercent, @ExposureAmount, @PaidOff, @Notes)
+        VALUES (@ProjectId, @LoanId, @BankId, @FinancingType, @ParticipationPercent, @ExposureAmount, @PaidOff, @Notes)
       `);
 
     res.status(201).json({ success: true, data: result.recordset[0] });
   } catch (error: any) {
     if (error.number === 547) {
       res.status(400).json({ success: false, error: { message: 'Invalid ProjectId, LoanId, or BankId' } });
+      return;
+    }
+    if (error.number === 547 && error.message.includes('CK_Participation_FinancingType')) {
+      res.status(400).json({ 
+        success: false, 
+        error: { message: 'FinancingType must be "Construction" or "Permanent"' } 
+      });
       return;
     }
     next(error);
@@ -685,27 +703,45 @@ export const createParticipation = async (req: Request, res: Response, next: Nex
 export const createParticipationByProject = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { projectId } = req.params;
-    const { BankId, ParticipationPercent, ExposureAmount, PaidOff, Notes } = req.body;
+    const { BankId, FinancingType, ParticipationPercent, ExposureAmount, PaidOff, Notes } = req.body;
 
     if (!BankId) {
       res.status(400).json({ success: false, error: { message: 'BankId is required' } });
       return;
     }
 
+    // Validate FinancingType if provided
+    if (FinancingType && FinancingType !== 'Construction' && FinancingType !== 'Permanent') {
+      res.status(400).json({ 
+        success: false, 
+        error: { message: 'FinancingType must be "Construction" or "Permanent"' } 
+      });
+      return;
+    }
+
+    // Default to 'Construction' if not provided
+    const finalFinancingType = FinancingType || 'Construction';
+
     const pool = await getConnection();
     
-    // Find the construction loan for this project
+    // Find the loan for this project (prefer Construction, but allow Permanent)
     const findLoan = await pool.request()
       .input('projectId', sql.Int, projectId)
+      .input('financingType', sql.NVarChar, finalFinancingType)
       .query(`
-        SELECT TOP 1 LoanId 
+        SELECT TOP 1 LoanId, LoanPhase
         FROM banking.Loan 
         WHERE ProjectId = @projectId 
-        ORDER BY CASE WHEN LoanPhase = 'Construction' THEN 0 ELSE 1 END, LoanId
+          AND (
+            (@financingType = 'Construction' AND LoanPhase = 'Construction')
+            OR (@financingType = 'Permanent' AND LoanPhase = 'Permanent')
+            OR (@financingType IS NULL)
+          )
+        ORDER BY CASE WHEN LoanPhase = @financingType THEN 0 ELSE 1 END, LoanId
       `);
 
     if (findLoan.recordset.length === 0) {
-      res.status(404).json({ success: false, error: { message: 'No loan found for this project' } });
+      res.status(404).json({ success: false, error: { message: `No ${finalFinancingType} loan found for this project` } });
       return;
     }
 
@@ -716,20 +752,28 @@ export const createParticipationByProject = async (req: Request, res: Response, 
       .input('ProjectId', sql.Int, projectId)
       .input('LoanId', sql.Int, loanId)
       .input('BankId', sql.Int, BankId)
+      .input('FinancingType', sql.NVarChar, finalFinancingType)
       .input('ParticipationPercent', sql.NVarChar, ParticipationPercent)
       .input('ExposureAmount', sql.Decimal(18, 2), ExposureAmount)
       .input('PaidOff', sql.Bit, PaidOff || false)
       .input('Notes', sql.NVarChar(sql.MAX), Notes)
       .query(`
-        INSERT INTO banking.Participation (ProjectId, LoanId, BankId, ParticipationPercent, ExposureAmount, PaidOff, Notes)
+        INSERT INTO banking.Participation (ProjectId, LoanId, BankId, FinancingType, ParticipationPercent, ExposureAmount, PaidOff, Notes)
         OUTPUT INSERTED.*
-        VALUES (@ProjectId, @LoanId, @BankId, @ParticipationPercent, @ExposureAmount, @PaidOff, @Notes)
+        VALUES (@ProjectId, @LoanId, @BankId, @FinancingType, @ParticipationPercent, @ExposureAmount, @PaidOff, @Notes)
       `);
 
     res.status(201).json({ success: true, data: result.recordset[0] });
   } catch (error: any) {
     if (error.number === 547) {
       res.status(400).json({ success: false, error: { message: 'Invalid ProjectId or BankId' } });
+      return;
+    }
+    if (error.number === 547 && error.message.includes('CK_Participation_FinancingType')) {
+      res.status(400).json({ 
+        success: false, 
+        error: { message: 'FinancingType must be "Construction" or "Permanent"' } 
+      });
       return;
     }
     next(error);
@@ -740,6 +784,17 @@ export const updateParticipation = async (req: Request, res: Response, next: Nex
   try {
     const { id } = req.params;
     const participationData = req.body;
+
+    // Validate FinancingType if provided
+    if (participationData.FinancingType && 
+        participationData.FinancingType !== 'Construction' && 
+        participationData.FinancingType !== 'Permanent') {
+      res.status(400).json({ 
+        success: false, 
+        error: { message: 'FinancingType must be "Construction" or "Permanent"' } 
+      });
+      return;
+    }
 
     const pool = await getConnection();
     const request = pool.request().input('id', sql.Int, id);
@@ -770,7 +825,7 @@ export const updateParticipation = async (req: Request, res: Response, next: Nex
 
     const result = await request.query(`
       UPDATE banking.Participation
-      SET ${fields.join(', ')}
+      SET ${fields.join(', ')}, UpdatedAt = SYSDATETIME()
       WHERE ParticipationId = @id;
       SELECT * FROM banking.Participation WHERE ParticipationId = @id;
     `);
@@ -783,6 +838,13 @@ export const updateParticipation = async (req: Request, res: Response, next: Nex
     res.json({ success: true, data: result.recordset[0] });
   } catch (error: any) {
     if (error.number === 547) {
+      if (error.message && error.message.includes('CK_Participation_FinancingType')) {
+        res.status(400).json({ 
+          success: false, 
+          error: { message: 'FinancingType must be "Construction" or "Permanent"' } 
+        });
+        return;
+      }
       res.status(400).json({ success: false, error: { message: 'Invalid foreign key reference' } });
       return;
     }

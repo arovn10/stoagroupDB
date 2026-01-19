@@ -571,8 +571,26 @@
 
 /**
  * Create a new participation (REQUIRES AUTHENTICATION)
- * @param {object} data - { ProjectId, BankId, LoanId?, ParticipationPercent?, ExposureAmount?, PaidOff?, Notes? }
+ * @param {object} data - { ProjectId, BankId, FinancingType?, LoanId?, ParticipationPercent?, ExposureAmount?, PaidOff?, Notes? }
+ * @param {string} [data.FinancingType] - 'Construction' or 'Permanent' (defaults to 'Construction' if not provided)
  * @returns {Promise<object>} { success: true, data: {...} }
+ * @example
+ * // Create a construction participation
+ * await createParticipation({
+ *   ProjectId: 1,
+ *   BankId: 5,
+ *   FinancingType: 'Construction',
+ *   ParticipationPercent: '50%',
+ *   ExposureAmount: 1000000
+ * });
+ * 
+ * // Create a permanent participation
+ * await createParticipation({
+ *   ProjectId: 1,
+ *   BankId: 5,
+ *   FinancingType: 'Permanent',
+ *   ParticipationPercent: '30%'
+ * });
  */
   async function createParticipation(data) {
   return apiRequest('/api/banking/participations', 'POST', data);
@@ -580,10 +598,24 @@
 
 /**
  * Create participation by Project ID (REQUIRES AUTHENTICATION)
- * Automatically finds the construction loan for the project
+ * Automatically finds the loan for the project based on FinancingType
  * @param {number} projectId - Project ID
- * @param {object} data - { BankId, ParticipationPercent?, ExposureAmount?, PaidOff?, Notes? }
+ * @param {object} data - { BankId, FinancingType?, ParticipationPercent?, ExposureAmount?, PaidOff?, Notes? }
+ * @param {string} [data.FinancingType] - 'Construction' or 'Permanent' (defaults to 'Construction' if not provided)
  * @returns {Promise<object>} { success: true, data: {...} }
+ * @example
+ * // Create a construction participation (default)
+ * await createParticipationByProject(1, {
+ *   BankId: 5,
+ *   ParticipationPercent: '50%'
+ * });
+ * 
+ * // Create a permanent participation
+ * await createParticipationByProject(1, {
+ *   BankId: 5,
+ *   FinancingType: 'Permanent',
+ *   ParticipationPercent: '30%'
+ * });
  */
   async function createParticipationByProject(projectId, data) {
   return apiRequest(`/api/banking/participations/project/${projectId}`, 'POST', data);
@@ -593,7 +625,14 @@
  * Update a participation (REQUIRES AUTHENTICATION)
  * @param {number} id - Participation ID
  * @param {object} data - Updated participation data
+ * @param {string} [data.FinancingType] - 'Construction' or 'Permanent'
  * @returns {Promise<object>} { success: true, data: {...} }
+ * @example
+ * // Update financing type
+ * await updateParticipation(123, {
+ *   FinancingType: 'Permanent',
+ *   ParticipationPercent: '40%'
+ * });
  */
   async function updateParticipation(id, data) {
   return apiRequest(`/api/banking/participations/${id}`, 'PUT', data);

@@ -207,6 +207,7 @@ CREATE TABLE banking.Participation (
     LoanId          INT NULL,
     BankId          INT NOT NULL,
     
+    FinancingType       NVARCHAR(30) NULL,  -- Construction or Permanent
     ParticipationPercent NVARCHAR(50) NULL,  -- Store as entered: "32.0%", "50%"
     ExposureAmount       DECIMAL(18,2) NULL,
     PaidOff              BIT NULL,
@@ -215,7 +216,8 @@ CREATE TABLE banking.Participation (
     
     CONSTRAINT FK_Part_Project FOREIGN KEY (ProjectId) REFERENCES core.Project(ProjectId),
     CONSTRAINT FK_Part_Loan    FOREIGN KEY (LoanId) REFERENCES banking.Loan(LoanId),
-    CONSTRAINT FK_Part_Bank    FOREIGN KEY (BankId) REFERENCES core.Bank(BankId)
+    CONSTRAINT FK_Part_Bank    FOREIGN KEY (BankId) REFERENCES core.Bank(BankId),
+    CONSTRAINT CK_Participation_FinancingType CHECK (FinancingType IS NULL OR FinancingType IN ('Construction', 'Permanent'))
 );
 
 CREATE INDEX IX_Part_Project ON banking.Participation(ProjectId);

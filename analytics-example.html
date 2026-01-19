@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Analytics User Tracking Example</title>
+    
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-XXXXXXX');</script>
+    <!-- End Google Tag Manager -->
+    
+    <!-- Google Analytics 4 (Alternative - use either GTM or direct GA4, not both) -->
+    <!--
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-XXXXXXXXXX', {
+        'anonymize_ip': true,
+        'send_page_view': true
+      });
+    </script>
+    -->
+</head>
+<body>
+    <h1>User Tracking Example</h1>
+    
+    <div id="login-section">
+        <h2>Login</h2>
+        <form id="login-form">
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <button type="submit">Login</button>
+        </form>
+    </div>
+    
+    <div id="user-info" style="display: none;">
+        <h2>Logged In User</h2>
+        <p>User ID: <span id="user-id"></span></p>
+        <p>Email Hash: <span id="email-hash"></span></p>
+        <p>User Type: <span id="user-type"></span></p>
+        <p>User Role: <span id="user-role"></span></p>
+        <button id="logout-btn">Logout</button>
+    </div>
+
+    <script>
+        // Initialize dataLayer
+        window.dataLayer = window.dataLayer || [];
+        
+        // Secure email hashing function (using Web Crypto API)
+        async function hashEmail(email) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(email.toLowerCase().trim());
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            return hashHex;
+        }
+        
+        // Simple email hash (fallback if crypto.subtle not available)
+        function simpleHashEmail(email) {
+            return btoa(email.toLowerCase().trim()).replace(/[^a-zA-Z0-9]/g, '').substring(0, 32);
+        }
+        
+        // Function to set user tracking in GA4/GTM
+        async function setUserTracking(userData) {
+            let emailHash;
+            try {
+                emailHash = await hashEmail(userData.email);
+            } catch (e) {
+                // Fallback to simple hash if crypto API not available
+                emailHash = simpleHashEmail(userData.email);
+            }
+            
+            // Push to GTM dataLayer
+            window.dataLayer.push({
+                'event': 'user_login',
+                'userId': userData.id,
+                'userEmailHash': emailHash,
+                'userType': userData.type || 'standard',
+                'userRole': userData.role || 'user',
+                'accountStatus': userData.status || 'active',
+                'signupDate': userData.signupDate || new Date().toISOString().split('T')[0],
+                'loginCount': userData.loginCount || 1
+            });
+            
+            // If using direct GA4 (uncomment if not using GTM)
+            /*
+            if (typeof gtag !== 'undefined') {
+                gtag('set', {
+                    'user_id': userData.id,
+                    'user_properties': {
+                        'user_type': userData.type || 'standard',
+                        'user_role': userData.role || 'user',
+                        'account_status': userData.status || 'active',
+                        'email_hash': emailHash
+                    }
+                });
+                
+                gtag('event', 'login', {
+                    'method': 'email'
+                });
+            }
+            */
+        }
+        
+        // Function to clear user tracking on logout
+        function clearUserTracking() {
+            window.dataLayer.push({
+                'event': 'user_logout',
+                'userId': null,
+                'userEmailHash': null,
+                'userType': null,
+                'userRole': null
+            });
+            
+            // If using direct GA4
+            /*
+            if (typeof gtag !== 'undefined') {
+                gtag('set', {
+                    'user_id': null
+                });
+                
+                gtag('event', 'logout');
+            }
+            */
+        }
+        
+        // Check if user is already logged in (from localStorage/sessionStorage)
+        function checkExistingUser() {
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                try {
+                    const userData = JSON.parse(savedUser);
+                    displayUserInfo(userData);
+                    // Set tracking for existing user
+                    setUserTracking(userData);
+                } catch (e) {
+                    console.error('Error parsing saved user:', e);
+                }
+            }
+        }
+        
+        // Display user info
+        function displayUserInfo(userData) {
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('user-info').style.display = 'block';
+            document.getElementById('user-id').textContent = userData.id;
+            document.getElementById('user-type').textContent = userData.type || 'standard';
+            document.getElementById('user-role').textContent = userData.role || 'user';
+            
+            // Show email hash
+            hashEmail(userData.email).then(hash => {
+                document.getElementById('email-hash').textContent = hash.substring(0, 16) + '...';
+            }).catch(() => {
+                document.getElementById('email-hash').textContent = simpleHashEmail(userData.email).substring(0, 16) + '...';
+            });
+        }
+        
+        // Login form handler
+        document.getElementById('login-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            // Simulate login (replace with your actual API call)
+            // Example using your API:
+            /*
+            try {
+                const loginResult = await API.login(email, password);
+                if (loginResult.success) {
+                    const userData = {
+                        id: loginResult.data.user.id || loginResult.data.user.userId,
+                        email: email,
+                        type: loginResult.data.user.type || 'standard',
+                        role: loginResult.data.user.role || 'user',
+                        status: 'active',
+                        signupDate: loginResult.data.user.createdAt || new Date().toISOString().split('T')[0],
+                        loginCount: loginResult.data.user.loginCount || 1
+                    };
+                    
+                    // Save to localStorage
+                    localStorage.setItem('currentUser', JSON.stringify(userData));
+                    
+                    // Set tracking
+                    await setUserTracking(userData);
+                    
+                    // Display user info
+                    displayUserInfo(userData);
+                } else {
+                    alert('Login failed: ' + loginResult.error);
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                alert('Login failed. Please try again.');
+            }
+            */
+            
+            // Demo mode - simulate successful login
+            const userData = {
+                id: Math.floor(Math.random() * 10000),
+                email: email,
+                type: 'premium',
+                role: 'admin',
+                status: 'active',
+                signupDate: '2024-01-15',
+                loginCount: 5
+            };
+            
+            // Save to localStorage
+            localStorage.setItem('currentUser', JSON.stringify(userData));
+            
+            // Set tracking
+            await setUserTracking(userData);
+            
+            // Display user info
+            displayUserInfo(userData);
+        });
+        
+        // Logout handler
+        document.getElementById('logout-btn').addEventListener('click', function() {
+            // Clear tracking
+            clearUserTracking();
+            
+            // Clear localStorage
+            localStorage.removeItem('currentUser');
+            
+            // Reset UI
+            document.getElementById('login-section').style.display = 'block';
+            document.getElementById('user-info').style.display = 'none';
+            document.getElementById('login-form').reset();
+        });
+        
+        // Check for existing user on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkExistingUser();
+        });
+    </script>
+</body>
+</html>
