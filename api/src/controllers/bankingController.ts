@@ -125,7 +125,7 @@ export const createLoan = async (req: Request, res: Response, next: NextFunction
     }
 
     const pool = await getConnection();
-    const result = await pool.request()
+    const request = pool.request()
       .input('ProjectId', sql.Int, ProjectId)
       .input('BirthOrder', sql.Int, BirthOrder)
       .input('LoanType', sql.NVarChar, LoanType)
@@ -149,26 +149,47 @@ export const createLoan = async (req: Request, res: Response, next: NextFunction
       .input('IOMaturityDate', sql.Date, IOMaturityDate)
       .input('PermanentCloseDate', sql.Date, PermanentCloseDate)
       .input('PermanentLoanAmount', sql.Decimal(18, 2), PermanentLoanAmount)
-      .input('Notes', sql.NVarChar(sql.MAX), Notes)
-      .query(`
-        INSERT INTO banking.Loan (
-          ProjectId, BirthOrder, LoanType, Borrower, LoanPhase, FinancingStage, LenderId,
-          LoanAmount, LoanClosingDate, MaturityDate, FixedOrFloating, IndexName,
-          Spread, InterestRate, MiniPermMaturity, MiniPermInterestRate,
-          PermPhaseMaturity, PermPhaseInterestRate, ConstructionCompletionDate,
-          LeaseUpCompletedDate, IOMaturityDate, PermanentCloseDate,
-          PermanentLoanAmount, Notes
-        )
-        OUTPUT INSERTED.*
-        VALUES (
-          @ProjectId, @BirthOrder, @LoanType, @Borrower, @LoanPhase, @FinancingStage, @LenderId,
-          @LoanAmount, @LoanClosingDate, @MaturityDate, @FixedOrFloating, @IndexName,
-          @Spread, @InterestRate, @MiniPermMaturity, @MiniPermInterestRate,
-          @PermPhaseMaturity, @PermPhaseInterestRate, @ConstructionCompletionDate,
-          @LeaseUpCompletedDate, @IOMaturityDate, @PermanentCloseDate,
-          @PermanentLoanAmount, @Notes
-        )
-      `);
+      .input('Notes', sql.NVarChar(sql.MAX), Notes);
+
+    // Insert without OUTPUT clause (triggers prevent OUTPUT INSERTED.*)
+    await request.query(`
+      INSERT INTO banking.Loan (
+        ProjectId, BirthOrder, LoanType, Borrower, LoanPhase, FinancingStage, LenderId,
+        LoanAmount, LoanClosingDate, MaturityDate, FixedOrFloating, IndexName,
+        Spread, InterestRate, MiniPermMaturity, MiniPermInterestRate,
+        PermPhaseMaturity, PermPhaseInterestRate, ConstructionCompletionDate,
+        LeaseUpCompletedDate, IOMaturityDate, PermanentCloseDate,
+        PermanentLoanAmount, Notes
+      )
+      VALUES (
+        @ProjectId, @BirthOrder, @LoanType, @Borrower, @LoanPhase, @FinancingStage, @LenderId,
+        @LoanAmount, @LoanClosingDate, @MaturityDate, @FixedOrFloating, @IndexName,
+        @Spread, @InterestRate, @MiniPermMaturity, @MiniPermInterestRate,
+        @PermPhaseMaturity, @PermPhaseInterestRate, @ConstructionCompletionDate,
+        @LeaseUpCompletedDate, @IOMaturityDate, @PermanentCloseDate,
+        @PermanentLoanAmount, @Notes
+      )
+    `);
+
+    // Get the inserted LoanId using SCOPE_IDENTITY()
+    const result = await pool.request().query(`
+      SELECT 
+        l.*,
+        CASE 
+          WHEN l.IOMaturityDate IS NOT NULL AND l.LoanClosingDate IS NOT NULL 
+          THEN DATEDIFF(MONTH, l.LoanClosingDate, l.IOMaturityDate)
+          WHEN l.MaturityDate IS NOT NULL AND l.LoanClosingDate IS NOT NULL 
+          THEN DATEDIFF(MONTH, l.LoanClosingDate, l.MaturityDate)
+          ELSE NULL
+        END AS ConstructionIOTermMonths
+      FROM banking.Loan l
+      WHERE l.LoanId = SCOPE_IDENTITY()
+    `);
+
+    if (result.recordset.length === 0) {
+      res.status(500).json({ success: false, error: { message: 'Failed to retrieve created loan' } });
+      return;
+    }
 
     res.status(201).json({ success: true, data: result.recordset[0] });
   } catch (error: any) {
