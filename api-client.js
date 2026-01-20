@@ -521,14 +521,31 @@
 
 /**
  * Update loan by ProjectId (REQUIRES AUTHENTICATION)
- * Updates the first loan found for the project
+ * Finds and updates the loan for a project based on LoanPhase (Construction or Permanent)
+ * IMPORTANT: Always specify LoanPhase to ensure you're updating the correct loan!
  * @param {number} projectId - Project ID
  * @param {object} data - Updated loan data (only include fields to update)
+ * @param {string} [data.LoanPhase] - 'Construction' or 'Permanent' (defaults to 'Construction' if not provided)
+ * @param {number} [data.LenderId] - Bank/Lender ID (FK to core.Bank)
+ * @param {number} [data.LoanAmount] - Loan amount
  * @param {string} [data.FixedOrFloating] - Selection: 'Fixed' or 'Floating' (NULL allowed)
  * @param {string} [data.IndexName] - For Construction loans: 'Prime' or 'SOFR' (NULL allowed for Fixed rates)
  * @param {string} [data.Spread] - Spread value
- * @param {number} [data.LoanAmount] - Loan amount
- * @returns {Promise<object>} { success: true, data: { LoanId, ... } }
+ * @returns {Promise<object>} { success: true, data: { LoanId, LoanPhase, ... } }
+ * @example
+ * // Update construction loan bank and amount
+ * await updateLoanByProject(1, { 
+ *   LoanPhase: 'Construction',
+ *   LenderId: 5,
+ *   LoanAmount: 5000000
+ * });
+ * 
+ * // Update permanent loan bank and amount
+ * await updateLoanByProject(1, { 
+ *   LoanPhase: 'Permanent',
+ *   LenderId: 7,
+ *   LoanAmount: 4500000
+ * });
  */
   async function updateLoanByProject(projectId, data) {
   return apiRequest(`/api/banking/loans/project/${projectId}`, 'PUT', data);

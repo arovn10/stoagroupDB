@@ -289,7 +289,8 @@ export const updateLoan = async (req: Request, res: Response, next: NextFunction
 
 /**
  * Update loan by ProjectId - convenience function for Domo
- * Updates the construction loan for a project (or first loan if multiple)
+ * Updates the loan for a project based on LoanPhase (Construction or Permanent)
+ * If LoanPhase is not provided, defaults to Construction for backward compatibility
  */
 export const updateLoanByProject = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -298,39 +299,92 @@ export const updateLoanByProject = async (req: Request, res: Response, next: Nex
 
     const pool = await getConnection();
     
-    // First, find the loan(s) for this project
-    // Prefer construction loan, otherwise first loan
+    // Determine which loan phase to update
+    // If LoanPhase is provided in the update data, use it to find the specific loan
+    // Otherwise, default to Construction for backward compatibility
+    const targetLoanPhase = loanData.LoanPhase || 'Construction';
+    
+    // Find the loan for this project with the specified LoanPhase
     const findLoan = await pool.request()
       .input('projectId', sql.Int, projectId)
+      .input('loanPhase', sql.NVarChar, targetLoanPhase)
       .query(`
-        SELECT TOP 1 LoanId 
+        SELECT TOP 1 LoanId, LoanPhase
         FROM banking.Loan 
         WHERE ProjectId = @projectId 
-        ORDER BY CASE WHEN LoanPhase = 'Construction' THEN 0 ELSE 1 END, LoanId
+          AND LoanPhase = @loanPhase
+        ORDER BY LoanId
       `);
 
     if (findLoan.recordset.length === 0) {
-      res.status(404).json({ success: false, error: { message: 'No loan found for this project' } });
+      res.status(404).json({ 
+        success: false, 
+        error: { 
+          message: `No ${targetLoanPhase} loan found for this project. Please create the loan first or specify a different LoanPhase.` 
+        } 
+      });
       return;
     }
 
     const loanId = findLoan.recordset[0].LoanId;
+    const currentLoanPhase = findLoan.recordset[0].LoanPhase;
+    
+    // Ensure we don't accidentally change LoanPhase unless explicitly requested
+    // If LoanPhase is being updated, validate it
+    if (loanData.LoanPhase && loanData.LoanPhase !== currentLoanPhase) {
+      res.status(400).json({ 
+        success: false, 
+        error: { 
+          message: `Cannot change LoanPhase from '${currentLoanPhase}' to '${loanData.LoanPhase}' using updateLoanByProject. Use updateLoan with LoanId instead, or create a new loan.` 
+        } 
+      });
+      return;
+    }
     
     // Now update using the same logic as updateLoan
+    // Remove LoanPhase from update data if it matches current (to avoid unnecessary update)
+    const updateData = { ...loanData };
+    if (updateData.LoanPhase === currentLoanPhase) {
+      delete updateData.LoanPhase;
+    }
+    
     const request = pool.request().input('id', sql.Int, loanId);
 
+    // Validate FixedOrFloating if provided
+    if (updateData.FixedOrFloating !== undefined && 
+        updateData.FixedOrFloating !== null &&
+        updateData.FixedOrFloating !== 'Fixed' && 
+        updateData.FixedOrFloating !== 'Floating') {
+      res.status(400).json({ 
+        success: false, 
+        error: { message: 'FixedOrFloating must be NULL, "Fixed", or "Floating"' } 
+      });
+      return;
+    }
+
+    // Validate IndexName for Construction loans
+    if (updateData.IndexName !== undefined && currentLoanPhase === 'Construction' && 
+        updateData.IndexName !== null && 
+        updateData.IndexName !== 'Prime' && updateData.IndexName !== 'SOFR') {
+      res.status(400).json({ 
+        success: false, 
+        error: { message: 'For Construction loans, IndexName must be NULL, "Prime", or "SOFR"' } 
+      });
+      return;
+    }
+
     const fields: string[] = [];
-    Object.keys(loanData).forEach((key) => {
-      if (key !== 'LoanId' && loanData[key] !== undefined) {
+    Object.keys(updateData).forEach((key) => {
+      if (key !== 'LoanId' && updateData[key] !== undefined) {
         fields.push(`${key} = @${key}`);
-        if (typeof loanData[key] === 'number' && key.includes('Amount')) {
-          request.input(key, sql.Decimal(18, 2), loanData[key]);
+        if (typeof updateData[key] === 'number' && key.includes('Amount')) {
+          request.input(key, sql.Decimal(18, 2), updateData[key]);
         } else if (key.includes('Date') && !key.includes('Completion') && !key.includes('Completed')) {
-          request.input(key, sql.Date, loanData[key]);
+          request.input(key, sql.Date, updateData[key]);
         } else if (key === 'Notes') {
-          request.input(key, sql.NVarChar(sql.MAX), loanData[key]);
+          request.input(key, sql.NVarChar(sql.MAX), updateData[key]);
         } else {
-          request.input(key, sql.NVarChar, loanData[key]);
+          request.input(key, sql.NVarChar, updateData[key]);
         }
       }
     });
@@ -340,12 +394,33 @@ export const updateLoanByProject = async (req: Request, res: Response, next: Nex
       return;
     }
 
-    const result = await request.query(`
+    await request.query(`
       UPDATE banking.Loan
       SET ${fields.join(', ')}
-      WHERE LoanId = @id;
-      SELECT * FROM banking.Loan WHERE LoanId = @id;
+      WHERE LoanId = @id
     `);
+
+    // Return updated loan with calculated fields
+    const result = await pool.request()
+      .input('id', sql.Int, loanId)
+      .query(`
+        SELECT 
+          l.*,
+          CASE 
+            WHEN l.IOMaturityDate IS NOT NULL AND l.LoanClosingDate IS NOT NULL 
+            THEN DATEDIFF(MONTH, l.LoanClosingDate, l.IOMaturityDate)
+            WHEN l.MaturityDate IS NOT NULL AND l.LoanClosingDate IS NOT NULL 
+            THEN DATEDIFF(MONTH, l.LoanClosingDate, l.MaturityDate)
+            ELSE NULL
+          END AS ConstructionIOTermMonths
+        FROM banking.Loan l
+        WHERE l.LoanId = @id
+      `);
+
+    if (result.recordset.length === 0) {
+      res.status(404).json({ success: false, error: { message: 'Loan not found after update' } });
+      return;
+    }
 
     res.json({ success: true, data: result.recordset[0] });
   } catch (error: any) {

@@ -41,32 +41,49 @@ END CATCH
 GO
 
 BEGIN TRY
-    -- Step 2: Create Person records for existing investor reps
-    PRINT '2. Creating Person records for existing investor reps...';
-    
-    DECLARE @CreatedPersons INT = 0;
-    
-    -- Insert unique investor reps into Person table and link them
-    INSERT INTO core.Person (FullName, Email, Phone)
-    SELECT DISTINCT
-        ep.InvestorRepName,
-        ep.InvestorRepEmail,
-        ep.InvestorRepPhone
-    FROM core.EquityPartner ep
-    WHERE ep.InvestorRepName IS NOT NULL
-      AND ep.InvestorRepName <> ''
-      AND NOT EXISTS (
-          -- Don't create duplicate Person records
-          SELECT 1
-          FROM core.Person p
-          WHERE p.FullName = ep.InvestorRepName COLLATE Latin1_General_CI_AS
-            AND (p.Email = ep.InvestorRepEmail OR (p.Email IS NULL AND ep.InvestorRepEmail IS NULL))
-            AND (p.Phone = ep.InvestorRepPhone OR (p.Phone IS NULL AND ep.InvestorRepPhone IS NULL))
-      );
-    
-    SET @CreatedPersons = @@ROWCOUNT;
-    PRINT '   ✓ Created ' + CAST(@CreatedPersons AS NVARCHAR(10)) + ' Person records';
-    PRINT '';
+    -- Step 2: Create Person records for existing investor reps (only if old columns exist)
+    IF EXISTS (
+        SELECT 1
+        FROM sys.columns
+        WHERE object_id = OBJECT_ID('core.EquityPartner')
+          AND name = 'InvestorRepName'
+    )
+    BEGIN
+        PRINT '2. Creating Person records for existing investor reps...';
+        
+        DECLARE @CreatedPersons INT = 0;
+        DECLARE @SQL NVARCHAR(MAX);
+        
+        -- Use dynamic SQL to avoid validation errors if columns don't exist
+        SET @SQL = N'
+        INSERT INTO core.Person (FullName, Email, Phone)
+        SELECT DISTINCT
+            ep.InvestorRepName,
+            ep.InvestorRepEmail,
+            ep.InvestorRepPhone
+        FROM core.EquityPartner ep
+        WHERE ep.InvestorRepName IS NOT NULL
+          AND ep.InvestorRepName <> ''''
+          AND NOT EXISTS (
+              SELECT 1
+              FROM core.Person p
+              WHERE p.FullName = ep.InvestorRepName COLLATE Latin1_General_CI_AS
+                AND (p.Email = ep.InvestorRepEmail OR (p.Email IS NULL AND ep.InvestorRepEmail IS NULL))
+                AND (p.Phone = ep.InvestorRepPhone OR (p.Phone IS NULL AND ep.InvestorRepPhone IS NULL))
+          );
+        ';
+        
+        EXEC sp_executesql @SQL;
+        SET @CreatedPersons = @@ROWCOUNT;
+        PRINT '   ✓ Created ' + CAST(@CreatedPersons AS NVARCHAR(10)) + ' Person records';
+        PRINT '';
+    END
+    ELSE
+    BEGIN
+        PRINT '2. Old InvestorRep columns do not exist - skipping data migration';
+        PRINT '   (Database may have already been migrated or uses new schema)';
+        PRINT '';
+    END
 
 END TRY
 BEGIN CATCH
@@ -76,25 +93,43 @@ END CATCH
 GO
 
 BEGIN TRY
-    -- Step 3: Link EquityPartner records to Person records
-    PRINT '3. Linking EquityPartner records to Person records...';
-    
-    DECLARE @UpdatedEquityPartners INT = 0;
-    
-    UPDATE ep
-    SET InvestorRepId = p.PersonId
-    FROM core.EquityPartner ep
-    INNER JOIN core.Person p ON 
-        p.FullName = ep.InvestorRepName COLLATE Latin1_General_CI_AS
-        AND (p.Email = ep.InvestorRepEmail OR (p.Email IS NULL AND ep.InvestorRepEmail IS NULL))
-        AND (p.Phone = ep.InvestorRepPhone OR (p.Phone IS NULL AND ep.InvestorRepPhone IS NULL))
-    WHERE ep.InvestorRepName IS NOT NULL
-      AND ep.InvestorRepName <> ''
-      AND ep.InvestorRepId IS NULL;
-    
-    SET @UpdatedEquityPartners = @@ROWCOUNT;
-    PRINT '   ✓ Linked ' + CAST(@UpdatedEquityPartners AS NVARCHAR(10)) + ' EquityPartner records';
-    PRINT '';
+    -- Step 3: Link EquityPartner records to Person records (only if old columns exist)
+    IF EXISTS (
+        SELECT 1
+        FROM sys.columns
+        WHERE object_id = OBJECT_ID('core.EquityPartner')
+          AND name = 'InvestorRepName'
+    )
+    BEGIN
+        PRINT '3. Linking EquityPartner records to Person records...';
+        
+        DECLARE @UpdatedEquityPartners INT = 0;
+        DECLARE @SQL2 NVARCHAR(MAX);
+        
+        -- Use dynamic SQL to avoid validation errors if columns don't exist
+        SET @SQL2 = N'
+        UPDATE ep
+        SET InvestorRepId = p.PersonId
+        FROM core.EquityPartner ep
+        INNER JOIN core.Person p ON 
+            p.FullName = ep.InvestorRepName COLLATE Latin1_General_CI_AS
+            AND (p.Email = ep.InvestorRepEmail OR (p.Email IS NULL AND ep.InvestorRepEmail IS NULL))
+            AND (p.Phone = ep.InvestorRepPhone OR (p.Phone IS NULL AND ep.InvestorRepPhone IS NULL))
+        WHERE ep.InvestorRepName IS NOT NULL
+          AND ep.InvestorRepName <> ''''
+          AND ep.InvestorRepId IS NULL;
+        ';
+        
+        EXEC sp_executesql @SQL2;
+        SET @UpdatedEquityPartners = @@ROWCOUNT;
+        PRINT '   ✓ Linked ' + CAST(@UpdatedEquityPartners AS NVARCHAR(10)) + ' EquityPartner records';
+        PRINT '';
+    END
+    ELSE
+    BEGIN
+        PRINT '3. Old InvestorRep columns do not exist - skipping linking step';
+        PRINT '';
+    END
 
 END TRY
 BEGIN CATCH
@@ -125,42 +160,62 @@ BEGIN TRY
         PRINT '';
     END
 
-    -- Step 5: Drop old columns (only if all data has been migrated)
-    DECLARE @UnmigratedCount INT;
-    SELECT @UnmigratedCount = COUNT(*)
-    FROM core.EquityPartner
-    WHERE InvestorRepName IS NOT NULL
-      AND InvestorRepName <> ''
-      AND InvestorRepId IS NULL;
-    
-    IF @UnmigratedCount = 0
+    -- Step 5: Drop old columns (only if they exist and all data has been migrated)
+    IF EXISTS (
+        SELECT 1
+        FROM sys.columns
+        WHERE object_id = OBJECT_ID('core.EquityPartner')
+          AND name = 'InvestorRepName'
+    )
     BEGIN
-        PRINT '5. Dropping old InvestorRep columns...';
+        DECLARE @UnmigratedCount INT;
+        DECLARE @SQL3 NVARCHAR(MAX);
         
-        IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('core.EquityPartner') AND name = 'InvestorRepName')
+        -- Use dynamic SQL to check unmigrated count
+        SET @SQL3 = N'
+        SELECT @Count = COUNT(*)
+        FROM core.EquityPartner
+        WHERE InvestorRepName IS NOT NULL
+          AND InvestorRepName <> ''''
+          AND InvestorRepId IS NULL;
+        ';
+        
+        EXEC sp_executesql @SQL3, N'@Count INT OUTPUT', @Count = @UnmigratedCount OUTPUT;
+        
+        IF @UnmigratedCount = 0
         BEGIN
-            ALTER TABLE core.EquityPartner DROP COLUMN InvestorRepName;
-            PRINT '   ✓ Dropped InvestorRepName';
+            PRINT '5. Dropping old InvestorRep columns...';
+            
+            IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('core.EquityPartner') AND name = 'InvestorRepName')
+            BEGIN
+                ALTER TABLE core.EquityPartner DROP COLUMN InvestorRepName;
+                PRINT '   ✓ Dropped InvestorRepName';
+            END
+            
+            IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('core.EquityPartner') AND name = 'InvestorRepEmail')
+            BEGIN
+                ALTER TABLE core.EquityPartner DROP COLUMN InvestorRepEmail;
+                PRINT '   ✓ Dropped InvestorRepEmail';
+            END
+            
+            IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('core.EquityPartner') AND name = 'InvestorRepPhone')
+            BEGIN
+                ALTER TABLE core.EquityPartner DROP COLUMN InvestorRepPhone;
+                PRINT '   ✓ Dropped InvestorRepPhone';
+            END
+            
+            PRINT '';
         END
-        
-        IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('core.EquityPartner') AND name = 'InvestorRepEmail')
+        ELSE
         BEGIN
-            ALTER TABLE core.EquityPartner DROP COLUMN InvestorRepEmail;
-            PRINT '   ✓ Dropped InvestorRepEmail';
+            PRINT '5. Skipping column drop - ' + CAST(@UnmigratedCount AS NVARCHAR(10)) + ' records still need migration';
+            PRINT '   (Old columns will remain until all data is migrated)';
+            PRINT '';
         END
-        
-        IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('core.EquityPartner') AND name = 'InvestorRepPhone')
-        BEGIN
-            ALTER TABLE core.EquityPartner DROP COLUMN InvestorRepPhone;
-            PRINT '   ✓ Dropped InvestorRepPhone';
-        END
-        
-        PRINT '';
     END
     ELSE
     BEGIN
-        PRINT '5. Skipping column drop - ' + CAST(@UnmigratedCount AS NVARCHAR(10)) + ' records still need migration';
-        PRINT '   (Old columns will remain until all data is migrated)';
+        PRINT '5. Old InvestorRep columns do not exist - nothing to drop';
         PRINT '';
     END
 
