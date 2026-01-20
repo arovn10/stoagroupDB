@@ -2159,7 +2159,7 @@ export const createEquityCommitment = async (req: Request, res: Response, next: 
         res.status(400).json({ 
           success: false, 
           error: { 
-            message: 'EquityType must be one of: Preferred Equity, Common Equity, Profits Interest' 
+            message: 'EquityType must be one of: Preferred Equity, Common Equity, Profits Interest, Stoa Loan' 
           } 
         });
         return;
@@ -2338,7 +2338,7 @@ export const updateEquityCommitment = async (req: Request, res: Response, next: 
         res.status(400).json({ 
           success: false, 
           error: { 
-            message: 'EquityType must be one of: Preferred Equity, Common Equity, Profits Interest' 
+            message: 'EquityType must be one of: Preferred Equity, Common Equity, Profits Interest, Stoa Loan' 
           } 
         });
         return;
