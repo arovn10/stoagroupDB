@@ -45,7 +45,7 @@ Returns all deal pipeline records with CORE data joined.
       "State": "LA",
       "Region": "Gulf Coast",
       "Units": 232,
-      "ProductType": "Heights",
+      "ProductType": "Land",
       "Stage": "Prospective",
       "EstimatedConstructionStartDate": "2024-01-15",
       "Bank": "B1Bank",
@@ -99,7 +99,7 @@ Content-Type: application/json
   "State": "LA",  // Optional - updates CORE
   "Region": "Gulf Coast",  // Optional - updates CORE
   "Units": 232,  // Optional - updates CORE
-  "ProductType": "Heights",  // Optional - updates CORE
+  "ProductType": "Land",  // Optional - updates CORE (Heights, Prototype, Flats, Land, Other)
   "Stage": "Prospective",  // Optional - updates CORE (default: 'Prospective')
   "EstimatedConstructionStartDate": "2024-01-15",  // Optional - updates CORE
   "Bank": "B1Bank",

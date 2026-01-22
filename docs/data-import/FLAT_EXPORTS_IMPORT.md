@@ -37,7 +37,7 @@ npm run db:import-flat-exports
 - `StageBucket` → `Stage` (mapped: "Liquidated" → "Liquidated", "Active Multifamily" → "Started", etc.)
 - `Section` → Used to determine `Stage` if `StageBucket` is missing
 - `Region` → Auto-determined from `State`/`Location` (Carolinas or Gulf Coast)
-- `ProductType` → Auto-determined from project name (Heights, Waters, Flats, Other)
+- `ProductType` → Auto-determined from project name (Heights, Prototype, Flats, Land, Other)
 
 **Note:** Projects like "Pre-Construction", "Liquidated", "Plane Loan", "Tredge", and "Stoa Construction, LLC" are skipped as they are section headers, not actual projects.
 

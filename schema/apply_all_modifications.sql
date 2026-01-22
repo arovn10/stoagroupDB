@@ -301,7 +301,8 @@ BEGIN
         ('Heights', 1),
         ('Prototype', 2),
         ('Flats', 3),
-        ('Other', 4);
+        ('Land', 4),
+        ('Other', 5);
     
     PRINT '   ✓ Inserted default product types';
 END
