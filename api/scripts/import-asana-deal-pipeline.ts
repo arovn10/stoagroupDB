@@ -504,12 +504,29 @@ async function importDealPipeline() {
         
         // Get Pre-Con Manager ID if provided
         let preConManagerId: number | null = null;
-        if (dealData.Notes) {
-          // Try to extract Pre-Con Manager from notes or custom fields
+        
+        // First check custom fields for Pre-Con Manager
+        const customFields = parseCustomFields(task);
+        let preConManagerName: string | null = null;
+        
+        // Check custom fields for Pre-Con Manager (various name variations)
+        for (const [key, value] of Object.entries(customFields)) {
+          if ((key.includes('pre-con') || key.includes('precon') || key.includes('pre con')) && value) {
+            preConManagerName = String(value).trim();
+            break;
+          }
+        }
+        
+        // Fall back to notes if not found in custom fields
+        if (!preConManagerName && dealData.Notes) {
           const preConMatch = dealData.Notes.match(/pre-con manager:\s*([^\n]+)/i);
           if (preConMatch) {
-            preConManagerId = await getPreConManagerId(pool, preConMatch[1].trim());
+            preConManagerName = preConMatch[1].trim();
           }
+        }
+        
+        if (preConManagerName) {
+          preConManagerId = await getPreConManagerId(pool, preConManagerName);
         }
         
         // Calculate SqFtPrice
