@@ -36,7 +36,7 @@ This document maps how a single **Project** (with its unique `ProjectId`) connec
 - `City`, `State`, `Region`, `Location`
 - `Units` - Planned/underwritten units
 - `ProductType` - Heights, Waters, Flats, Other
-- `Stage` - Prospective, Under Contract, Started, Stabilized, Closed, Liquidated
+- `Stage` - Prospective, Under Contract, Commercial Land - Listed, Under Construction, Lease-Up, Stabilized, Liquidated, Dead
 - `EstimatedConstructionStartDate`
 - `CreatedAt`, `UpdatedAt`
 

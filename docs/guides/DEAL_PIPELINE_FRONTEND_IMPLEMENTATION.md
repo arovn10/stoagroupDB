@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide provides step-by-step instructions for implementing the Deal Pipeline dashboard using the new database-backed API instead of Asana. The Deal Pipeline tracks land development deals from Prospective → Under Contract → Started → Stabilized → Closed.
+This guide provides step-by-step instructions for implementing the Deal Pipeline dashboard using the new database-backed API instead of Asana. The Deal Pipeline tracks land development deals from Prospective → Under Contract → Commercial Land - Listed → Under Construction → Lease-Up → Stabilized → Liquidated.
 
 ## Architecture
 

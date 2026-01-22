@@ -1,7 +1,7 @@
 -- ============================================================
 -- PIPELINE: DEAL PIPELINE (Land Development Deal Tracker)
 -- ============================================================
--- Tracks deals from Prospective → Under Contract → Started → Stabilized → Closed
+-- Tracks deals from Prospective → Under Contract → Commercial Land - Listed → Under Construction → Lease-Up → Stabilized → Liquidated
 -- Stage is stored in core.Project.Stage (controlled by Land Development)
 -- This table stores all deal-specific tracking fields from Asana
 -- ============================================================

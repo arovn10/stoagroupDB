@@ -86,6 +86,12 @@ const users = [
     password: 'CapitalMarkets26',
     email: 'Mmurray@stoagroup.com',
     fullName: 'M Murray'
+  },
+  {
+    username: 'hspring@stoagroup.com',
+    password: 'LandDevelopment26',
+    email: 'hspring@stoagroup.com',
+    fullName: 'H Spring'
   }
 ];
 

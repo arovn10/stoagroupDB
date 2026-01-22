@@ -35,7 +35,7 @@ All 16 tables verified and created:
 - ✅ `pipeline.CommercialListed` - Commercial properties listed for sale
 - ✅ `pipeline.CommercialAcreage` - Commercial acreage tracking
 - ✅ `pipeline.ClosedProperty` - Closed properties
-- ✅ `pipeline.DealPipeline` - Land Development Deal Tracker (tracks deals from Prospective → Under Contract → Started → Stabilized → Closed)
+- ✅ `pipeline.DealPipeline` - Land Development Deal Tracker (tracks deals from Prospective → Under Contract → Commercial Land - Listed → Under Construction → Lease-Up → Stabilized → Liquidated)
 
 ### 3. Backend API Structure
 The backend API structure is already properly scaffolded and matches the database schema:

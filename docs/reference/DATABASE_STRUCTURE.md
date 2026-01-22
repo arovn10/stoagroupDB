@@ -37,7 +37,7 @@
 - `City`, `State`, `Region`, `Location`
 - `Units` - Planned/underwritten units
 - `ProductType` - Heights, Waters, Flats, Other
-- `Stage` - Prospective, Under Contract, Started, Stabilized, Closed, Liquidated
+- `Stage` - Prospective, Under Contract, Commercial Land - Listed, Under Construction, Lease-Up, Stabilized, Liquidated, Dead
 - `EstimatedConstructionStartDate`
 - `CreatedAt`, `UpdatedAt`
 
@@ -211,7 +211,7 @@ These tables are shared across departments and don't link directly to projects:
 - **Land Development fields:** `Acreage`, `LandPrice`, `SqFtPrice`, `ExecutionDate`, `DueDiligenceDate`, `ClosingDate`, `PurchasingEntity`, `Cash`, `OpportunityZone`, `ClosingNotes`
 - **Asana metadata:** `AsanaTaskGid`, `AsanaProjectGid`
 - `CreatedAt`, `UpdatedAt`
-- Tracks deals from Prospective → Under Contract → Started → Stabilized → Closed
+- Tracks deals from Prospective → Under Contract → Commercial Land - Listed → Under Construction → Lease-Up → Stabilized → Liquidated
 - Stage is stored in `core.Project.Stage` (controlled by Land Development)
 
 **Status:** ✅ Fully implemented
