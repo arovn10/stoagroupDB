@@ -79,6 +79,16 @@ CREATE TABLE core.Person (
     Phone    NVARCHAR(50) NULL
 );
 
+-- Pre-Con Managers (Land Development)
+CREATE TABLE core.PreConManager (
+    PreConManagerId INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_PreConManager PRIMARY KEY,
+    FullName NVARCHAR(255) NOT NULL,
+    Email    NVARCHAR(255) NULL,
+    Phone    NVARCHAR(50) NULL,
+    CreatedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
+    UpdatedAt DATETIME2(0) NULL
+);
+
 -- ============================================================
 -- BANKING: LOANS (Construction, Permanent, Mini-Perm, etc.)
 -- ============================================================
@@ -450,7 +460,7 @@ CREATE TABLE pipeline.DealPipeline (
     UpdatedAt DATETIME2(0) NULL,
     
     CONSTRAINT FK_DP_Project FOREIGN KEY (ProjectId) REFERENCES core.Project(ProjectId) ON DELETE CASCADE,
-    CONSTRAINT FK_DP_PreConManager FOREIGN KEY (PreConManagerId) REFERENCES core.Person(PersonId),
+    CONSTRAINT FK_DP_PreConManager FOREIGN KEY (PreConManagerId) REFERENCES core.PreConManager(PreConManagerId),
     CONSTRAINT UQ_DP_Project UNIQUE (ProjectId),
     CONSTRAINT CK_DP_Priority CHECK (Priority IS NULL OR Priority IN ('High', 'Medium', 'Low'))
 );

@@ -109,6 +109,7 @@ async function verifySchema(pool: sql.ConnectionPool): Promise<void> {
     { schema: 'core', table: 'Project' },
     { schema: 'core', table: 'Bank' },
     { schema: 'core', table: 'Person' },
+    { schema: 'core', table: 'PreConManager' },
     { schema: 'core', table: 'EquityPartner' },
     
     // Banking schema

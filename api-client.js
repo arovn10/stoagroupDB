@@ -1760,7 +1760,7 @@
  * - Bank: string (bank name)
  * - StartDate: string (YYYY-MM-DD)
  * - UnitCount: number (updates core.Project.Units if Units not provided)
- * - PreConManagerId: number (FK to core.Person)
+ * - PreConManagerId: number (FK to core.PreConManager)
  * - ConstructionLoanClosingDate: string (YYYY-MM-DD)
  * - Notes: string
  * - Priority: 'High' | 'Medium' | 'Low'

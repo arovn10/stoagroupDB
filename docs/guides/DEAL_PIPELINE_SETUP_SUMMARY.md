@@ -8,7 +8,7 @@
 - **Fields**: All Asana tracking fields + Land Development specific fields
 - **Relationships**: 
   - Links to `core.Project` via `ProjectId` (one-to-one)
-  - Links to `core.Person` via `PreConManagerId` (for Pre-Con Manager)
+  - Links to `core.PreConManager` via `PreConManagerId` (for Pre-Con Manager)
 
 ### 2. API Endpoints
 - **GET** `/api/pipeline/deal-pipeline` - Get all deals
@@ -88,7 +88,7 @@ Follow the guide in `docs/guides/DEAL_PIPELINE_FRONTEND_IMPLEMENTATION.md`
 - Bank (text)
 - StartDate (date)
 - UnitCount (number - also updates CORE.Units)
-- PreConManagerId (FK to core.Person)
+- PreConManagerId (FK to core.PreConManager)
 - ConstructionLoanClosingDate (date)
 - Notes (text)
 - Priority (High, Medium, Low)

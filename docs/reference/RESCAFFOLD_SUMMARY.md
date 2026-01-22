@@ -30,11 +30,12 @@ All 16 tables verified and created:
 - ✅ `banking.BankTarget` - Bank relationship tracking
 - ✅ `banking.EquityCommitment` - Equity commitments
 
-#### Pipeline Schema (4 tables)
+#### Pipeline Schema (5 tables)
 - ✅ `pipeline.UnderContract` - Properties under contract
 - ✅ `pipeline.CommercialListed` - Commercial properties listed for sale
 - ✅ `pipeline.CommercialAcreage` - Commercial acreage tracking
 - ✅ `pipeline.ClosedProperty` - Closed properties
+- ✅ `pipeline.DealPipeline` - Land Development Deal Tracker (tracks deals from Prospective → Under Contract → Started → Stabilized → Closed)
 
 ### 3. Backend API Structure
 The backend API structure is already properly scaffolded and matches the database schema:
@@ -60,6 +61,7 @@ The backend API structure is already properly scaffolded and matches the databas
 - Commercial Listed: Full CRUD
 - Commercial Acreage: Full CRUD
 - Closed Properties: Full CRUD
+- Deal Pipeline: Full CRUD + GET by project
 
 ## New Scripts Created
 

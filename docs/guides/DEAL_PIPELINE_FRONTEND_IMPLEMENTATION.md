@@ -105,7 +105,7 @@ Content-Type: application/json
   "Bank": "B1Bank",
   "StartDate": "2024-01-15",
   "UnitCount": 232,  // Updates CORE.Units if Units not provided
-  "PreConManagerId": 5,  // FK to core.Person
+  "PreConManagerId": 5,  // FK to core.PreConManager
   "ConstructionLoanClosingDate": "2024-02-01",
   "Notes": "Deal notes...",
   "Priority": "High",  // 'High', 'Medium', or 'Low'
@@ -426,22 +426,16 @@ const updated = await API.updateDealPipeline(dealPipelineId, {
 
 ### Step 11: Update Pre-Con Manager Selection
 
-Pre-Con Manager is now a foreign key to `core.Person`:
+Pre-Con Manager is now a separate datapoint in `core.PreConManager` (not tied to contacts):
 
 ```javascript
-// Get all persons for dropdown
-const persons = await API.getAllPersons();
-
-// Filter for Pre-Con Managers (you may need to add a role field)
-const preConManagers = persons.data.filter(p => 
-  p.FullName.includes('Superintendent') || 
-  p.FullName.includes('Manager')
-);
+// Note: PreConManager CRUD endpoints would need to be created if you want to manage them via API
+// For now, PreConManagerId references core.PreConManager.PreConManagerId
 
 // When creating/updating deal
 const deal = await API.createDealPipeline({
   // ...
-  PreConManagerId: selectedPreConManagerId  // PersonId from dropdown
+  PreConManagerId: selectedPreConManagerId  // PreConManagerId from core.PreConManager table
 });
 ```
 

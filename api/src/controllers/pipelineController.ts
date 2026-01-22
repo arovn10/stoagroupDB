@@ -1395,7 +1395,6 @@ export const deleteClosedProperty = async (req: Request, res: Response, next: Ne
   }
 };
 
-
 // ============================================================
 // DEAL PIPELINE CONTROLLER (Land Development Deal Tracker)
 // ============================================================
@@ -1403,10 +1402,12 @@ export const deleteClosedProperty = async (req: Request, res: Response, next: Ne
 export const getAllDealPipelines = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const pool = await getConnection();
+    // Pull CORE data and Deal Pipeline specific data
     const result = await pool.request().query(`
       SELECT 
         dp.DealPipelineId,
         dp.ProjectId,
+        -- CORE attributes (from core.Project)
         p.ProjectName,
         p.City,
         p.State,
@@ -1415,10 +1416,13 @@ export const getAllDealPipelines = async (req: Request, res: Response, next: Nex
         p.ProductType,
         p.Stage,
         p.EstimatedConstructionStartDate,
+        -- Region from core.Region table
         r.RegionName AS RegionName,
+        -- Pre-Con Manager
         pm.FullName AS PreConManagerName,
         pm.Email AS PreConManagerEmail,
         pm.Phone AS PreConManagerPhone,
+        -- Deal Pipeline specific attributes
         dp.Bank,
         dp.StartDate,
         dp.UnitCount,
@@ -1443,7 +1447,7 @@ export const getAllDealPipelines = async (req: Request, res: Response, next: Nex
       FROM pipeline.DealPipeline dp
       LEFT JOIN core.Project p ON dp.ProjectId = p.ProjectId
       LEFT JOIN core.Region r ON p.Region = r.RegionName
-      LEFT JOIN core.Person pm ON dp.PreConManagerId = pm.PersonId
+      LEFT JOIN core.PreConManager pm ON dp.PreConManagerId = pm.PreConManagerId
       ORDER BY dp.DealPipelineId
     `);
     res.json({ success: true, data: result.recordset });
@@ -1462,6 +1466,7 @@ export const getDealPipelineById = async (req: Request, res: Response, next: Nex
         SELECT 
           dp.DealPipelineId,
           dp.ProjectId,
+          -- CORE attributes (from core.Project)
           p.ProjectName,
           p.City,
           p.State,
@@ -1470,10 +1475,13 @@ export const getDealPipelineById = async (req: Request, res: Response, next: Nex
           p.ProductType,
           p.Stage,
           p.EstimatedConstructionStartDate,
+          -- Region from core.Region table
           r.RegionName AS RegionName,
+          -- Pre-Con Manager
           pm.FullName AS PreConManagerName,
           pm.Email AS PreConManagerEmail,
           pm.Phone AS PreConManagerPhone,
+          -- Deal Pipeline specific attributes
           dp.Bank,
           dp.StartDate,
           dp.UnitCount,
@@ -1498,7 +1506,7 @@ export const getDealPipelineById = async (req: Request, res: Response, next: Nex
         FROM pipeline.DealPipeline dp
         LEFT JOIN core.Project p ON dp.ProjectId = p.ProjectId
         LEFT JOIN core.Region r ON p.Region = r.RegionName
-        LEFT JOIN core.Person pm ON dp.PreConManagerId = pm.PersonId
+        LEFT JOIN core.PreConManager pm ON dp.PreConManagerId = pm.PreConManagerId
         WHERE dp.DealPipelineId = @id
       `);
     
@@ -1523,6 +1531,7 @@ export const getDealPipelineByProjectId = async (req: Request, res: Response, ne
         SELECT 
           dp.DealPipelineId,
           dp.ProjectId,
+          -- CORE attributes (from core.Project)
           p.ProjectName,
           p.City,
           p.State,
@@ -1531,10 +1540,13 @@ export const getDealPipelineByProjectId = async (req: Request, res: Response, ne
           p.ProductType,
           p.Stage,
           p.EstimatedConstructionStartDate,
+          -- Region from core.Region table
           r.RegionName AS RegionName,
+          -- Pre-Con Manager
           pm.FullName AS PreConManagerName,
           pm.Email AS PreConManagerEmail,
           pm.Phone AS PreConManagerPhone,
+          -- Deal Pipeline specific attributes
           dp.Bank,
           dp.StartDate,
           dp.UnitCount,
@@ -1559,7 +1571,7 @@ export const getDealPipelineByProjectId = async (req: Request, res: Response, ne
         FROM pipeline.DealPipeline dp
         LEFT JOIN core.Project p ON dp.ProjectId = p.ProjectId
         LEFT JOIN core.Region r ON p.Region = r.RegionName
-        LEFT JOIN core.Person pm ON dp.PreConManagerId = pm.PersonId
+        LEFT JOIN core.PreConManager pm ON dp.PreConManagerId = pm.PreConManagerId
         WHERE dp.ProjectId = @projectId
       `);
     
@@ -1578,11 +1590,34 @@ export const createDealPipeline = async (req: Request, res: Response, next: Next
   try {
     const {
       ProjectId,
-      ProjectName, City, State, Region, Units, ProductType, Stage, EstimatedConstructionStartDate,
-      Bank, StartDate, UnitCount, PreConManagerId, ConstructionLoanClosingDate, Notes, Priority,
-      Acreage, LandPrice, ExecutionDate, DueDiligenceDate, ClosingDate,
-      PurchasingEntity, Cash, OpportunityZone, ClosingNotes,
-      AsanaTaskGid, AsanaProjectGid
+      // CORE attributes (can be updated in CORE if provided)
+      ProjectName,
+      City,
+      State,
+      Region,
+      Units,
+      ProductType,
+      Stage,
+      EstimatedConstructionStartDate,
+      // Deal Pipeline specific attributes
+      Bank,
+      StartDate,
+      UnitCount,
+      PreConManagerId,
+      ConstructionLoanClosingDate,
+      Notes,
+      Priority,
+      Acreage,
+      LandPrice,
+      ExecutionDate,
+      DueDiligenceDate,
+      ClosingDate,
+      PurchasingEntity,
+      Cash,
+      OpportunityZone,
+      ClosingNotes,
+      AsanaTaskGid,
+      AsanaProjectGid
     } = req.body;
 
     if (!ProjectId) {
@@ -1598,20 +1633,48 @@ export const createDealPipeline = async (req: Request, res: Response, next: Next
       const updateFields: string[] = [];
       const updateRequest = pool.request().input('ProjectId', sql.Int, ProjectId);
       
-      if (ProjectName !== undefined) { updateFields.push('ProjectName = @ProjectName'); updateRequest.input('ProjectName', sql.NVarChar(255), ProjectName); }
-      if (City !== undefined) { updateFields.push('City = @City'); updateRequest.input('City', sql.NVarChar(100), City); }
-      if (State !== undefined) { updateFields.push('State = @State'); updateRequest.input('State', sql.NVarChar(50), State); }
-      if (Region !== undefined) { updateFields.push('Region = @Region'); updateRequest.input('Region', sql.NVarChar(50), Region); }
-      if (Units !== undefined) { updateFields.push('Units = @Units'); updateRequest.input('Units', sql.Int, Units); }
-      if (ProductType !== undefined) { updateFields.push('ProductType = @ProductType'); updateRequest.input('ProductType', sql.NVarChar(50), ProductType); }
-      if (Stage !== undefined) { updateFields.push('Stage = @Stage'); updateRequest.input('Stage', sql.NVarChar(50), Stage); }
-      if (EstimatedConstructionStartDate !== undefined) { updateFields.push('EstimatedConstructionStartDate = @EstimatedConstructionStartDate'); updateRequest.input('EstimatedConstructionStartDate', sql.Date, EstimatedConstructionStartDate); }
+      if (ProjectName !== undefined) {
+        updateFields.push('ProjectName = @ProjectName');
+        updateRequest.input('ProjectName', sql.NVarChar(255), ProjectName);
+      }
+      if (City !== undefined) {
+        updateFields.push('City = @City');
+        updateRequest.input('City', sql.NVarChar(100), City);
+      }
+      if (State !== undefined) {
+        updateFields.push('State = @State');
+        updateRequest.input('State', sql.NVarChar(50), State);
+      }
+      if (Region !== undefined) {
+        updateFields.push('Region = @Region');
+        updateRequest.input('Region', sql.NVarChar(50), Region);
+      }
+      if (Units !== undefined) {
+        updateFields.push('Units = @Units');
+        updateRequest.input('Units', sql.Int, Units);
+      }
+      if (ProductType !== undefined) {
+        updateFields.push('ProductType = @ProductType');
+        updateRequest.input('ProductType', sql.NVarChar(50), ProductType);
+      }
+      if (Stage !== undefined) {
+        updateFields.push('Stage = @Stage');
+        updateRequest.input('Stage', sql.NVarChar(50), Stage);
+      }
+      if (EstimatedConstructionStartDate !== undefined) {
+        updateFields.push('EstimatedConstructionStartDate = @EstimatedConstructionStartDate');
+        updateRequest.input('EstimatedConstructionStartDate', sql.Date, EstimatedConstructionStartDate);
+      }
       
       updateFields.push('UpdatedAt = SYSDATETIME()');
-      await updateRequest.query(`UPDATE core.Project SET ${updateFields.join(', ')} WHERE ProjectId = @ProjectId`);
+      await updateRequest.query(`
+        UPDATE core.Project
+        SET ${updateFields.join(', ')}
+        WHERE ProjectId = @ProjectId
+      `);
     }
 
-    // Calculate SqFtPrice
+    // Calculate SqFtPrice: LandPrice / (Acreage * 43560)
     let sqFtPrice: number | null = null;
     if (LandPrice && Acreage && Acreage > 0) {
       sqFtPrice = LandPrice / (Acreage * 43560);
@@ -1665,28 +1728,52 @@ export const createDealPipeline = async (req: Request, res: Response, next: Next
             @AsanaTaskGid, @AsanaProjectGid
           );
         END
-        
-        SELECT DealPipelineId FROM pipeline.DealPipeline WHERE ProjectId = @ProjectId;
       `);
 
-    // Get the full record
+    // Get the newly created or existing record
     const fullRecord = await pool.request()
       .input('ProjectId', sql.Int, ProjectId)
       .query(`
         SELECT 
-          dp.DealPipelineId, dp.ProjectId,
-          p.ProjectName, p.City, p.State, p.Region, p.Units, p.ProductType, p.Stage, p.EstimatedConstructionStartDate,
+          dp.DealPipelineId,
+          dp.ProjectId,
+          p.ProjectName,
+          p.City,
+          p.State,
+          p.Region,
+          p.Units,
+          p.ProductType,
+          p.Stage,
+          p.EstimatedConstructionStartDate,
           r.RegionName AS RegionName,
-          pm.FullName AS PreConManagerName, pm.Email AS PreConManagerEmail, pm.Phone AS PreConManagerPhone,
-          dp.Bank, dp.StartDate, dp.UnitCount, dp.PreConManagerId, dp.ConstructionLoanClosingDate,
-          dp.Notes, dp.Priority, dp.Acreage, dp.LandPrice, dp.SqFtPrice,
-          dp.ExecutionDate, dp.DueDiligenceDate, dp.ClosingDate,
-          dp.PurchasingEntity, dp.Cash, dp.OpportunityZone, dp.ClosingNotes,
-          dp.AsanaTaskGid, dp.AsanaProjectGid, dp.CreatedAt, dp.UpdatedAt
+          pm.FullName AS PreConManagerName,
+          pm.Email AS PreConManagerEmail,
+          pm.Phone AS PreConManagerPhone,
+          dp.Bank,
+          dp.StartDate,
+          dp.UnitCount,
+          dp.PreConManagerId,
+          dp.ConstructionLoanClosingDate,
+          dp.Notes,
+          dp.Priority,
+          dp.Acreage,
+          dp.LandPrice,
+          dp.SqFtPrice,
+          dp.ExecutionDate,
+          dp.DueDiligenceDate,
+          dp.ClosingDate,
+          dp.PurchasingEntity,
+          dp.Cash,
+          dp.OpportunityZone,
+          dp.ClosingNotes,
+          dp.AsanaTaskGid,
+          dp.AsanaProjectGid,
+          dp.CreatedAt,
+          dp.UpdatedAt
         FROM pipeline.DealPipeline dp
         LEFT JOIN core.Project p ON dp.ProjectId = p.ProjectId
         LEFT JOIN core.Region r ON p.Region = r.RegionName
-        LEFT JOIN core.Person pm ON dp.PreConManagerId = pm.PersonId
+        LEFT JOIN core.PreConManager pm ON dp.PreConManagerId = pm.PreConManagerId
         WHERE dp.ProjectId = @ProjectId
       `);
 
@@ -1713,15 +1800,39 @@ export const updateDealPipeline = async (req: Request, res: Response, next: Next
   try {
     const { id } = req.params;
     const {
-      ProjectName, City, State, Region, Units, ProductType, Stage, EstimatedConstructionStartDate,
-      Bank, StartDate, UnitCount, PreConManagerId, ConstructionLoanClosingDate, Notes, Priority,
-      Acreage, LandPrice, ExecutionDate, DueDiligenceDate, ClosingDate,
-      PurchasingEntity, Cash, OpportunityZone, ClosingNotes,
-      AsanaTaskGid, AsanaProjectGid
+      // CORE attributes (can be updated in CORE if provided)
+      ProjectName,
+      City,
+      State,
+      Region,
+      Units,
+      ProductType,
+      Stage,
+      EstimatedConstructionStartDate,
+      // Deal Pipeline specific attributes
+      Bank,
+      StartDate,
+      UnitCount,
+      PreConManagerId,
+      ConstructionLoanClosingDate,
+      Notes,
+      Priority,
+      Acreage,
+      LandPrice,
+      ExecutionDate,
+      DueDiligenceDate,
+      ClosingDate,
+      PurchasingEntity,
+      Cash,
+      OpportunityZone,
+      ClosingNotes,
+      AsanaTaskGid,
+      AsanaProjectGid
     } = req.body;
 
     const pool = await getConnection();
     
+    // Get ProjectId first
     const dpResult = await pool.request()
       .input('id', sql.Int, id)
       .query('SELECT ProjectId FROM pipeline.DealPipeline WHERE DealPipelineId = @id');
@@ -1739,17 +1850,45 @@ export const updateDealPipeline = async (req: Request, res: Response, next: Next
       const updateFields: string[] = [];
       const updateRequest = pool.request().input('ProjectId', sql.Int, projectId);
       
-      if (ProjectName !== undefined) { updateFields.push('ProjectName = @ProjectName'); updateRequest.input('ProjectName', sql.NVarChar(255), ProjectName); }
-      if (City !== undefined) { updateFields.push('City = @City'); updateRequest.input('City', sql.NVarChar(100), City); }
-      if (State !== undefined) { updateFields.push('State = @State'); updateRequest.input('State', sql.NVarChar(50), State); }
-      if (Region !== undefined) { updateFields.push('Region = @Region'); updateRequest.input('Region', sql.NVarChar(50), Region); }
-      if (Units !== undefined) { updateFields.push('Units = @Units'); updateRequest.input('Units', sql.Int, Units); }
-      if (ProductType !== undefined) { updateFields.push('ProductType = @ProductType'); updateRequest.input('ProductType', sql.NVarChar(50), ProductType); }
-      if (Stage !== undefined) { updateFields.push('Stage = @Stage'); updateRequest.input('Stage', sql.NVarChar(50), Stage); }
-      if (EstimatedConstructionStartDate !== undefined) { updateFields.push('EstimatedConstructionStartDate = @EstimatedConstructionStartDate'); updateRequest.input('EstimatedConstructionStartDate', sql.Date, EstimatedConstructionStartDate); }
+      if (ProjectName !== undefined) {
+        updateFields.push('ProjectName = @ProjectName');
+        updateRequest.input('ProjectName', sql.NVarChar(255), ProjectName);
+      }
+      if (City !== undefined) {
+        updateFields.push('City = @City');
+        updateRequest.input('City', sql.NVarChar(100), City);
+      }
+      if (State !== undefined) {
+        updateFields.push('State = @State');
+        updateRequest.input('State', sql.NVarChar(50), State);
+      }
+      if (Region !== undefined) {
+        updateFields.push('Region = @Region');
+        updateRequest.input('Region', sql.NVarChar(50), Region);
+      }
+      if (Units !== undefined) {
+        updateFields.push('Units = @Units');
+        updateRequest.input('Units', sql.Int, Units);
+      }
+      if (ProductType !== undefined) {
+        updateFields.push('ProductType = @ProductType');
+        updateRequest.input('ProductType', sql.NVarChar(50), ProductType);
+      }
+      if (Stage !== undefined) {
+        updateFields.push('Stage = @Stage');
+        updateRequest.input('Stage', sql.NVarChar(50), Stage);
+      }
+      if (EstimatedConstructionStartDate !== undefined) {
+        updateFields.push('EstimatedConstructionStartDate = @EstimatedConstructionStartDate');
+        updateRequest.input('EstimatedConstructionStartDate', sql.Date, EstimatedConstructionStartDate);
+      }
       
       updateFields.push('UpdatedAt = SYSDATETIME()');
-      await updateRequest.query(`UPDATE core.Project SET ${updateFields.join(', ')} WHERE ProjectId = @ProjectId`);
+      await updateRequest.query(`
+        UPDATE core.Project
+        SET ${updateFields.join(', ')}
+        WHERE ProjectId = @ProjectId
+      `);
     }
 
     // Use UnitCount to update Units in CORE if UnitCount is provided but Units is not
@@ -1760,28 +1899,82 @@ export const updateDealPipeline = async (req: Request, res: Response, next: Next
         .query('UPDATE core.Project SET Units = @UnitCount, UpdatedAt = SYSDATETIME() WHERE ProjectId = @ProjectId');
     }
 
-    // Build dynamic update query
+    // Build dynamic update query for Deal Pipeline fields
     const fields: string[] = [];
     const request = pool.request().input('id', sql.Int, id);
 
-    if (Bank !== undefined) { fields.push('Bank = @Bank'); request.input('Bank', sql.NVarChar(255), Bank); }
-    if (StartDate !== undefined) { fields.push('StartDate = @StartDate'); request.input('StartDate', sql.Date, StartDate); }
-    if (UnitCount !== undefined) { fields.push('UnitCount = @UnitCount'); request.input('UnitCount', sql.Int, UnitCount); }
-    if (PreConManagerId !== undefined) { fields.push('PreConManagerId = @PreConManagerId'); request.input('PreConManagerId', sql.Int, PreConManagerId); }
-    if (ConstructionLoanClosingDate !== undefined) { fields.push('ConstructionLoanClosingDate = @ConstructionLoanClosingDate'); request.input('ConstructionLoanClosingDate', sql.Date, ConstructionLoanClosingDate); }
-    if (Notes !== undefined) { fields.push('Notes = @Notes'); request.input('Notes', sql.NVarChar(sql.MAX), Notes); }
-    if (Priority !== undefined) { fields.push('Priority = @Priority'); request.input('Priority', sql.NVarChar(20), Priority); }
-    if (Acreage !== undefined) { fields.push('Acreage = @Acreage'); request.input('Acreage', sql.Decimal(18, 4), Acreage); }
-    if (LandPrice !== undefined) { fields.push('LandPrice = @LandPrice'); request.input('LandPrice', sql.Decimal(18, 2), LandPrice); }
-    if (ExecutionDate !== undefined) { fields.push('ExecutionDate = @ExecutionDate'); request.input('ExecutionDate', sql.Date, ExecutionDate); }
-    if (DueDiligenceDate !== undefined) { fields.push('DueDiligenceDate = @DueDiligenceDate'); request.input('DueDiligenceDate', sql.Date, DueDiligenceDate); }
-    if (ClosingDate !== undefined) { fields.push('ClosingDate = @ClosingDate'); request.input('ClosingDate', sql.Date, ClosingDate); }
-    if (PurchasingEntity !== undefined) { fields.push('PurchasingEntity = @PurchasingEntity'); request.input('PurchasingEntity', sql.NVarChar(255), PurchasingEntity); }
-    if (Cash !== undefined) { fields.push('Cash = @Cash'); request.input('Cash', sql.Bit, Cash); }
-    if (OpportunityZone !== undefined) { fields.push('OpportunityZone = @OpportunityZone'); request.input('OpportunityZone', sql.Bit, OpportunityZone); }
-    if (ClosingNotes !== undefined) { fields.push('ClosingNotes = @ClosingNotes'); request.input('ClosingNotes', sql.NVarChar(sql.MAX), ClosingNotes); }
-    if (AsanaTaskGid !== undefined) { fields.push('AsanaTaskGid = @AsanaTaskGid'); request.input('AsanaTaskGid', sql.NVarChar(100), AsanaTaskGid); }
-    if (AsanaProjectGid !== undefined) { fields.push('AsanaProjectGid = @AsanaProjectGid'); request.input('AsanaProjectGid', sql.NVarChar(100), AsanaProjectGid); }
+    if (Bank !== undefined) {
+      fields.push('Bank = @Bank');
+      request.input('Bank', sql.NVarChar(255), Bank);
+    }
+    if (StartDate !== undefined) {
+      fields.push('StartDate = @StartDate');
+      request.input('StartDate', sql.Date, StartDate);
+    }
+    if (UnitCount !== undefined) {
+      fields.push('UnitCount = @UnitCount');
+      request.input('UnitCount', sql.Int, UnitCount);
+    }
+    if (PreConManagerId !== undefined) {
+      fields.push('PreConManagerId = @PreConManagerId');
+      request.input('PreConManagerId', sql.Int, PreConManagerId);
+    }
+    if (ConstructionLoanClosingDate !== undefined) {
+      fields.push('ConstructionLoanClosingDate = @ConstructionLoanClosingDate');
+      request.input('ConstructionLoanClosingDate', sql.Date, ConstructionLoanClosingDate);
+    }
+    if (Notes !== undefined) {
+      fields.push('Notes = @Notes');
+      request.input('Notes', sql.NVarChar(sql.MAX), Notes);
+    }
+    if (Priority !== undefined) {
+      fields.push('Priority = @Priority');
+      request.input('Priority', sql.NVarChar(20), Priority);
+    }
+    if (Acreage !== undefined) {
+      fields.push('Acreage = @Acreage');
+      request.input('Acreage', sql.Decimal(18, 4), Acreage);
+    }
+    if (LandPrice !== undefined) {
+      fields.push('LandPrice = @LandPrice');
+      request.input('LandPrice', sql.Decimal(18, 2), LandPrice);
+    }
+    if (ExecutionDate !== undefined) {
+      fields.push('ExecutionDate = @ExecutionDate');
+      request.input('ExecutionDate', sql.Date, ExecutionDate);
+    }
+    if (DueDiligenceDate !== undefined) {
+      fields.push('DueDiligenceDate = @DueDiligenceDate');
+      request.input('DueDiligenceDate', sql.Date, DueDiligenceDate);
+    }
+    if (ClosingDate !== undefined) {
+      fields.push('ClosingDate = @ClosingDate');
+      request.input('ClosingDate', sql.Date, ClosingDate);
+    }
+    if (PurchasingEntity !== undefined) {
+      fields.push('PurchasingEntity = @PurchasingEntity');
+      request.input('PurchasingEntity', sql.NVarChar(255), PurchasingEntity);
+    }
+    if (Cash !== undefined) {
+      fields.push('Cash = @Cash');
+      request.input('Cash', sql.Bit, Cash);
+    }
+    if (OpportunityZone !== undefined) {
+      fields.push('OpportunityZone = @OpportunityZone');
+      request.input('OpportunityZone', sql.Bit, OpportunityZone);
+    }
+    if (ClosingNotes !== undefined) {
+      fields.push('ClosingNotes = @ClosingNotes');
+      request.input('ClosingNotes', sql.NVarChar(sql.MAX), ClosingNotes);
+    }
+    if (AsanaTaskGid !== undefined) {
+      fields.push('AsanaTaskGid = @AsanaTaskGid');
+      request.input('AsanaTaskGid', sql.NVarChar(100), AsanaTaskGid);
+    }
+    if (AsanaProjectGid !== undefined) {
+      fields.push('AsanaProjectGid = @AsanaProjectGid');
+      request.input('AsanaProjectGid', sql.NVarChar(100), AsanaProjectGid);
+    }
 
     // Recalculate SqFtPrice if LandPrice or Acreage changed
     if (LandPrice !== undefined || Acreage !== undefined) {
@@ -1810,27 +2003,57 @@ export const updateDealPipeline = async (req: Request, res: Response, next: Next
 
     if (fields.length > 0) {
       fields.push('UpdatedAt = SYSDATETIME()');
-      await request.query(`UPDATE pipeline.DealPipeline SET ${fields.join(', ')} WHERE DealPipelineId = @id`);
+      await request.query(`
+        UPDATE pipeline.DealPipeline
+        SET ${fields.join(', ')}
+        WHERE DealPipelineId = @id
+      `);
     }
 
-    // Get the updated record
+    // Get the updated record with CORE data
     const updated = await pool.request()
       .input('id', sql.Int, id)
       .query(`
         SELECT 
-          dp.DealPipelineId, dp.ProjectId,
-          p.ProjectName, p.City, p.State, p.Region, p.Units, p.ProductType, p.Stage, p.EstimatedConstructionStartDate,
+          dp.DealPipelineId,
+          dp.ProjectId,
+          p.ProjectName,
+          p.City,
+          p.State,
+          p.Region,
+          p.Units,
+          p.ProductType,
+          p.Stage,
+          p.EstimatedConstructionStartDate,
           r.RegionName AS RegionName,
-          pm.FullName AS PreConManagerName, pm.Email AS PreConManagerEmail, pm.Phone AS PreConManagerPhone,
-          dp.Bank, dp.StartDate, dp.UnitCount, dp.PreConManagerId, dp.ConstructionLoanClosingDate,
-          dp.Notes, dp.Priority, dp.Acreage, dp.LandPrice, dp.SqFtPrice,
-          dp.ExecutionDate, dp.DueDiligenceDate, dp.ClosingDate,
-          dp.PurchasingEntity, dp.Cash, dp.OpportunityZone, dp.ClosingNotes,
-          dp.AsanaTaskGid, dp.AsanaProjectGid, dp.CreatedAt, dp.UpdatedAt
+          pm.FullName AS PreConManagerName,
+          pm.Email AS PreConManagerEmail,
+          pm.Phone AS PreConManagerPhone,
+          dp.Bank,
+          dp.StartDate,
+          dp.UnitCount,
+          dp.PreConManagerId,
+          dp.ConstructionLoanClosingDate,
+          dp.Notes,
+          dp.Priority,
+          dp.Acreage,
+          dp.LandPrice,
+          dp.SqFtPrice,
+          dp.ExecutionDate,
+          dp.DueDiligenceDate,
+          dp.ClosingDate,
+          dp.PurchasingEntity,
+          dp.Cash,
+          dp.OpportunityZone,
+          dp.ClosingNotes,
+          dp.AsanaTaskGid,
+          dp.AsanaProjectGid,
+          dp.CreatedAt,
+          dp.UpdatedAt
         FROM pipeline.DealPipeline dp
         LEFT JOIN core.Project p ON dp.ProjectId = p.ProjectId
         LEFT JOIN core.Region r ON p.Region = r.RegionName
-        LEFT JOIN core.Person pm ON dp.PreConManagerId = pm.PersonId
+        LEFT JOIN core.PreConManager pm ON dp.PreConManagerId = pm.PreConManagerId
         WHERE dp.DealPipelineId = @id
       `);
 

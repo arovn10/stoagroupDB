@@ -19,7 +19,7 @@ BEGIN
         Bank NVARCHAR(255) NULL,  -- Bank name (can link to core.Bank later)
         StartDate DATE NULL,  -- Start Date from Asana
         UnitCount INT NULL,  -- Unit Count from Asana
-        PreConManagerId INT NULL,  -- Pre-Con Manager (FK to core.Person)
+        PreConManagerId INT NULL,  -- Pre-Con Manager (FK to core.PreConManager)
         ConstructionLoanClosingDate DATE NULL,  -- Construction Loan Closing date
         Notes NVARCHAR(MAX) NULL,  -- Notes/description
         Priority NVARCHAR(20) NULL,  -- Priority: High, Medium, Low
@@ -45,7 +45,7 @@ BEGIN
         UpdatedAt DATETIME2(0) NULL,
         
         CONSTRAINT FK_DP_Project FOREIGN KEY (ProjectId) REFERENCES core.Project(ProjectId) ON DELETE CASCADE,
-        CONSTRAINT FK_DP_PreConManager FOREIGN KEY (PreConManagerId) REFERENCES core.Person(PersonId),
+        CONSTRAINT FK_DP_PreConManager FOREIGN KEY (PreConManagerId) REFERENCES core.PreConManager(PreConManagerId),
         CONSTRAINT UQ_DP_Project UNIQUE (ProjectId),  -- One deal pipeline entry per project
         CONSTRAINT CK_DP_Priority CHECK (Priority IS NULL OR Priority IN ('High', 'Medium', 'Low'))
     );

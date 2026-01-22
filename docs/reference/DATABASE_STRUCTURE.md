@@ -61,6 +61,13 @@ These tables are shared across departments and don't link directly to projects:
 - `FullName`
 - `Email`, `Phone`
 
+### `core.PreConManager`
+- `PreConManagerId` (PK)
+- `FullName`
+- `Email`, `Phone`
+- `CreatedAt`, `UpdatedAt`
+- Separate datapoint for Pre-Con Managers (Land Development), not tied to contacts
+
 ### `core.EquityPartner`
 - `EquityPartnerId` (PK)
 - `PartnerName` (Unique)
@@ -197,6 +204,16 @@ These tables are shared across departments and don't link directly to projects:
 - `Acreage`, `Units`, `Price`, `PricePerSF`
 - `ActOfSale`, `DueDiligenceDate`, `PurchasingEntity`, `CashFlag`
 
+#### `pipeline.DealPipeline`
+- `DealPipelineId` (PK)
+- `ProjectId` (FK → core.Project, Unique)
+- **Asana tracking fields:** `Bank`, `StartDate`, `UnitCount`, `PreConManagerId`, `ConstructionLoanClosingDate`, `Notes`, `Priority`
+- **Land Development fields:** `Acreage`, `LandPrice`, `SqFtPrice`, `ExecutionDate`, `DueDiligenceDate`, `ClosingDate`, `PurchasingEntity`, `Cash`, `OpportunityZone`, `ClosingNotes`
+- **Asana metadata:** `AsanaTaskGid`, `AsanaProjectGid`
+- `CreatedAt`, `UpdatedAt`
+- Tracks deals from Prospective → Under Contract → Started → Stabilized → Closed
+- Stage is stored in `core.Project.Stage` (controlled by Land Development)
+
 **Status:** ✅ Fully implemented
 
 ---
@@ -290,7 +307,8 @@ These tables are shared across departments and don't link directly to projects:
         ├─ Loan             ├─ UnderContract     ├─ (Accounting)
         ├─ DSCRTest         ├─ CommercialListed  ├─ (Construction)
         ├─ Covenant         ├─ CommercialAcreage ├─ (HR)
-        ├─ LiquidityReq     └─ ClosedProperty    ├─ (Marketing)
+        ├─ LiquidityReq     ├─ ClosedProperty    ├─ (Marketing)
+        ├─ Participation    └─ DealPipeline      ├─ (Operations)
         ├─ Participation                         └─ (Operations)
         ├─ Guarantee
         ├─ BankTarget
@@ -313,6 +331,7 @@ These tables are shared across departments and don't link directly to projects:
 - `pipeline.CommercialListed` → `core.Project.ProjectId`
 - `pipeline.CommercialAcreage` → `core.Project.ProjectId`
 - `pipeline.ClosedProperty` → `core.Project.ProjectId`
+- `pipeline.DealPipeline` → `core.Project.ProjectId`
 
 ### Secondary Links:
 - `banking.Loan` → `core.Bank.BankId` (LenderId)
@@ -351,7 +370,7 @@ External Systems → Database → Domo Dashboards
 |------------|--------|--------|--------------|
 | **Core** | `core` | ✅ Complete | 4 tables |
 | **Capital Markets & Asset Management** | `banking` | ✅ Complete | 8 tables |
-| **Land Development** | `pipeline` | ✅ Complete | 4 tables |
+| **Land Development** | `pipeline` | ✅ Complete | 5 tables |
 | **Accounting** | `accounting` | ⚠️ Planned | 0 tables |
 | **Construction** | `construction` | ⚠️ Planned | 0 tables |
 | **HR** | `hr` | ⚠️ Planned | 0 tables |

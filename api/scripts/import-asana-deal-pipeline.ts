@@ -439,16 +439,32 @@ async function getOrCreateProject(pool: sql.ConnectionPool, data: ParsedDealData
   return insertResult.recordset[0].ProjectId;
 }
 
-// Get Pre-Con Manager PersonId by name
+// Get Pre-Con Manager PreConManagerId by name (creates if doesn't exist)
 async function getPreConManagerId(pool: sql.ConnectionPool, name: string): Promise<number | null> {
   if (!name) return null;
   
-  const result = await pool.request()
-    .input('name', sql.NVarChar(255), name.trim())
-    .query('SELECT PersonId FROM core.Person WHERE FullName = @name');
+  const trimmedName = name.trim();
+  
+  // First, try to find existing PreConManager
+  let result = await pool.request()
+    .input('name', sql.NVarChar(255), trimmedName)
+    .query('SELECT PreConManagerId FROM core.PreConManager WHERE FullName = @name');
   
   if (result.recordset.length > 0) {
-    return result.recordset[0].PersonId;
+    return result.recordset[0].PreConManagerId;
+  }
+  
+  // If not found, create a new PreConManager
+  result = await pool.request()
+    .input('name', sql.NVarChar(255), trimmedName)
+    .query(`
+      INSERT INTO core.PreConManager (FullName)
+      OUTPUT INSERTED.PreConManagerId
+      VALUES (@name)
+    `);
+  
+  if (result.recordset.length > 0) {
+    return result.recordset[0].PreConManagerId;
   }
   
   return null;
