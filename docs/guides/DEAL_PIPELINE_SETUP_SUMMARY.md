@@ -81,7 +81,7 @@ Follow the guide in `docs/guides/DEAL_PIPELINE_FRONTEND_IMPLEMENTATION.md`
 - Region
 - Units
 - ProductType
-- Stage (Prospective, Under Contract, Commercial Land - Listed, Under Construction, Lease-Up, Stabilized, Liquidated, Dead)
+- Stage (Prospective, Under Contract, Commercial Land - Listed, Under Construction, Lease-Up, Stabilized, Liquidated, Dead, HoldCo)
 - EstimatedConstructionStartDate
 
 ### Deal Pipeline Fields (stored in `pipeline.DealPipeline`)
