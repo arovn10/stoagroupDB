@@ -4,10 +4,19 @@ This repository contains all scripts, data files, and documentation for the Stoa
 
 ## 📁 Folder Structure
 
+### `/api/`
+REST API server and scripts:
+- **`src/`** - TypeScript source code (controllers, routes, middleware)
+- **`scripts/`** - Database manipulation and import scripts
+- **`dist/`** - Compiled JavaScript (generated)
+- **`DEPLOYMENT_GUIDE.md`** - How to deploy the API
+- **`SETUP_GUIDE.md`** - API setup instructions
+
 ### `/schema/`
 Database schema creation scripts:
 - **`01_create_schema.sql`** - Creates all database tables, schemas, and constraints
 - **`clear_all_tables.sql`** - Utility script to clear all data (for testing/reset)
+- **`add_*.sql`** - Migration scripts for adding columns and constraints
 
 ### `/data/`
 Data population scripts and source CSV files:
@@ -15,8 +24,17 @@ Data population scripts and source CSV files:
 - **`Banking Dashboard(*).csv`** - Source CSV files for banking data
 - **`Stoa Properties Tracker(*).csv`** - Source CSV files for property data
 
+### `/docs/`
+Organized documentation:
+- **`api/`** - API documentation and guides
+- **`setup/`** - Setup and configuration guides
+- **`guides/`** - Implementation guides for specific features
+- **`domo/`** - Domo integration guides and examples
+- **`data-import/`** - Data import guides
+- **`reference/`** - Reference documentation
+
 ### `/domo/`
-Domo integration queries and guides:
+Domo integration queries:
 - **`04_domo_table_by_table.sql`** - SQL queries for Domo to pull each table individually
 - **`05_domo_dataset_names.md`** - Suggested names and descriptions for each Domo DataSet
 - **`08_domo_history_queries.sql`** - Queries for accessing historical/audit data in Domo
@@ -25,17 +43,22 @@ Domo integration queries and guides:
 Audit tracking system:
 - **`07_create_audit_tracking.sql`** - Creates audit tables, triggers, and functions for change tracking
 - **`09_audit_tracking_guide.md`** - Guide on how to use the audit tracking system
+- **`12_audit_tracking_guide.md`** - Comprehensive audit tracking guide
 
 ### `/utilities/`
 Utility scripts and guides:
 - **`06_azure_firewall_setup_simple.sql`** - Script to configure Azure SQL Database firewall rules
 - **`06_azure_firewall_instructions.md`** - Step-by-step guide for firewall configuration
 
-### `/docs/`
-Documentation:
-- **`02_data_mapping_review.md`** - Data mapping guide showing what to store vs. pull from external sources
+### `/scripts/`
+Utility scripts:
+- **`api-client.js`** - Complete API client for use in Domo or browser
+- **`domo-resolve-ims-ids.js`** - Script to resolve IMS investor IDs
 
-## 🚀 Setup Instructions
+### `/stoa_seed_csvs/`
+Seed CSV and Excel files for data import
+
+## 🚀 Quick Start
 
 1. **Create Schema**: Run `schema/01_create_schema.sql` in Azure SQL Database
 2. **Populate Data**: Run `data/03_populate_data.sql` to load initial data
@@ -66,4 +89,18 @@ The database is organized into three main schemas:
 - **Auto-populated fields** - City, State, Region, and ProductType are automatically set
 - **Match by ProjectName** - External systems match to projects using ProjectName
 
-# stoagroupDB
+## 📚 Documentation
+
+- **API Documentation**: See `docs/api/` for API usage guides
+- **Setup Guides**: See `docs/setup/` for authentication, git, and deployment setup
+- **Implementation Guides**: See `docs/guides/` for feature-specific implementation guides
+- **Domo Guides**: See `docs/domo/` for Domo dashboard setup and integration
+- **Data Import**: See `docs/data-import/` for importing data from various sources
+- **Reference**: See `docs/reference/` for database structure and data mapping
+
+## 🔑 Important Notes
+
+- **FinancingType Separation**: All banking entities (except Equity Commitments) support `FinancingType` ('Construction' or 'Permanent') to separate financing data
+- **Loan Phase Separation**: Construction and Permanent loans are completely separate records
+- **Equity Types**: Supports 'Preferred Equity', 'Common Equity', 'Profits Interest', and 'Stoa Loan'
+- **Partner Types**: Entity partners can have related parties; Individual partners cannot

@@ -1,0 +1,125 @@
+gid,name,resource_subtype,resource_type,type,privacy_setting,default_access_level,is_formula_field,enum_options_gid,enum_options_color,enum_options_enabled,enum_options_name,enum_options_resource_type,precision,_BATCH_ID_,_BATCH_LAST_RUN_
+1189291356291648,Priority,enum,custom_field,enum,public_with_guests,admin,false,1189291356291649,red,true,High,enum_option,,112.0,2026-01-06 10:09:28
+1189291356291648,Priority,enum,custom_field,enum,public_with_guests,admin,false,1189291356291650,orange,true,Medium,enum_option,,112.0,2026-01-06 10:09:28
+1189291356291648,Priority,enum,custom_field,enum,public_with_guests,admin,false,1189291356291651,yellow-orange,true,Low,enum_option,,112.0,2026-01-06 10:09:28
+1207315596495120,Priority,enum,custom_field,enum,public_with_guests,admin,false,1207315596495121,red,true,High,enum_option,,112.0,2026-01-06 10:09:28
+1207315596495120,Priority,enum,custom_field,enum,public_with_guests,admin,false,1207315596495122,orange,true,Medium,enum_option,,112.0,2026-01-06 10:09:28
+1207315596495120,Priority,enum,custom_field,enum,public_with_guests,admin,false,1207315596495123,yellow-orange,true,Low,enum_option,,112.0,2026-01-06 10:09:28
+1207745312612907,Bank,text,custom_field,text,public_with_guests,admin,false,,,,,,,112.0,2026-01-06 10:09:28
+1207745312612947,Unit Count,text,custom_field,text,public_with_guests,admin,false,,,,,,,112.0,2026-01-06 10:09:28
+1207906700131717,Start Date,date,custom_field,date,public_with_guests,admin,false,,,,,,,112.0,2026-01-06 10:09:28
+1209015704812437,Estimated time,number,custom_field,number,public_with_guests,admin,false,,,,,,0,112.0,2026-01-06 10:09:28
+1209062131631938,Percent allocation,number,custom_field,number,public_with_guests,admin,false,,,,,,0,112.0,2026-01-06 10:09:28
+1209680985667249,Stoa Employee,enum,custom_field,enum,public_with_guests,admin,false,1209680985667250,yellow-orange,false,Small,enum_option,,112.0,2026-01-06 10:09:28
+1209680985667249,Stoa Employee,enum,custom_field,enum,public_with_guests,admin,false,1210880055850146,indigo,true,"Jared Williams, Superintendent",enum_option,,112.0,2026-01-06 10:09:28
+1209680985667249,Stoa Employee,enum,custom_field,enum,public_with_guests,admin,false,1209680985667252,blue,false,"Mit Patel, Superintendent",enum_option,,112.0,2026-01-06 10:09:28
+1209680985667249,Stoa Employee,enum,custom_field,enum,public_with_guests,admin,false,1209702887615829,blue-green,false,Asst. Superintendent 2,enum_option,,112.0,2026-01-06 10:09:28
+1209680985667249,Stoa Employee,enum,custom_field,enum,public_with_guests,admin,false,1209702887615830,indigo,true,"Ira Ross, Superintendent",enum_option,,112.0,2026-01-06 10:09:28
+1209680985667249,Stoa Employee,enum,custom_field,enum,public_with_guests,admin,false,1209702887615831,indigo,true,"Cody Vander Muelen, Superintendent",enum_option,,112.0,2026-01-06 10:09:28
+1209680985667249,Stoa Employee,enum,custom_field,enum,public_with_guests,admin,false,1209718984171653,indigo,true,"Dalton Shorter, Superintendent",enum_option,,112.0,2026-01-06 10:09:28
+1209680985667249,Stoa Employee,enum,custom_field,enum,public_with_guests,admin,false,1209702887615832,blue,true,"Shawn Schexnaildre, Superintendent",enum_option,,112.0,2026-01-06 10:09:28
+1209680985667249,Stoa Employee,enum,custom_field,enum,public_with_guests,admin,false,1209702887615833,blue,false,"Kody Caroway, Superintendent",enum_option,,112.0,2026-01-06 10:09:28
+1209680985667249,Stoa Employee,enum,custom_field,enum,public_with_guests,admin,false,1209706119938060,indigo,true,"Joe Davis, Superintendent",enum_option,,112.0,2026-01-06 10:09:28
+1209680985667249,Stoa Employee,enum,custom_field,enum,public_with_guests,admin,false,1210046128262538,indigo,true,"Drew Robbins, Superintendent",enum_option,,112.0,2026-01-06 10:09:28
+1209680985667249,Stoa Employee,enum,custom_field,enum,public_with_guests,admin,false,1209718984171647,blue,true,"Shane Thorton, Superintendent",enum_option,,112.0,2026-01-06 10:09:28
+1209680985667249,Stoa Employee,enum,custom_field,enum,public_with_guests,admin,false,1210046128262557,blue,true,"John-Ryan Heithcock, Superintendent",enum_option,,112.0,2026-01-06 10:09:28
+1209680985667249,Stoa Employee,enum,custom_field,enum,public_with_guests,admin,false,1209718984171648,blue,true,"Mike Willcutt, Superintendent",enum_option,,112.0,2026-01-06 10:09:28
+1209680985667249,Stoa Employee,enum,custom_field,enum,public_with_guests,admin,false,1209718984171649,blue-green,true,"Mike Smith, Asst. Superintendent",enum_option,,112.0,2026-01-06 10:09:28
+1209680985667249,Stoa Employee,enum,custom_field,enum,public_with_guests,admin,false,1209718984171650,blue-green,true,"Jeremy Shivers, Asst. Superintendent",enum_option,,112.0,2026-01-06 10:09:28
+1209680985667249,Stoa Employee,enum,custom_field,enum,public_with_guests,admin,false,1209718984171651,blue-green,true,"Matt Perrilloux, Asst. Superintendent",enum_option,,112.0,2026-01-06 10:09:28
+1209680985667249,Stoa Employee,enum,custom_field,enum,public_with_guests,admin,false,1209718984171652,blue-green,true,"Cole Brown, Asst. Superintendent",enum_option,,112.0,2026-01-06 10:09:28
+1209680985667249,Stoa Employee,enum,custom_field,enum,public_with_guests,admin,false,1209718984171654,yellow,true,"Davis Hebee, Asst. Superintendent",enum_option,,112.0,2026-01-06 10:09:28
+1209680985667249,Stoa Employee,enum,custom_field,enum,public_with_guests,admin,false,1209718984171655,blue-green,false,"Drew Robbins, Asst. Superintendent",enum_option,,112.0,2026-01-06 10:09:28
+1209680985667249,Stoa Employee,enum,custom_field,enum,public_with_guests,admin,false,1209718984171656,yellow,true,"Michael Casanova, Asst. Superintendent",enum_option,,112.0,2026-01-06 10:09:28
+1209680985667249,Stoa Employee,enum,custom_field,enum,public_with_guests,admin,false,1209718984171657,yellow,true,"Matthew Jordan, Asst. Superintendent",enum_option,,112.0,2026-01-06 10:09:28
+1209680985667249,Stoa Employee,enum,custom_field,enum,public_with_guests,admin,false,1209718984171658,yellow,true,"Jonathon Gouaux, Asst. Superintendent",enum_option,,112.0,2026-01-06 10:09:28
+1209680985667249,Stoa Employee,enum,custom_field,enum,public_with_guests,admin,false,1210880057928957,yellow,true,"Addison Darby, Asst. Superintendent",enum_option,,112.0,2026-01-06 10:09:28
+1209680985667249,Stoa Employee,enum,custom_field,enum,public_with_guests,admin,false,1209718984171661,yellow,true,"Parker Settoon, Asst. Superintendent",enum_option,,112.0,2026-01-06 10:09:28
+1209680985667249,Stoa Employee,enum,custom_field,enum,public_with_guests,admin,false,1210880057928966,magenta,true,"Jude Monaco, Intern",enum_option,,112.0,2026-01-06 10:09:28
+1209680985667249,Stoa Employee,enum,custom_field,enum,public_with_guests,admin,false,1211291261984282,green,true,"Jared Crousillac, Superintendent",enum_option,,112.0,2026-01-06 10:09:28
+1209680985667249,Stoa Employee,enum,custom_field,enum,public_with_guests,admin,false,1209680985667251,green,true,"Justin Terrell, Superintendent",enum_option,,112.0,2026-01-06 10:09:28
+1209680985667249,Stoa Employee,enum,custom_field,enum,public_with_guests,admin,false,1209718984171659,indigo,true,TBD Superintendent (Gulf West),enum_option,,112.0,2026-01-06 10:09:28
+1209680985667249,Stoa Employee,enum,custom_field,enum,public_with_guests,admin,false,1209718984171660,yellow,true,TBD Asst. Superintendent (Gulf West),enum_option,,112.0,2026-01-06 10:09:28
+1209680985667249,Stoa Employee,enum,custom_field,enum,public_with_guests,admin,false,1211306637078839,blue,true,TBD Superintendent (Gulf East),enum_option,,112.0,2026-01-06 10:09:28
+1209680985667249,Stoa Employee,enum,custom_field,enum,public_with_guests,admin,false,1211306637078840,blue-green,true,TBD Asst. Superintendent (Gulf East),enum_option,,112.0,2026-01-06 10:09:28
+1209680985667249,Stoa Employee,enum,custom_field,enum,public_with_guests,admin,false,1210060874134805,green,true,TBD Superintendent (Carolina),enum_option,,112.0,2026-01-06 10:09:28
+1209680985667249,Stoa Employee,enum,custom_field,enum,public_with_guests,admin,false,1210060874134806,yellow-green,true,TBD Asst. Superintendent (Carolina),enum_option,,112.0,2026-01-06 10:09:28
+1210930785704424,Department,enum,custom_field,enum,public_with_guests,admin,false,1210930785704425,yellow-orange,true,Construction,enum_option,,112.0,2026-01-06 10:09:28
+1210930785704424,Department,enum,custom_field,enum,public_with_guests,admin,false,1210930785704426,green,true,Executive,enum_option,,112.0,2026-01-06 10:09:28
+1210930785704424,Department,enum,custom_field,enum,public_with_guests,admin,false,1210930785704427,red,true,Human Resources,enum_option,,112.0,2026-01-06 10:09:28
+1210930785704424,Department,enum,custom_field,enum,public_with_guests,admin,false,1210930785704428,aqua,true,Information Tech,enum_option,,112.0,2026-01-06 10:09:28
+1210930785704424,Department,enum,custom_field,enum,public_with_guests,admin,false,1210930785704429,orange,true,Land Development,enum_option,,112.0,2026-01-06 10:09:28
+1210930785704424,Department,enum,custom_field,enum,public_with_guests,admin,false,1210930785704430,blue-green,true,Operations,enum_option,,112.0,2026-01-06 10:09:28
+1210930785704424,Department,enum,custom_field,enum,public_with_guests,admin,false,1210930785704431,yellow,true,Property Mgmt,enum_option,,112.0,2026-01-06 10:09:28
+1210930785704424,Department,enum,custom_field,enum,public_with_guests,admin,false,1210930785704432,yellow-green,true,Quality Control,enum_option,,112.0,2026-01-06 10:09:28
+1210932884510617,Location,enum,custom_field,enum,public_with_guests,admin,false,1210932884510620,green,true,Tampa,enum_option,,112.0,2026-01-06 10:09:28
+1210932884510617,Location,enum,custom_field,enum,public_with_guests,admin,false,1210932884510621,red,true,LA,enum_option,,112.0,2026-01-06 10:09:28
+1210932884510617,Location,enum,custom_field,enum,public_with_guests,admin,false,1210932884510622,orange,true,Rochester,enum_option,,112.0,2026-01-06 10:09:28
+1210932884510617,Location,enum,custom_field,enum,public_with_guests,admin,false,1210932825753777,yellow-orange,true,FL,enum_option,,112.0,2026-01-06 10:09:28
+1210932884510617,Location,enum,custom_field,enum,public_with_guests,admin,false,1210932825753778,yellow,true,AL,enum_option,,112.0,2026-01-06 10:09:28
+1210932884510617,Location,enum,custom_field,enum,public_with_guests,admin,false,1210932825753779,yellow-green,true,MS,enum_option,,112.0,2026-01-06 10:09:28
+1210932884510617,Location,enum,custom_field,enum,public_with_guests,admin,false,1210932825753780,blue-green,true,SC,enum_option,,112.0,2026-01-06 10:09:28
+1210932884510617,Location,enum,custom_field,enum,public_with_guests,admin,false,1210932825753781,aqua,true,NC,enum_option,,112.0,2026-01-06 10:09:28
+1210932884510617,Location,enum,custom_field,enum,public_with_guests,admin,false,1210942678458592,blue,true,TN,enum_option,,112.0,2026-01-06 10:09:28
+1210932884510617,Location,enum,custom_field,enum,public_with_guests,admin,false,1211775476545083,indigo,true,"Birmingham, AL",enum_option,,112.0,2026-01-06 10:09:28
+1210932884510617,Location,enum,custom_field,enum,public_with_guests,admin,false,1211775365602839,purple,true,"Bartlett, TN",enum_option,,112.0,2026-01-06 10:09:28
+1210932884510617,Location,enum,custom_field,enum,public_with_guests,admin,false,1211775555958585,magenta,true,"Fort Walton Beach, FL",enum_option,,112.0,2026-01-06 10:09:28
+1210932884510617,Location,enum,custom_field,enum,public_with_guests,admin,false,1211775555678829,hot-pink,true,"Panama City, FL",enum_option,,112.0,2026-01-06 10:09:28
+1210932884510617,Location,enum,custom_field,enum,public_with_guests,admin,false,1211775560035628,pink,true,"Greenville, NC",enum_option,,112.0,2026-01-06 10:09:28
+1210932884510617,Location,enum,custom_field,enum,public_with_guests,admin,false,1211775563834478,cool-gray,true,"Hardeeville, SC",enum_option,,112.0,2026-01-06 10:09:28
+1210932884510617,Location,enum,custom_field,enum,public_with_guests,admin,false,1211997895955987,none,true,"New Bern, NC",enum_option,,112.0,2026-01-06 10:09:28
+1210932884510617,Location,enum,custom_field,enum,public_with_guests,admin,false,1211997895955989,none,true,"Irmo, SC",enum_option,,112.0,2026-01-06 10:09:28
+1210932884510617,Location,enum,custom_field,enum,public_with_guests,admin,false,1211997895955991,none,true,"Charlotte, NC",enum_option,,112.0,2026-01-06 10:09:28
+1210932884510617,Location,enum,custom_field,enum,public_with_guests,admin,false,1212384651201251,none,true,"Fayetteville, NC",enum_option,,112.0,2026-01-06 10:09:28
+1210932884510617,Location,enum,custom_field,enum,public_with_guests,admin,false,1212586019001679,none,true,"Hoover, AL",enum_option,,112.0,2026-01-06 10:09:28
+1210932884510617,Location,enum,custom_field,enum,public_with_guests,admin,false,1212586019001680,none,true,"Gonzales, LA",enum_option,,112.0,2026-01-06 10:09:28
+1210932884510617,Location,enum,custom_field,enum,public_with_guests,admin,false,1212586019001681,none,true,"Covington, LA",enum_option,,112.0,2026-01-06 10:09:28
+1210932884510617,Location,enum,custom_field,enum,public_with_guests,admin,false,1212625934976169,none,true,"Foley, AL",enum_option,,112.0,2026-01-06 10:09:28
+1210987263432188,Leasing Stats,number,custom_field,number,public_with_guests,admin,false,,,,,,0,112.0,2026-01-06 10:09:28
+1211002395736712,Trade Partner Attendees,multi_enum,custom_field,multi_enum,public_with_guests,admin,false,1211002395736713,green,true,Sitework Subcontractor,enum_option,,112.0,2026-01-06 10:09:28
+1211002395736712,Trade Partner Attendees,multi_enum,custom_field,multi_enum,public_with_guests,admin,false,1211002395736714,red,true,Pile Subcontractor,enum_option,,112.0,2026-01-06 10:09:28
+1211002395736712,Trade Partner Attendees,multi_enum,custom_field,multi_enum,public_with_guests,admin,false,1211002395736715,orange,true,Power Company,enum_option,,112.0,2026-01-06 10:09:28
+1211002395736712,Trade Partner Attendees,multi_enum,custom_field,multi_enum,public_with_guests,admin,false,1211002395736716,yellow-orange,true,Electrical Subcontractor,enum_option,,112.0,2026-01-06 10:09:28
+1211002395736712,Trade Partner Attendees,multi_enum,custom_field,multi_enum,public_with_guests,admin,false,1211002395736717,yellow,true,Internet Provider,enum_option,,112.0,2026-01-06 10:09:28
+1211002395736712,Trade Partner Attendees,multi_enum,custom_field,multi_enum,public_with_guests,admin,false,1211002395736718,yellow-green,true,Concrete Subcontractor,enum_option,,112.0,2026-01-06 10:09:28
+1211002395736712,Trade Partner Attendees,multi_enum,custom_field,multi_enum,public_with_guests,admin,false,1211002395736719,magenta,true,Asphalt Subcontractor,enum_option,,112.0,2026-01-06 10:09:28
+1211002395736712,Trade Partner Attendees,multi_enum,custom_field,multi_enum,public_with_guests,admin,false,1211002395736720,blue-green,true,Plumber,enum_option,,112.0,2026-01-06 10:09:28
+1211002395736712,Trade Partner Attendees,multi_enum,custom_field,multi_enum,public_with_guests,admin,false,1211002395736721,aqua,true,Post Tension Subcontractor,enum_option,,112.0,2026-01-06 10:09:28
+1211002395736712,Trade Partner Attendees,multi_enum,custom_field,multi_enum,public_with_guests,admin,false,1211002395736722,blue,true,Civil Engineer,enum_option,,112.0,2026-01-06 10:09:28
+1211002395736712,Trade Partner Attendees,multi_enum,custom_field,multi_enum,public_with_guests,admin,false,1211002395736723,indigo,true,HVAC Subcontractor,enum_option,,112.0,2026-01-06 10:09:28
+1211002395736712,Trade Partner Attendees,multi_enum,custom_field,multi_enum,public_with_guests,admin,false,1211002395736724,purple,true,Fire Suppression Subcontractor,enum_option,,112.0,2026-01-06 10:09:28
+1211002395736712,Trade Partner Attendees,multi_enum,custom_field,multi_enum,public_with_guests,admin,false,1211002395736725,hot-pink,true,Site Amenities Subcontractor,enum_option,,112.0,2026-01-06 10:09:28
+1211002395736712,Trade Partner Attendees,multi_enum,custom_field,multi_enum,public_with_guests,admin,false,1211002395736726,pink,true,Landscaper,enum_option,,112.0,2026-01-06 10:09:28
+1211002395736712,Trade Partner Attendees,multi_enum,custom_field,multi_enum,public_with_guests,admin,false,1211002395736727,cool-gray,true,Fire Alarm Subcontractor,enum_option,,112.0,2026-01-06 10:09:28
+1211002395736712,Trade Partner Attendees,multi_enum,custom_field,multi_enum,public_with_guests,admin,false,1211002395736728,red,true,Low Voltage Subcontractor,enum_option,,112.0,2026-01-06 10:09:28
+1211002395736712,Trade Partner Attendees,multi_enum,custom_field,multi_enum,public_with_guests,admin,false,1211002395736729,orange,true,Access Control Subcontractor,enum_option,,112.0,2026-01-06 10:09:28
+1211002395736712,Trade Partner Attendees,multi_enum,custom_field,multi_enum,public_with_guests,admin,false,1211002395736730,yellow,true,Storefront Subcontractor,enum_option,,112.0,2026-01-06 10:09:28
+1211002395736712,Trade Partner Attendees,multi_enum,custom_field,multi_enum,public_with_guests,admin,false,1211002395736731,yellow-green,true,Pool Subcontractor,enum_option,,112.0,2026-01-06 10:09:28
+1211002395736712,Trade Partner Attendees,multi_enum,custom_field,multi_enum,public_with_guests,admin,false,1211002395736732,green,true,Fitness Equipment Provider,enum_option,,112.0,2026-01-06 10:09:28
+1211002395736712,Trade Partner Attendees,multi_enum,custom_field,multi_enum,public_with_guests,admin,false,1211002395736733,blue-green,true,Painter,enum_option,,112.0,2026-01-06 10:09:28
+1211002395736712,Trade Partner Attendees,multi_enum,custom_field,multi_enum,public_with_guests,admin,false,1211002395736734,aqua,true,Drywall Subcontractor,enum_option,,112.0,2026-01-06 10:09:28
+1211002395736712,Trade Partner Attendees,multi_enum,custom_field,multi_enum,public_with_guests,admin,false,1211002395736735,blue,true,Cabinet Subcontractor,enum_option,,112.0,2026-01-06 10:09:28
+1211002395736712,Trade Partner Attendees,multi_enum,custom_field,multi_enum,public_with_guests,admin,false,1211002395736736,indigo,true,Trim Carpenter,enum_option,,112.0,2026-01-06 10:09:28
+1211002395736712,Trade Partner Attendees,multi_enum,custom_field,multi_enum,public_with_guests,admin,false,1211002395736737,purple,true,Flooring Subcontractor,enum_option,,112.0,2026-01-06 10:09:28
+1211002395736712,Trade Partner Attendees,multi_enum,custom_field,multi_enum,public_with_guests,admin,false,1211002395736738,magenta,true,Framer,enum_option,,112.0,2026-01-06 10:09:28
+1211002395736712,Trade Partner Attendees,multi_enum,custom_field,multi_enum,public_with_guests,admin,false,1211002395736739,hot-pink,true,Structural Steel Subcontractor,enum_option,,112.0,2026-01-06 10:09:28
+1211002395736712,Trade Partner Attendees,multi_enum,custom_field,multi_enum,public_with_guests,admin,false,1211002395736740,pink,true,Elevator Installer,enum_option,,112.0,2026-01-06 10:09:28
+1211002395736712,Trade Partner Attendees,multi_enum,custom_field,multi_enum,public_with_guests,admin,false,1211002395736741,cool-gray,true,Stair Subcontractor,enum_option,,112.0,2026-01-06 10:09:28
+1211002395736712,Trade Partner Attendees,multi_enum,custom_field,multi_enum,public_with_guests,admin,false,1211002395736742,none,true,Siding Subcontractor,enum_option,,112.0,2026-01-06 10:09:28
+1211002395736712,Trade Partner Attendees,multi_enum,custom_field,multi_enum,public_with_guests,admin,false,1211002395736743,orange,true,Lightweight Concrete Subcontractor,enum_option,,112.0,2026-01-06 10:09:28
+1211002395736712,Trade Partner Attendees,multi_enum,custom_field,multi_enum,public_with_guests,admin,false,1211002395736744,yellow,true,Signage Subcontractor,enum_option,,112.0,2026-01-06 10:09:28
+1211002395736766,Phase of Work,text,custom_field,text,public_with_guests,admin,false,,,,,,,112.0,2026-01-06 10:09:28
+1211108034634215,Product Type,multi_enum,custom_field,multi_enum,public_with_guests,admin,false,1211108034634216,none,true,Prototype,enum_option,,112.0,2026-01-06 10:09:28
+1211108034634215,Product Type,multi_enum,custom_field,multi_enum,public_with_guests,admin,false,1211108034634217,none,true,Heights/Flats,enum_option,,112.0,2026-01-06 10:09:28
+1211282897556169,Construction Region,enum,custom_field,enum,public_with_guests,admin,false,1211282897556172,indigo,true,Gulf Coast,enum_option,,112.0,2026-01-06 10:09:28
+1211282897556169,Construction Region,enum,custom_field,enum,public_with_guests,admin,false,1211282897556173,green,true,Carolinas,enum_option,,112.0,2026-01-06 10:09:28
+1211632155794617,Vendor Status,enum,custom_field,enum,public_with_guests,admin,false,1211632155794618,blue,true,Contacted,enum_option,,112.0,2026-01-06 10:09:28
+1211632155794617,Vendor Status,enum,custom_field,enum,public_with_guests,admin,false,1211632155794619,green,true,Confirmed,enum_option,,112.0,2026-01-06 10:09:28
+1211632155794617,Vendor Status,enum,custom_field,enum,public_with_guests,admin,false,1211632155794620,yellow,true,Pending Payment,enum_option,,112.0,2026-01-06 10:09:28
+1211632155794617,Vendor Status,enum,custom_field,enum,public_with_guests,admin,false,1211632155794621,red,true,Cancelled,enum_option,,112.0,2026-01-06 10:09:28
+1211652683478824,KANB,text,custom_field,text,public_with_guests,admin,false,,,,,,,112.0,2026-01-06 10:09:28
+1211723826559798,Project Start Date,date,custom_field,date,public_with_guests,admin,false,,,,,,,112.0,2026-01-06 10:09:28
+1211743884751410,Cost,number,custom_field,number,public_with_guests,admin,true,,,,,,2,112.0,2026-01-06 10:09:28
+1212552984198959,Cons. Date,date,custom_field,date,public_with_guests,admin,false,,,,,,,112.0,2026-01-06 10:09:28
+1212561577317064,Construction Loan Closing,date,custom_field,date,public_with_guests,admin,false,,,,,,,112.0,2026-01-06 10:09:28
+1212618745431123,Pre-Con Manager,people,custom_field,people,public_with_guests,admin,false,,,,,,,112.0,2026-01-06 10:09:28

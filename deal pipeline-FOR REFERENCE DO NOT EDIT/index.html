@@ -1,0 +1,108 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="app.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Project Header -->
+        <div class="project-header">
+          <div class="project-title-row">
+            <img src="Logos/STOA20-Logo-Mark-Green.jpg" alt="STOA" class="stoa-logo" />
+            <span class="project-title">Deal Pipeline (Beta)</span>
+          </div>
+          <div class="nav-tabs">
+            <button class="nav-tab" data-view="overview">Overview</button>
+            <button class="nav-tab active" data-view="list">List</button>
+            <button class="nav-tab" data-view="location">By Location</button>
+            <button class="nav-tab" data-view="bank">By Bank</button>
+            <button class="nav-tab" data-view="product">By Product Type</button>
+            <button class="nav-tab" data-view="timeline">Timeline</button>
+            <button class="nav-tab" data-view="units">Unit Summary</button>
+          </div>
+        </div>
+
+        <!-- Filter and Sort Controls -->
+        <div class="filter-controls" id="filter-controls" style="display: none;">
+          <div class="filter-group">
+            <label>Filter by Stage:</label>
+            <select id="stage-filter" class="filter-select">
+              <option value="">All Stages</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>Filter by Location:</label>
+            <select id="location-filter" class="filter-select">
+              <option value="">All Locations</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>Filter by Bank:</label>
+            <select id="bank-filter" class="filter-select">
+              <option value="">All Banks</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>Filter by Product Type:</label>
+            <select id="product-filter" class="filter-select">
+              <option value="">All Types</option>
+            </select>
+          </div>
+          <div class="filter-group">
+          </div>
+          <div class="filter-group">
+            <label>Search:</label>
+            <input type="text" id="search-filter" class="filter-search" placeholder="Search deals...">
+          </div>
+          <button class="clear-filters-btn" onclick="clearFilters()">Clear Filters</button>
+        </div>
+
+        <!-- Sort Controls -->
+        <div class="sort-controls" id="sort-controls" style="display: none;">
+          <div class="sort-group">
+            <label>Sort by:</label>
+            <select id="sort-by" class="sort-select">
+              <option value="name">Name</option>
+              <option value="stage">Stage</option>
+              <option value="units">Unit Count</option>
+              <option value="date" selected>Start Date</option>
+              <option value="location">Location</option>
+            </select>
+            <select id="sort-order" class="sort-select">
+              <option value="asc" selected>Ascending</option>
+              <option value="desc">Descending</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- List View Container -->
+        <div class="list-view-container">
+          <!-- List View Toggle -->
+          <div class="list-view-toggle" id="list-view-toggle" style="display: none;">
+            <button class="toggle-btn" data-mode="timeline">By Quarter/Year</button>
+            <button class="toggle-btn" data-mode="stage">By Stage</button>
+          </div>
+          <!-- Deal List will be populated by JavaScript -->
+          <div id="deal-list-container">
+            <!-- Loading state -->
+            <div class="loading">
+              <div class="loading-spinner"></div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Leaflet.js for maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- domo.js optional utils -->
+    <script src="https://unpkg.com/ryuu.js@4.6.0/dist/domo.js" integrity="sha384-YYsd9wQ+wDlUWhvpfGdptxmNYIqBC+52oJtWgPKJadbs3sSFTY/+ZotPbEHTTRWz" crossorigin="anonymous"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

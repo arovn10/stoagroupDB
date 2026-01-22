@@ -1,0 +1,1102 @@
+gid,assignee_gid,assignee_resource_type,assignee_status,completed,completed_at,created_at,due_at,due_on,hearted,modified_at,name,notes,num_hearts,parent,workspace_gid,workspace_resource_type,project_id,assignee,parent_gid,parent_resource_type,_BATCH_ID_,_BATCH_LAST_RUN_
+1207745310135146,,,upcoming,false,,2024-07-05 14:23:11,,,false,2025-10-06 12:09:59,Silver Oaks,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207745312612836,,,upcoming,false,,2024-07-05 14:24:19,,,false,2025-10-06 12:10:01,The Heights at Hammond,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207745312612839,,,upcoming,false,,2024-07-05 14:24:31,,,false,2025-10-06 12:10:02,Sweetwater,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207745312612842,,,upcoming,false,,2024-07-05 14:24:46,,,false,2025-10-06 12:10:04,The Waters at Southpark,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207745312612845,,,upcoming,false,,2024-07-05 14:24:58,,,false,2025-10-06 12:10:22,Dawson Park,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207745312612848,,,upcoming,false,,2024-07-05 14:25:05,,,false,2025-10-06 12:10:24,The Waters at Hammond,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207745312612851,,,upcoming,false,,2024-07-05 14:25:17,,,false,2025-10-06 12:10:26,The Waters at Manhattan,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207745312612927,,,upcoming,false,,2024-07-05 14:53:07,,,false,2025-10-06 12:10:27,The Waters at Ransley,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207745312612854,,,upcoming,false,,2024-07-05 14:26:03,,,false,2025-06-27 15:06:56,The Waters at Heritage,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207745312612858,,,upcoming,false,,2024-07-05 14:27:12,,,false,2025-06-27 15:06:57,The Waters at Millerville,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207745312612862,,,upcoming,false,,2024-07-05 14:27:33,,,false,2025-06-27 15:06:58,The Waters at Redstone,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207745312612865,,,upcoming,false,,2024-07-05 14:27:46,,,false,2025-06-27 15:06:59,The Waters at Settler's Trace,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207745312612869,,,upcoming,false,,2024-07-05 14:28:13,,,false,2025-10-06 12:10:13,The Flats at East Bay,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207757865676051,,,upcoming,false,,2024-07-08 14:23:49,,2023-01-31,false,2025-06-27 15:07:03,Start 1,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207745312612873,,,upcoming,false,,2024-07-05 14:28:37,,,false,2025-06-27 15:07:04,The Waters at West Village,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207757865676055,,,upcoming,false,,2024-07-08 14:24:10,,2023-03-24,false,2025-06-27 15:07:05,Start 2,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207745312612875,,,upcoming,false,,2024-07-05 14:28:44,,,false,2025-06-27 15:07:06,The Waters at Bluebonnet,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207757865676059,,,upcoming,false,,2024-07-08 14:24:37,,2023-05-31,false,2025-06-27 15:07:06,Start 3,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207745312612880,,,upcoming,false,,2024-07-05 14:29:04,,,false,2025-06-27 15:07:07,The Waters at Crestview,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207757865676063,,,upcoming,false,,2024-07-08 14:25:04,,2023-08-01,false,2025-06-27 15:07:08,Start 4,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207745312612884,,,upcoming,false,,2024-07-05 14:29:46,,,false,2025-06-27 15:07:09,The Heights at Picardy,4-Story,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207757865676067,,,upcoming,false,,2024-07-08 14:25:38,,2024-01-25,false,2025-06-27 15:07:10,Start 1,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207541673223774,,,upcoming,false,,2024-06-11 13:56:21,,,false,2025-06-27 15:07:11,The Waters at McGowin,"Base
+Mobile, AL",0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207757865676071,,,upcoming,false,,2024-07-08 14:25:58,,2024-04-15,false,2025-06-27 15:07:15,Start 2,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207541673223819,,,upcoming,false,,2024-06-11 14:11:32,,,false,2025-06-27 15:07:16,The Waters at Freeport,"Location: Freeport, FL
+Closing: 9/15/2023
+Price: $8,900,000.00
+Sq. Ft. Price: $12.50
+Units: 226
+Acreage: 16.35",0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207757865676075,,,upcoming,false,,2024-07-08 14:26:17,,2024-07-15,false,2024-07-25 09:45:57,Start 3,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207541673223845,,,upcoming,false,,2024-06-11 14:14:04,,,false,2024-09-23 10:29:29,The Heights at Waterpointe,"Location: Flowood, MS
+Closing: 4/9/2024
+Price: $3,700,000.00
+Sq. Ft. Price: $26.06
+Units: 240
+Acreage: 3.26 + Parking Garage",0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207757865676079,,,upcoming,false,,2024-07-08 14:26:39,,2024-09-15,false,2024-07-26 10:26:12,Start 4,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207541673223865,,,upcoming,false,,2024-06-11 14:15:19,,2024-07-31,false,2025-01-02 10:48:22,The Waters at Promenade,"Location: Harvey, LA
+Closing: 7/31/2024
+Price: $4,256,000.00
+Sq. Ft Price: $7.97
+Units: 324
+Acres: 12.26",0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207757865676083,,,upcoming,false,,2024-07-08 14:26:59,,2024-11-15,false,2024-07-26 10:26:32,Start 5,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207541673223882,,,upcoming,false,,2024-06-11 14:17:09,,,false,2025-01-02 10:48:25,The Flats at Ransley,"Location: Pensacola, FL
+Closing: 8/25/2023
+Price: $5,104,361.00
+Sq. Ft. Price: $10.50
+Units: 294
+Acres: 11.16",0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207757865676087,,,upcoming,false,,2024-07-08 14:27:17,,2025-01-15,false,2024-07-26 10:27:00,Start 1,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207541673223889,,,upcoming,false,,2024-06-11 14:18:36,,,false,2025-12-30 09:13:41,The Heights at Materra,"Location: Baton Rouge, LA
+Closing: 4/19/2024
+Price: $5,608,726.00
+Sq. Ft. Price:
+Units: 294
+Acreage: 8",0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207757865676091,,,upcoming,false,,2024-07-08 14:27:39,,2025-03-15,false,2024-07-26 10:27:12,Start 2,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207541673223900,,,upcoming,false,,2024-06-11 14:19:26,,,false,2025-08-08 08:28:22,The Waters at Crosspointe,"Columbia, SC",0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207757865676099,,,upcoming,false,,2024-07-08 14:28:04,,2025-05-15,false,2024-07-26 10:27:32,Start 3,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207541673223907,,,upcoming,false,,2024-06-11 14:20:26,,,false,2025-12-30 09:14:59,The Heights at Inverness,"Location: Birmingham, AL
+Closing: 30 days after Due Diligence Period expires
+Price: $6,750,000.00
+Sq. Ft. Price: $11.92
+Units: 289
+Acres: approx. 13",0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207757865676103,,,upcoming,false,,2024-07-08 14:28:36,,2025-08-15,false,2024-07-26 10:27:46,Start 4,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1208537819259246,,,upcoming,false,,2024-10-25 15:30:43,,,false,2025-12-30 09:15:25,The Waters at Conway,"Location: Gonzales, LA
+Closing: 30 days after Due Diligence Period expires
+Price: $5,000,000.00
+Sq. Ft. Price: $5.72
+Units: 312
+Acres: 20.08",0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207757865676107,,,upcoming,false,,2024-07-08 14:29:47,,2025-10-15,false,2024-07-26 10:27:57,Start 5,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207541673223910,,,upcoming,false,,2024-06-11 14:21:28,,2025-06-30,false,2025-12-30 09:15:46,The Waters at Covington,"Location: Covington, LA
+Closing: At Permits
+Price: $3,588,473.00
+Sq. Ft. Price: $6.00
+Units: 348
+Acres: 13.73",0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207757865676111,,,upcoming,false,,2024-07-08 14:30:06,,2025-12-15,false,2024-07-26 10:28:10,Start 6,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207757865676016,,,upcoming,false,,2024-07-08 14:20:01,,2026-04-15,false,2025-11-19 15:15:24,Start 1 Gulf Coast,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1210581478251901,,,upcoming,false,,2025-06-18 07:28:02,,,false,2025-12-30 09:26:05,The Heights at Fort Walton Beach,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207757865676019,,,upcoming,false,,2024-07-08 14:20:33,,2026-01-19,false,2026-01-05 07:12:16,Start 1 Carolinas,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207745312612904,,,upcoming,false,,2024-07-05 14:34:27,,2026-01-19,false,2026-01-05 07:16:28,The Waters at Robinwood,"Location: Charlotte, NC
+Closing: September 5
+Price: $4,867,500
+Sq. Ft. Price: $4.16
+Units: 288
+Acres: 26.84",0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207757865676024,,,upcoming,false,,2024-07-08 14:20:50,,2026-06-15,false,2025-11-19 15:15:40,Start 2 Gulf Coast,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1211442037037478,,,upcoming,false,,2025-09-23 12:21:33,,,false,2026-01-02 08:31:44,The Waters at Sweetbay,"Panama City, FL",0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207757865676027,,,upcoming,false,,2024-07-08 14:21:01,,2026-03-18,false,2026-01-05 07:16:04,Start 2 Carolinas,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1210174521957464,,,upcoming,false,,2025-05-06 11:17:42,,,false,2026-01-05 07:12:39,The Waters at Greenville,"Greenville, NC
+
+Current address is: 2931 Radio Station Rd Greenville, NC 27834. 
+
+The property is an assemblage of 3 separate parcels. ",0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207757865676030,,,upcoming,false,,2024-07-08 14:21:18,,2026-07-15,false,2025-11-19 15:15:54,Start 3 Gulf Coast,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1208537819259248,,,upcoming,false,,2024-10-25 15:33:52,,2026-01-15,false,2025-12-30 09:26:27,The Waters at Bartlett,"Location: Bartlett, TN
+Closing: The later of January 15, 2026 or within 10 days of receiving construction permits
+Price: $4,000,000
+Sq. Ft. Price: $3.67
+Units: 312
+Acres: +/-25
+Extension of Inspection Period: Purchaser shall have the option to extend the Initial Inspection Period for two sixty (60) day periods upon the following terms: (i) Purchaser must deliver written notice of the first such extension to Seller prior to the expiration of the Initial Inspection Period, and notice of the second such extension to Seller prior to the expiration of the first Extension Period, and (ii) Purchaser must deposit additional earnest money with Escrow Agent in the amount of Twenty Five Thousand and No/100 Dollars ($25,000.00) (the “Additional Deposits”), prior to the commencement of each Extension Period. The Additional Deposit shall be non-refundable when made, subject to a default by Seller, but the Additional Deposit shall be applicable to the Purchase Price.",0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207757865676033,,,upcoming,false,,2024-07-08 14:21:32,,2026-08-01,false,2026-01-05 07:13:03,Start 3 Carolinas,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1210581478251910,,,upcoming,false,,2025-06-18 07:29:00,,,false,2026-01-05 07:12:42,The Waters at Fayetteville,"Fayetteville, NC
+
+The current address is 7563 Raeford Fayetteville NC 28304",0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207757865676036,,,upcoming,false,,2024-07-08 14:21:48,,2026-10-15,false,2025-11-19 15:16:15,Start 4 Gulf Coast,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207541673223917,,,upcoming,false,,2024-06-11 14:22:18,,2025-08-21,false,2026-01-05 17:20:03,The Waters at OWA,"Location: Foley, AL
+Closing: 30 days after expiration of Inspection Period
+Price: $2,012,472
+Sq. Ft. Price: Subject to adjustment pending actual square footage of land — $2.20 per square foot of land
+Units: 324
+Acres: +/- 21",0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207757865676039,,,upcoming,false,,2024-07-08 14:22:11,,2026-11-16,false,2026-01-05 07:14:03,Start 4 Carolinas,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1208537819259247,,,upcoming,false,,2024-10-25 15:31:30,,,false,2026-01-05 07:13:10,The Waters at New Bern,"New Bern, NC
+
+The current address is 3610 M L King JR Blvd New Bern, NC 28562",0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1210581475723334,,,upcoming,false,,2025-06-18 07:25:49,,2027-01-15,false,2025-11-19 15:57:03,Start 1 Gulf Coast,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1208537819259250,,,upcoming,false,,2024-10-25 15:34:29,,2026-03-24,false,2025-12-04 11:15:15,The Flats at Cahaba Valley,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1210581475723336,,,upcoming,false,,2025-06-18 07:26:34,,2027-02-15,false,2026-01-05 07:15:26,Start 1 Carolinas,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1208537819259249,,,upcoming,false,,2024-10-25 15:34:09,,,false,2026-01-05 07:14:12,The Flats at Lake Murray,"Irmo, SC
+
+All parcels will technically be in Columbia, SC following annexation. 
+
+The property address is currently 450 Lake Murray Blvd, Irmo, SC 29063
+
+The property is an assemblage of 5 parcels. ",0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1210581475723338,,,upcoming,false,,2025-06-18 07:26:52,,2027-04-15,false,2025-11-19 15:57:09,Start 2 Gulf Coast,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1210581475723340,,,upcoming,false,,2025-06-18 07:27:03,,2027-06-01,false,2025-11-19 15:57:14,Start 2 Carolinas,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1210581478251904,,,upcoming,false,,2025-06-18 07:28:42,,,false,2026-01-05 17:22:46,The Waters at High Point,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1210581475723342,,,upcoming,false,,2025-06-18 07:27:14,,2027-07-15,false,2025-11-19 15:57:20,Start 3 Gulf Coast,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1210581475723344,,,upcoming,false,,2025-06-18 07:27:25,,2027-09-01,false,2025-11-19 15:57:24,Start 3 Carolinas,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1207906700131713,,,upcoming,false,,2024-07-26 10:20:54,,2025-04-15,false,2026-01-05 07:14:19,The Waters at Southpoint,"Location: Hardeeville, SC
+Closing: 30 days after expiration of Inspection Period
+Price: $7,920,000.00
+Sq. Ft. Price: $10.25
+Units: 288
+Acreage: 17.733",0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1210581478251916,,,upcoming,false,,2025-06-18 07:29:21,,,false,2025-06-18 07:29:28,NC/SC #3,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1210581475723346,,,upcoming,false,,2025-06-18 07:27:39,,2027-10-15,false,2025-11-19 15:57:28,Start 4 Gulf Coast,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1210581475723348,,,upcoming,false,,2025-06-18 07:27:49,,2027-12-01,false,2025-11-19 15:57:31,Start 4 Carolinas,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1210581478251922,,,upcoming,false,,2025-06-18 07:29:39,,,false,2025-06-18 07:29:56,NC/SC #4,,0,,543185907056595,workspace,1207455912614114,,,,112.0,2026-01-06 09:59:56
+1209469754941314,1209371954135547,user,inbox,false,,2025-02-21 18:06:17,,,false,2025-12-22 16:37:32,Carport Solar,"Hey Michael,
+ 
+Following our brief discussion about the carports, I wanted to share an idea—has anyone explored installing solar panels on them through an Energy Service Agreement (ESA)? If not, I’d be happy to look into the feasibility and model potential returns.
+ 
+An ESA wouldn’t require any upfront capital investment. The provider covers the cost of equipment and installation, and in return, charges a rate that’s typically 10-40% lower than local electricity costs. This could be a creative way to reduce house meter expenses while also lowering electricity costs for vacant units, which often add up over time.
+ 
+Would you be open to me researching this further? Also, do you have an estimate of how much the properties currently spend on house meter electricity and vacant unit utilities each month or annually? That information would help assess the potential savings.
+ 
+Looking forward to your thoughts.",0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1212154370368451,1207957399163090,user,inbox,false,,2025-11-25 12:30:05,,2025-12-31,false,2025-12-31 00:00:54,Create Lender Tracker,"For insurance, I'd like to create something that we can reference for Bank needs with regards to limits, deductibles, coverages, etc.",0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1210391768325869,1209371954135547,user,inbox,true,2025-10-28 14:53:38,2025-05-28 11:43:28,,2025-10-27,false,2025-10-31 09:35:53,[Converted to project] Portfolio Dashboard Re-Formatting,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1209611628845404,1209371954135547,user,inbox,false,,2025-03-07 14:04:32,,2025-10-31,false,2025-09-24 11:46:21,Carport Leasing Analysis,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1209611628845408,1209371954135547,user,inbox,false,,2025-03-07 14:05:12,,2025-10-31,false,2025-09-23 11:36:55,Fenced Patios,"I want to look at all of our current deals and see which ones have the space for potentially adding in some fenced yards to add green space to the units. We will need to pick a project or 2 to test pilot, but will need to look into costs and see if we can find any comps to see what premium is there.",0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1210767860153649,1209371954135547,user,inbox,false,,2025-07-10 14:49:23,,2025-12-31,false,2025-12-12 16:45:47,Update Model Template Insurance,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1210989452510365,1209371954135547,user,inbox,false,,2025-08-06 15:40:23,,2025-11-21,false,2025-11-18 12:23:29,Add tracker for additional loan proceeds or guarantee burndowns,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1211868309844630,1209371954135547,user,inbox,false,,2025-11-06 13:57:11,,2025-11-14,false,2025-12-30 09:36:06,"Add ROE into each deal model, including templates, also add to portfolio dashboard",,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1212367804505678,1209371954135547,user,inbox,false,,2025-12-09 17:43:25,,2026-01-12,false,2025-12-29 09:25:14,Model Updates for Owners Books,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1212367804523707,1209371954135547,user,inbox,false,,2025-12-09 17:43:23,,2025-12-15,false,2025-12-09 17:43:23,Portfolio Dashboard/Banking Spreadsheet Monthly Review,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1212606741480124,1207957399163090,user,inbox,false,,2025-12-29 09:25:05,,2026-01-12,false,2025-12-29 09:25:14,Owners Books/Construction Update Review,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1212153078699327,1209371954135547,user,inbox,false,,2025-11-25 15:15:54,,2026-10-01,false,2025-11-25 15:16:42,Amor Fati Insurance Reimbursement,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1212153078699330,,,upcoming,false,,2025-11-25 15:16:29,,,false,2025-11-25 15:16:31,,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1212619790609320,1209371954135547,user,inbox,true,2026-01-05 14:18:00,2026-01-02 08:42:40,,2026-01-05,false,2026-01-05 14:18:02,Bluebonnet Capital Call - Update IMS and model,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1212611469286403,1209371954135547,user,inbox,true,2025-12-30 09:35:46,2025-12-29 15:42:23,,2025-12-30,false,2025-12-30 09:35:48,Follow up on Stoa- Mcgowin capital call complete.,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1212362951701406,1209371954135547,user,inbox,true,2025-12-29 09:25:20,2025-12-09 17:43:22,,2025-12-12,false,2025-12-29 09:25:22,Owners Books/Construction Update Review,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1212367809470822,1207957399163090,user,inbox,true,2025-12-29 09:25:04,2025-12-09 17:43:46,,2025-12-12,false,2025-12-29 09:25:06,Owners Books/Construction Update Review,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1211775310515526,1207957399163090,user,inbox,true,2025-12-09 17:43:46,2025-10-28 14:45:21,,2025-11-12,false,2025-12-09 17:43:47,Owners Books/Construction Update Review,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1211775853539762,1209371954135547,user,inbox,true,2025-12-09 17:43:22,2025-10-28 15:43:58,,2025-11-15,false,2025-12-09 17:43:24,Portfolio Dashboard/Banking Spreadsheet Monthly Review,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1211775298912584,1209371954135547,user,inbox,true,2025-12-09 17:43:22,2025-10-28 14:45:19,,2025-11-12,false,2025-12-09 17:43:25,Owners Books/Construction Update Review,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1211825657544576,1209371954135547,user,inbox,true,2025-11-21 09:14:02,2025-11-04 09:12:48,,2025-11-14,false,2025-11-21 09:14:05,Update Millerville IMS with equity sales,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1211775311722835,1209371954135547,user,inbox,true,2025-11-19 12:08:21,2025-10-29 12:02:48,,2025-11-21,false,2025-11-19 12:08:24,"Edit ""Clear Pref?"" Formula in all existing models and templates","Currently the formula only accounts for the pref EM hurdle. It probably needs to be edited to see if there are inflows beyond ""Refi_Close""",0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1211775311722838,1209371954135547,user,inbox,true,2025-11-19 12:08:19,2025-10-29 13:49:51,,2025-11-21,false,2025-11-19 12:08:21,Determine better way to structure Refi Cap Rate vs Sale Cap Rate in all models,"They are based on different NOIs which probably isn't accurate. Also don't want my projected refinances being bogged down by high cap rates, when the appraisals are coming in higher than reality.",0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1211775311722841,1209371954135547,user,inbox,true,2025-11-10 13:41:54,2025-10-29 14:00:39,,2025-11-07,false,2025-11-10 13:41:56,Add more years to all the models to avoid fall offs in value at exit,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1211775311722832,1209371954135547,user,inbox,true,2025-11-03 14:41:31,2025-10-28 14:47:49,,2025-10-31,false,2025-11-03 14:41:33,Confirm all models match existing absorption schedules ,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1211480313661263,1209371954135547,user,inbox,true,2025-10-28 15:43:57,2025-09-26 11:38:07,,2025-10-15,false,2025-10-28 15:43:59,Portfolio Dashboard/Banking Spreadsheet Monthly Review,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1211582167742941,1207957399163090,user,inbox,true,2025-10-28 14:45:20,2025-10-07 16:36:03,,2025-10-12,false,2025-10-28 14:45:21,Owners Books/Construction Update Review,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1211775311325415,1209371954135547,user,inbox,true,2025-10-28 14:45:18,2025-10-28 14:45:13,,2025-10-12,false,2025-10-28 14:45:20,Owners Books/Construction Update Review,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1211211799044244,1209371954135547,user,inbox,true,2025-10-28 14:45:11,2025-09-02 10:53:42,,2025-09-12,false,2025-10-28 14:45:13,Owners Books/Construction Update Review,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1211582271063974,1207957399163090,user,inbox,true,2025-10-07 16:36:01,2025-10-07 16:35:03,,2025-09-12,false,2025-10-07 16:36:03,Owners Books/Construction Update Review,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1211433016994200,1207957399163090,user,inbox,true,2025-10-07 16:35:02,2025-09-22 15:24:04,,2025-08-12,false,2025-10-07 16:35:04,Owners Books/Construction Update Review,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1211455732092269,1209371954135547,user,inbox,true,2025-10-06 14:15:22,2025-09-24 15:25:02,,2025-10-06,false,2025-10-06 14:15:24,Update Inverness Stabilized Model,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1211454566843697,1209371954135547,user,inbox,true,2025-09-26 11:38:06,2025-09-24 09:04:33,,2025-09-15,false,2025-09-26 11:38:08,Portfolio Dashboard/Banking Spreadsheet Monthly Review,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1211454442326296,1209371954135547,user,inbox,true,2025-09-24 09:04:31,2025-09-24 08:57:26,,2025-08-15,false,2025-09-24 09:04:33,Portfolio Dashboard/Banking Spreadsheet Monthly Review,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1210734716282647,1209371954135547,user,inbox,true,2025-09-24 08:57:25,2025-07-07 16:34:19,,2025-07-15,false,2025-09-24 08:57:27,Portfolio Dashboard/Banking Spreadsheet Monthly Review,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1210734580278793,1207957399163090,user,inbox,true,2025-09-22 15:24:03,2025-07-07 16:34:42,,2025-07-14,false,2025-09-22 15:24:04,Owners Books/Construction Update Review,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1210794970381930,1209371954135547,user,today,true,2025-09-02 10:53:41,2025-07-14 16:38:57,,2025-08-12,false,2025-09-02 10:53:44,Owners Books/Construction Update Review,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1210336270367173,1209371954135547,user,inbox,true,2025-09-02 10:50:40,2025-05-21 14:54:14,,2025-06-20,false,2025-09-02 10:50:43,double check heights at inverness stabilized model ,,0,,543185907056595,workspace,1209352871329510,,1210336266016614,task,112.0,2026-01-06 09:59:56
+1210752841959530,1209371954135547,user,inbox,true,2025-08-19 13:19:14,2025-07-10 09:17:59,,2025-08-31,false,2025-08-19 13:19:16,"Create a way to run sale and refi scenarios at the same time, if possible",,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1210767860153647,1209371954135547,user,inbox,true,2025-08-08 08:47:01,2025-07-10 14:49:04,,2025-07-31,false,2025-08-08 08:47:02,Update Model Template to SOFR + 3.00%,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1210989452510362,1209371954135547,user,inbox,true,2025-08-07 14:03:41,2025-08-06 15:40:01,,2025-08-15,false,2025-08-07 14:03:42,Update Materra in IMS,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1210354490104776,1209371954135547,user,inbox,true,2025-08-07 14:01:37,2025-05-22 09:42:16,,2025-07-11,false,2025-08-07 14:01:38,DSCR & FCF Tracking - Add to Portfolio Dashboard and models,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1210848405248057,1209371954135547,user,inbox,true,2025-07-22 10:53:46,2025-07-21 13:38:22,,2025-08-15,false,2025-07-22 10:53:47,Automate Hold/Sale in Models,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1210403604098887,1209371954135547,user,today,true,2025-07-14 16:38:56,2025-05-28 11:37:14,,2025-07-14,false,2025-07-14 16:38:57,Owners Books/Construction Update Review,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1210734580545504,1207957399163090,user,inbox,true,2025-07-07 16:34:42,2025-07-07 16:34:37,,2025-06-12,false,2025-07-07 16:34:43,Owners Books/Construction Update Review,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1209785692879640,1207957399163090,user,today,true,2025-07-07 16:34:36,2025-03-25 09:53:30,,2025-05-09,false,2025-07-07 16:34:37,Owners Books/Construction Update Review,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1210345779460375,1209371954135547,user,today,true,2025-07-07 16:34:18,2025-05-21 13:14:05,,2025-06-15,false,2025-07-07 16:34:19,Portfolio Dashboard/Banking Spreadsheet Monthly Review,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1210345776636656,1209371954135547,user,today,true,2025-07-07 16:34:05,2025-05-21 13:13:45,,2025-06-12,false,2025-07-07 16:34:06,Owners Books/Construction Update Review,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1210392157206018,1209371954135547,user,inbox,true,2025-05-29 08:48:33,2025-05-27 13:14:59,,2025-05-29,false,2025-07-07 09:37:31,Finalize Materra Stabilized Model,https://app.asana.com/1/543185907056595/task/1210336270367160?focus=true,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1210336270367160,1207957394937659,user,inbox,true,2025-05-27 13:16:23,2025-05-21 10:38:55,,,false,2025-05-27 13:16:23,Review Materra Stabilized Model,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1210336270367152,1209371954135547,user,inbox,true,2025-05-27 12:06:55,2025-05-20 16:15:00,,,false,2025-07-07 09:37:31,Make sure all under contract models are 85% LTC,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1210336270367145,1209371954135547,user,inbox,true,2025-05-21 14:56:01,2025-05-20 16:14:35,,,false,2025-07-07 09:00:40,Add over/under column,Add column in property dashboard that will show the over/under on total project cost,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1210336266016614,1209371954135547,user,inbox,true,2025-05-27 11:30:40,2025-05-20 16:13:05,,,false,2025-07-07 09:37:30,Inverness - Under Construction,Move heights at inverness to stabilized model (under construction) and change status on property dashboard,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1209611628845399,1209371954135547,user,inbox,true,2025-03-17 14:38:27,2025-03-07 13:59:47,,2025-03-19,false,2025-06-25 10:04:08,Update all project models with updated HUD Guidance of 1.15x DSCR,We can get together to go over what I am looking for here.,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1210346001579222,1209371954135547,user,today,true,2025-05-21 13:14:04,2025-05-21 13:12:35,,2025-05-15,false,2025-07-07 09:37:29,Portfolio Dashboard/Banking Spreadsheet Monthly Review,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1210346001639243,1209371954135547,user,today,true,2025-05-21 13:13:44,2025-05-21 13:12:57,,2025-05-12,false,2025-07-07 09:37:29,Owners Books/Construction Update Review,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1209669733775781,1209371954135547,user,today,true,2025-05-21 13:12:56,2025-03-13 09:35:44,,2025-04-12,false,2025-07-07 09:37:30,Owners Books/Construction Update Review,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1209706192392770,1209371954135547,user,inbox,true,2025-05-21 13:12:52,2025-03-17 14:48:29,,,false,2025-07-07 09:37:30,Update Preferred Equity Leverage on new deals,,0,,543185907056595,workspace,1209352871329510,,1209611628845399,task,112.0,2026-01-06 09:59:56
+1209706255783073,1209371954135547,user,today,true,2025-05-21 13:12:34,2025-03-17 15:08:21,,2025-04-15,false,2025-07-07 09:37:31,Portfolio Dashboard/Banking Spreadsheet Monthly Review,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1210336270367139,1209371954135547,user,inbox,true,2025-05-21 11:17:10,2025-05-20 16:13:51,,,false,2025-07-07 09:37:30,Robinwood up to Pre-con,move robinwood to pre-construction in property dashboard,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1210336266016605,1209371954135547,user,inbox,true,2025-05-21 10:07:38,2025-05-20 16:11:34,,,false,2025-07-07 09:37:30,Move Heritage to Liquidated,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1209611628845389,1207957399163090,user,inbox,true,2025-03-20 11:00:53,2025-03-07 13:53:23,,2025-03-19,false,2025-03-20 11:00:53,Conway Bank Package,Conway Bank Package - Need to get started on this one.,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1209615286712230,1209371954135547,user,inbox,true,2025-03-13 09:35:43,2025-03-07 15:25:04,,2025-03-12,false,2025-06-25 10:04:39,Owners Books/Construction Update Review,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1209371702866476,1209371954135547,user,inbox,true,2025-02-19 10:19:47,2025-02-10 16:09:44,,2025-02-19,false,2025-06-25 10:03:02,Rent Vs Own ,"From: Toby Easterly <teasterly@stoagroup.com>
+
+Sent: Wednesday, January 29, 2025 9:18 AM
+
+To: Michael Murray <mmurray@stoagroup.com>
+
+Subject:
+
+What would be the best way to take each of our MF sites and do an affordability comparison to homeownership in its immediate area?
+
+Toby",0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1209371768829140,1209371954135547,user,inbox,true,2025-03-13 11:44:40,2025-02-10 20:10:41,,2025-03-14,false,2025-07-07 09:37:30,Monthly Reporting,"We need to create a report that can be generated monthly that provides high-level details on property performance:
+    Rents
+    Rent Growth
+    Tradeouts
+    Occupancy
+    Comparison vs T3/T6/T12
+
+Broken out by State/Region",0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1209439451839981,,,inbox,true,2025-03-07 13:48:14,2025-02-18 20:56:12,,2025-03-14,false,2025-09-22 13:22:53,Create Banking Spreadsheet,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1209353077779324,1207957399163090,user,inbox,true,2025-03-07 13:58:49,2025-02-07 10:55:45,,2025-02-19,false,2025-03-07 13:58:49,Owners Books - January,"From: Melissa Sims <msims@stoagroup.com>
+
+Sent: Friday, January 10, 2025 12:13 PM
+
+To: Jenny Miller <jmiller@stoagroup.com>; Michael Murray <mmurray@stoagroup.com>
+
+Subject: Owners Book samples
+
+Good Afternoon,
+
+Sample 1 still has an Exec Summary (but I removed Marketing Updates/etc.) that is 1 page and I added the Marketing Calendar instead.
+Sample 2 has Cover Page, Table of Contents, Reports, and Marketing Calendar.
+
+These took me maybe 35 minutes, either would be easier for us as we grow, Sample 2 would be the easiest since they really don’t have that much to input.",0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1209611628845416,1209371954135547,user,inbox,true,2025-03-17 15:08:21,2025-03-07 15:26:11,,2025-03-15,false,2025-07-07 09:37:29,Portfolio Dashboard/Banking Spreadsheet Monthly Review,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1209611628845412,1207957399163090,user,inbox,true,2025-03-25 09:53:29,2025-03-07 14:22:42,,2025-03-19,false,2025-03-25 09:53:29,Owners Books/Construction Update Review,,0,,543185907056595,workspace,1209352871329510,,,,112.0,2026-01-06 09:59:56
+1210082112808158,,,upcoming,true,2025-04-25 14:38:43,2025-04-25 14:29:32,,,false,2025-04-25 14:39:13,Realpage Support Case-Information Request,"SF14702917 
+
+Case Number^",0,,543185907056595,workspace,1209885815837939,,,,112.0,2026-01-06 09:59:56
+1209931134191057,1209411977656995,user,inbox,true,2025-04-16 14:56:51,2025-04-08 15:57:43,,2025-04-16,false,2025-05-07 14:23:20,Reach out to OneTrust CMP ,Waiting on call for privacy policy use suggestions.,0,,543185907056595,workspace,1209885815837939,,,,112.0,2026-01-06 09:59:56
+1210006817840796,,,upcoming,true,2025-04-17 14:47:24,2025-04-17 14:47:05,,,false,2025-04-17 14:47:24,Meeting with Max Druhot 4/17 2:30 Pm,,0,,543185907056595,workspace,1209885815837939,,,,112.0,2026-01-06 09:59:56
+1210006817840798,,,upcoming,true,2025-04-25 14:05:23,2025-04-17 14:47:23,,,false,2025-04-25 14:05:23,PRODUCT CALL 4/23 1PM for Webflow Site- with Xavier,,0,,543185907056595,workspace,1209885815837939,,,,112.0,2026-01-06 09:59:56
+1210082111353236,1209411977656995,user,inbox,true,2025-05-19 16:11:51,2025-04-25 14:05:25,,2025-05-16,false,2025-05-20 09:23:43,Proof Rough Draft,"Intention is to finish drafting with all sources and MLA/AMA edits after hours on Wednesday May 14th evening**
+
+
+This is done but on my personal computer- will update you soon so we can get it on g5 https://app.asana.com/0/profile/1208151571108147
+
+",0,,543185907056595,workspace,1209885815837939,,,,112.0,2026-01-06 09:59:56
+1210082112808160,1209411977656995,user,inbox,true,2025-04-29 17:01:41,2025-04-25 14:39:31,,2025-04-30,false,2025-05-07 14:23:09,Draft,,0,,543185907056595,workspace,1209885815837939,,,,112.0,2026-01-06 09:59:56
+1210630224384465,,,upcoming,false,,2025-06-25 09:36:34,,,false,2025-06-25 13:50:47,Key Parties,"Lender:
+    B1Bank
+    Gregory Pogue gregory.pogue@b1bank.com 
+
+Lender Counsel:
+    Jacques Waguespack jacques@alexandersides.com 
+
+Borrower Counsel:
+    Britain Sledge
+
+Title Company:
+    Pascal Title - Britain Sledge
+
+Investors:
+    Jeannette Thomason
+
+Investor Counsel:
+    David Guidry davidguidry@dsldhomes.com 
+",0,,543185907056595,workspace,1210630224384453,,,,112.0,2026-01-06 09:59:56
+1210630224384469,,,upcoming,false,,2025-06-25 09:36:45,,,false,2025-09-07 14:56:31,Term Sheets/Commitment Letters,,0,,543185907056595,workspace,1210630224384453,,,,112.0,2026-01-06 09:59:56
+1210752839114931,,,upcoming,false,,2025-07-09 10:35:04,,,false,2025-07-09 10:35:23,Bank Package,,0,,543185907056595,workspace,1210630224384453,,,,112.0,2026-01-06 09:59:56
+1210752841959520,,,upcoming,false,,2025-07-09 15:16:51,,,false,2025-07-09 15:17:35,Org Chart,,0,,543185907056595,workspace,1210630224384453,,,,112.0,2026-01-06 09:59:56
+1210640102919840,1207957399163090,user,today,true,2025-06-25 09:32:10,2025-06-25 09:30:33,,2025-03-21,false,2025-06-25 09:32:10,Create Bank Package,,0,,543185907056595,workspace,1210630224384453,,,,112.0,2026-01-06 09:59:56
+1210640102919848,1207957394937659,user,inbox,true,2025-06-25 13:27:43,2025-06-25 09:30:33,,2025-04-11,false,2025-06-25 13:27:43,Create Initial IMS Project,,0,,543185907056595,workspace,1210630224384453,,,,112.0,2026-01-06 09:59:56
+1210640102919856,1207957399163090,user,today,true,2025-08-08 14:11:01,2025-06-25 09:30:34,,2025-06-25,false,2025-08-08 14:11:01,Upload Initial Due Diligence Docs,https://stoaholdings.sharepoint.com/:f:/g/Eg7nl0HvIClJrVcuSUzyhzUBAX48xU8dCd-WwocTmYhTkg?e=o4Mbse,0,,543185907056595,workspace,1210630224384453,,,,112.0,2026-01-06 09:59:56
+1210639839618398,1207957394937659,user,inbox,true,2025-06-25 09:32:23,2025-06-25 09:30:40,,2025-04-11,false,2025-06-25 09:32:23,Select Bank,,0,,543185907056595,workspace,1210630224384453,,,,112.0,2026-01-06 09:59:56
+1210639839618406,1207957394937659,user,inbox,true,2025-06-25 09:32:25,2025-06-25 09:30:40,,2025-04-11,false,2025-06-25 09:32:25,Select Investors,,0,,543185907056595,workspace,1210630224384453,,,,112.0,2026-01-06 09:59:56
+1210639839719314,1207957394937659,user,inbox,true,2025-06-25 09:32:28,2025-06-25 09:30:41,,2025-04-11,false,2025-06-25 09:32:28,Finalize Deal Structure and Org Chart,,0,,543185907056595,workspace,1210630224384453,,,,112.0,2026-01-06 09:59:56
+1210640102983343,1207957394937659,user,inbox,true,2025-06-25 09:31:54,2025-06-25 09:30:34,,2025-05-23,false,2025-06-25 09:31:54,Schedule Kick-off Call,,0,,543185907056595,workspace,1210630224384453,,,,112.0,2026-01-06 09:59:56
+1210639839719323,1207957399163090,user,today,true,2025-08-08 14:11:16,2025-06-25 09:30:42,,2025-07-03,false,2025-08-08 14:11:16,Upload Detailed Due Diligence Items,,0,,543185907056595,workspace,1210630224384453,,,,112.0,2026-01-06 09:59:56
+1210639837860255,1207957394937659,user,inbox,true,2025-07-09 10:30:07,2025-06-25 09:30:39,,2025-06-27,false,2025-07-09 10:30:08,Receive Bank Term Sheet,,0,,543185907056595,workspace,1210630224384453,,,,112.0,2026-01-06 09:59:56
+1210639839797132,1207957394937659,user,inbox,true,2025-07-17 15:03:31,2025-06-25 09:30:42,,2025-07-11,false,2025-07-17 15:03:31,Approve Bank Term Sheet,,0,,543185907056595,workspace,1210630224384453,,,,112.0,2026-01-06 09:59:56
+1210640067916567,1207957394937659,user,inbox,true,2025-06-25 09:32:45,2025-06-25 09:30:45,,2025-05-23,false,2025-06-25 09:32:46,Receive Investor Term Sheet,,0,,543185907056595,workspace,1210630224384453,,,,112.0,2026-01-06 09:59:56
+1210640067916575,1207957394937659,user,inbox,true,2025-06-25 09:33:02,2025-06-25 09:30:46,,2025-05-30,false,2025-06-25 09:33:02,Approve Investor Term Sheet,,0,,543185907056595,workspace,1210630224384453,,,,112.0,2026-01-06 09:59:56
+1210639839719305,1207957394937659,user,inbox,true,2025-06-25 09:32:56,2025-06-25 09:30:41,,2025-05-23,false,2025-06-25 09:32:56,Order Appraisal,,0,,543185907056595,workspace,1210630224384453,,,,112.0,2026-01-06 09:59:56
+1210640102983351,1207957394937659,user,inbox,true,2025-07-28 08:49:29,2025-06-25 09:30:35,,2025-07-23,false,2025-07-28 08:49:29,Receive Bank Approval,Per b1Bank: DLC approval set for the 23rd,0,,543185907056595,workspace,1210630224384453,,,,112.0,2026-01-06 09:59:56
+1210639839618414,1207957394937659,user,inbox,true,2025-07-17 15:03:46,2025-06-25 09:30:40,,2025-07-15,false,2025-07-17 15:03:47,Receive Investor Approval,,0,,543185907056595,workspace,1210630224384453,,,,112.0,2026-01-06 09:59:56
+1210639839719332,1207957394937659,user,inbox,true,2025-08-08 14:11:04,2025-06-25 09:30:42,,2025-08-06,false,2025-08-08 14:11:04,Receive Loan Docs,,0,,543185907056595,workspace,1210630224384453,,,,112.0,2026-01-06 09:59:56
+1210639839618422,1207957394937659,user,inbox,true,2025-08-12 08:36:17,2025-06-25 09:30:41,,2025-08-12,false,2025-08-12 08:36:17,Close Construction Loan,,0,,543185907056595,workspace,1210630224384453,,,,112.0,2026-01-06 09:59:56
+1210630224384500,1209371954135547,user,inbox,true,2025-09-16 13:34:55,2025-06-25 13:23:05,,2025-08-29,false,2025-09-16 13:34:56,Setup Project in IMS,,0,,543185907056595,workspace,1210630224384453,,,,112.0,2026-01-06 09:59:56
+1210630224384502,1209371954135547,user,inbox,true,2025-10-22 12:25:52,2025-06-25 13:23:20,,2025-10-15,false,2025-10-22 12:25:53,Create Stabilized Model,,0,,543185907056595,workspace,1210630224384453,,,,112.0,2026-01-06 09:59:56
+1210630224384504,1209371954135547,user,inbox,true,2025-09-16 13:36:03,2025-06-25 13:23:35,,2025-08-29,false,2025-09-16 13:36:05,Update Portfolio Dashboard,,0,,543185907056595,workspace,1210630224384453,,,,112.0,2026-01-06 09:59:56
+1210630224384506,1207957399163090,user,inbox,false,,2025-06-25 13:23:50,,2025-11-30,false,2025-11-30 00:55:04,Bind Builders Risk Insurance,,0,,543185907056595,workspace,1210630224384453,,,,112.0,2026-01-06 09:59:56
+1212154370368461,1207957399163090,user,inbox,false,,2025-11-25 13:52:51,,2025-12-15,false,2025-12-15 00:29:54,Start Owners Books,,0,,543185907056595,workspace,1210630224384453,,,,112.0,2026-01-06 09:59:56
+1210630224384508,1207957399163090,user,inbox,true,2025-09-23 13:19:47,2025-06-25 13:24:06,,2025-08-29,false,2025-09-23 13:19:47,Upload Building Permits,,0,,543185907056595,workspace,1210630224384453,,,,112.0,2026-01-06 09:59:56
+1212551665839613,1210201372202528,user,inbox,true,2025-12-30 06:47:23,2025-12-22 06:26:06,,2026-01-09,false,2025-12-30 06:47:24,Greenville Permit Set Review,,0,,543185907056595,workspace,1210679169081502,,,,112.0,2026-01-06 09:59:56
+1211825451235014,,,upcoming,false,,2025-11-03 15:11:36,,,false,2025-12-01 15:13:18,Bi Weekly Design Calls,"Smartsheet: Issue Tracker/Decision Log
+
+https://click.smartsheet.com/f/app/BGlOEgXkgNf5969qNHEgTA~~/AARF7xA~/6bubV4819LRC06JYf2i3Xhm5zr32TN1OcoInz47bw1jvKOJHmQbqLmfes6gEg0kHVCKxmrPwam1-M5bhs9SHK09YuCAK7aJ4PEG_FXsQaYEFjeEi7w3LsQelpBi-vtdJlakPboQg_xEZRSmuqcJJPHyvuIMo64vudR8ZFOxLDN4XIvhZoN8RCXwIZTuUIfE_4zotGnPnSIzYRGSI1X4HFA~~https://click.smartsheet.com/f/app/BGlOEgXkgNf5969qNHEgTA~~/AARF7xA~/6bubV4819LRC06JYf2i3Xhm5zr32TN1OcoInz47bw1jvKOJHmQbqLmfes6gEg0kHVCKxmrPwam1-M5bhs9SHK09YuCAK7aJ4PEG_FXsQaYEFjeEi7w3LsQelpBi-vtdJlakPboQg_xEZRSmuqcJJPHyvuIMo64vudR8ZFOxLDN4XIvhZoN8RCXwIZTuUIfE_4zotGnPnSIzYRGSI1X4HFA~~
+
+5D Project Smartsheet File
+https://app.smartsheet.com/dashboards/mf55VFmCq6QRxmpwWMCgrHF8Gp3qG3vF8r4QPGg1
+
+",0,,543185907056595,workspace,1210679169081502,,,,112.0,2026-01-06 09:59:56
+1211581835839700,1210346417759322,user,inbox,false,,2025-10-07 16:13:46,,2025-12-15,false,2025-12-12 12:30:58,Licensing Requirements (GREENVILLE),"Please investigate licensing needs for this project starting Q1, 2026 in Greenville, NC",0,,543185907056595,workspace,1210679169081502,,,,112.0,2026-01-06 09:59:56
+1210679703560249,1210346417759322,user,inbox,false,,2025-06-30 15:05:45,,,false,2025-10-17 09:41:14,Start of Permit Checklist,Pre-Construction Coordinator to insure all Subtask below are completed. ,0,,543185907056595,workspace,1210679169081502,,,,112.0,2026-01-06 09:59:56
+1210679705152355,1210346417759322,user,inbox,false,,2025-06-30 15:06:24,,,false,2025-10-17 09:41:19,Potential Required Permits,,0,,543185907056595,workspace,1210679169081502,,,,112.0,2026-01-06 09:59:56
+1210679705152347,1210346417759322,user,inbox,false,,2025-06-30 15:06:24,,,false,2025-10-17 09:41:21,Permit Status/ Received Review Letters,,0,,543185907056595,workspace,1210679169081502,,,,112.0,2026-01-06 09:59:56
+1210679705227710,1210346417759322,user,inbox,false,,2025-06-30 15:06:26,,,false,2025-10-17 09:41:26,Permit Fees/cost,,0,,543185907056595,workspace,1210679169081502,,,,112.0,2026-01-06 09:59:56
+1211879204119514,543185893116504,user,inbox,true,2025-11-07 08:44:06,2025-11-07 08:43:30,,2025-11-07,false,2025-11-07 08:44:07,AHJ Meeting,,0,,543185907056595,workspace,1210679169081502,,,,112.0,2026-01-06 09:59:56
+1210679703524694,,,upcoming,false,,2025-06-30 15:05:44,,,false,2025-06-30 15:05:54,Preconstruction Checklist,Pre-Construction manager to insure all subtask below have been completed.,0,,543185907056595,workspace,1210679169081502,,,,112.0,2026-01-06 09:59:56
+1210679703560256,,,upcoming,false,,2025-06-30 15:05:45,,,false,2025-06-30 15:06:00,Plan Review Checklist,Preconstruction Manager to insure all Subtask below have been reviewed and marked compete based on construction drawings.,0,,543185907056595,workspace,1210679169081502,,,,112.0,2026-01-06 09:59:56
+1210679565192069,,,upcoming,false,,2025-06-30 15:06:03,,,false,2025-06-30 15:06:10,Wire Purchase Adjustments,,0,,543185907056595,workspace,1210679169081502,,,,112.0,2026-01-06 09:59:56
+1211665640754101,543185893116504,user,inbox,true,2025-10-23 12:31:43,2025-10-16 13:17:20,,2025-10-23,false,2025-10-23 12:31:43,Review DD Set,,0,,543185907056595,workspace,1210679169081502,,,,112.0,2026-01-06 09:59:56
+1211733788038201,543185893116504,user,inbox,true,2025-10-23 12:55:10,2025-10-23 12:32:29,,2025-10-23,false,2025-12-03 12:08:14,Greenville Utility Meeting: Initial Meeting,"Talfourd led meeting with Greenville Utilities to discuss relocation of OH electrical line process.  This is to track the discussion of that meeting.
+-Talfourd proposed adjusting the relocations in the corner to not cut across the parking.
+-Ryan will get with Jeff in their office and see if they can shift the pole, Kyle Brown mentioned Oakley is our primary POC so he doesn't have any details.  
+   -They will have to discuss internally before providing an answer.  
+
+Site Lighting: we can install our own
+
+Design Process
+    load sheets submitted
+    meter locations needed for the CH and Maintenance
+
+Design Timeline - 2 weeks
+
+No issue with supply chain on transformers
+
+Greenville Utility provide pads
+
+
+
+
+Transcript
+https://otter.ai/u/0LdzxTUjL8bdpnyPfmTrrs1vL3k?utm_source=va_chat_link_1",0,,543185907056595,workspace,1210679169081502,,,,112.0,2026-01-06 09:59:56
+1211758088434962,1210201372202528,user,inbox,true,2025-11-13 08:12:32,2025-10-27 14:56:49,,2025-10-31,false,2025-11-13 08:12:32,Domestic/Fire Pump Cost Analysis,"https://app.asana.com/0/profile/1210201377739690Please put together a cost analysis of the two options:
+
+Items to Consider
+Building Pumps:
+    Cost of Smaller Fire Pumps at each building (Swanson)
+    Cost of Smaller Domestic Pumps at each building (I think Chase has a number on this)
+    Increase in size of pump room: I think this would be minimal, prob need to consider cost of double door but not much more past that.
+
+Site Pump:
+    Pump house cost: use numbers from crosspointe
+    Cost of Single Fire Pump: use number from crosspointe
+    Cost of single domestic pump: use number from crosspointe
+    Cost of second water line: will need takeoff from DD set and apply number, if we have site work contractor contact for Greenville then you can get rough cost per linear foot number from them.  
+
+https://stoaholdings.sharepoint.com/:x:/g/EQ59-TEbC5NLv9LvKpaAHbkBNK_6Gyu3POzIZVJe3FDz6g?e=ABtDQb",0,,543185907056595,workspace,1210679169081502,,,,112.0,2026-01-06 09:59:56
+1211825451235011,543185893116504,user,inbox,true,2025-11-18 10:32:50,2025-11-03 15:05:03,,2025-11-19,false,2025-11-18 10:32:50,Updated Flow Test,"Scott Anderson said they are going to update the flow test based on additional pumps possibly.
+
+-Follow up with Scott Anderson.",0,,543185907056595,workspace,1210679169081502,,,,112.0,2026-01-06 09:59:56
+1210679703560263,,,upcoming,false,,2025-06-30 15:05:45,,,false,2025-06-30 15:06:00,Submittal Checklist,,0,,543185907056595,workspace,1210679169081502,,,,112.0,2026-01-06 09:59:56
+1210679565192048,,,upcoming,false,,2025-06-30 15:06:02,,,false,2025-06-30 15:06:09,Coordination meetings & objectives,Crucial coordination meetings to ensure are completed throughout the course of a job,0,,543185907056595,workspace,1210679169081502,,,,112.0,2026-01-06 09:59:56
+1210679703524701,,,upcoming,false,,2025-06-30 15:05:44,,,false,2025-06-30 15:05:54,Schedule Checklist,Project Scheduler to insure all Subtask below are completed.,0,,543185907056595,workspace,1210679169081502,,,,112.0,2026-01-06 09:59:56
+1210764546878258,,,upcoming,false,,2025-07-10 09:27:10,,,false,2025-10-09 13:39:31,Key Parties,"Lender:
+    Hancock Whitney
+        Brian Callender - brian.callender@hancockwhitney.com 
+        Sarah Rico - sarah.rico@hancockwhitney.com 
+
+Lender Counsel:
+    Butler Snow
+        Jim Austin - jim.austin@butlersnow.com 
+
+Borrower Counsel:
+    Britain Sledge
+
+Title Company:
+    Pascal Title - Britain Sledge
+
+Investors:
+    Batson Cook Development Company 
+        Nick Schmitt - nschmitt@batsoncookdev.com 
+    Capitol Square Ltd.
+        Ryan Moore - ryan.moore@capsqltd.com 
+
+Investor Counsel:
+    Rangeworth Law Group
+        David Reid - david@rangeworthlaw.com 
+    Capitol Square Ltd. (in-house)
+        Chris Dusseau - cdusseau@capsqltd.com 
+        
+",0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1210764546977705,,,upcoming,false,,2025-07-10 09:27:10,,,false,2025-09-02 08:56:22,Term Sheets/Commitment Letters,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1210764545918255,,,upcoming,false,,2025-07-10 09:26:55,,,false,2025-10-31 15:56:00,Bank Package,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1210764564568017,,,upcoming,false,,2025-07-10 09:27:01,,,false,2025-10-31 15:55:54,Org Chart,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1210764538277836,1207957399163090,user,today,true,2025-08-05 08:06:48,2025-07-10 09:26:54,,2025-07-02,false,2025-08-05 08:06:49,Create Bank Package,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1210764545887361,1209371954135547,user,inbox,true,2025-07-21 15:33:18,2025-07-10 09:26:55,,2025-07-17,false,2025-07-21 15:33:19,Create Initial IMS Project,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1210764545887369,1207957399163090,user,inbox,true,2025-10-01 13:49:52,2025-07-10 09:26:55,,2025-07-17,false,2025-10-01 13:49:53,Upload Initial Due Diligence Docs,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1210764541647450,1207957394937659,user,inbox,true,2025-08-05 08:07:23,2025-07-10 09:27:03,,2025-07-17,false,2025-08-05 08:07:23,Select Bank,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1210764541647459,1207957394937659,user,inbox,true,2025-08-05 08:07:24,2025-07-10 09:27:03,,2025-07-17,false,2025-08-05 08:07:25,Select Investors,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1210764546521797,1207957394937659,user,inbox,true,2025-08-26 10:30:20,2025-07-10 09:27:05,,2025-07-17,false,2025-08-26 10:30:20,Finalize Deal Structure and Org Chart,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1210764563150618,1207708126459024,user,inbox,true,2025-07-22 08:59:38,2025-07-10 09:27:00,,2025-07-17,false,2025-07-22 08:59:39,Request Title Engagement Letter,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1210764564567999,1207708126459024,user,inbox,true,2025-10-01 13:53:01,2025-07-10 09:27:00,,2025-08-16,false,2025-10-01 13:53:01,Receive Title Engagement Letter,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1210764545887377,1207957394937659,user,inbox,true,2025-08-22 14:20:43,2025-07-10 09:26:56,,2025-08-16,false,2025-08-22 14:20:43,Schedule Kick-off Call,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1210764546619956,1207957399163090,user,inbox,true,2025-10-01 13:51:02,2025-07-10 09:27:05,,2025-08-16,false,2025-10-01 13:51:02,Upload Detailed Due Diligence Items,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1210764541647439,1207957394937659,user,inbox,true,2025-09-02 08:55:58,2025-07-10 09:27:02,,2025-08-16,false,2025-09-02 08:55:58,Receive Bank Term Sheet,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1210764546619974,1207957394937659,user,inbox,true,2025-09-02 08:56:00,2025-07-10 09:27:06,,2025-08-21,false,2025-09-02 08:56:00,Approve Bank Term Sheet,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1210764546878240,1207957394937659,user,inbox,true,2025-08-15 09:35:06,2025-07-10 09:27:09,,2025-08-16,false,2025-08-15 09:35:06,Receive Investor Term Sheet,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1210764546878249,1207957394937659,user,inbox,true,2025-08-22 14:20:48,2025-07-10 09:27:09,,2025-08-21,false,2025-08-22 14:20:49,Approve Investor Term Sheet,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1210764546521788,1207957394937659,user,inbox,true,2025-09-02 08:56:01,2025-07-10 09:27:04,,2025-08-16,false,2025-09-02 08:56:01,Order Appraisal,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1210764546015116,1207957394937659,user,inbox,true,2025-10-13 15:48:06,2025-07-10 09:26:56,,2025-10-09,false,2025-10-13 15:48:06,Receive Bank Approval,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1210764546521770,1207957394937659,user,inbox,true,2025-10-13 15:48:00,2025-07-10 09:27:04,,2025-10-08,false,2025-10-13 15:48:00,Receive Investor Approval,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1210764546619965,1207957394937659,user,inbox,true,2025-10-01 13:51:23,2025-07-10 09:27:05,,2025-09-15,false,2025-10-01 13:51:23,Receive Loan Docs,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1210976974151673,1207957394937659,user,inbox,true,2025-10-17 08:50:36,2025-08-06 10:05:58,,2025-10-14,false,2025-10-17 08:50:36,Setup Deposit Account,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1210764564568008,1207708126459024,user,inbox,true,2025-10-27 14:54:20,2025-07-10 09:27:00,,2025-10-07,false,2025-10-27 14:54:20,Approve Loan Docs,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1210764546071878,1207957394937659,user,inbox,true,2025-10-17 08:50:43,2025-07-10 09:26:57,,2025-10-14,false,2025-10-17 08:50:43,Review Funding,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1210764546521779,1207957394937659,user,inbox,true,2025-10-17 08:50:48,2025-07-10 09:27:04,2025-10-15 10:00:00,2025-10-15,false,2025-12-12 08:25:09,Close Construction Loan,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1211525969725634,1207957399163090,user,inbox,true,2025-10-13 15:47:43,2025-10-01 13:50:31,,2025-10-03,false,2025-10-13 15:47:43,GL Insurance,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1211525969725636,1207957399163090,user,inbox,true,2025-10-13 15:47:45,2025-10-01 13:50:36,,2025-10-03,false,2025-10-13 15:47:46,XS Insurance,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1211525969725630,1207957394937659,user,inbox,true,2025-10-13 15:47:56,2025-10-01 13:49:28,,2025-10-07,false,2025-10-13 15:47:57,HoldCo Operating Agreement,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1211525969725621,1207957394937659,user,inbox,true,2025-10-14 14:54:26,2025-10-01 13:47:18,,2025-10-08,false,2025-10-14 14:54:26,Finalize JV Agreement,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1210764545918239,1209371954135547,user,inbox,true,2025-12-11 16:25:11,2025-07-10 09:26:55,,2025-12-11,false,2025-12-11 16:25:12,Setup Project in IMS,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1210764546977713,1209371954135547,user,inbox,true,2025-11-26 15:27:28,2025-07-10 09:27:10,,2025-11-26,false,2025-11-26 15:27:29,Create Stabilized Model,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1210764545918247,1209371954135547,user,inbox,true,2025-11-26 15:49:58,2025-07-10 09:26:55,,2025-11-26,false,2025-11-26 15:49:59,Update Portfolio Dashboard,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1210764539277147,1207957399163090,user,inbox,false,,2025-07-10 09:26:54,,2025-12-26,false,2025-12-26 00:01:37,Bind Builders Risk Insurance,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1210764539277157,1207957399163090,user,inbox,false,,2025-07-10 09:26:54,,2025-12-26,false,2025-12-26 00:01:37,Upload Building Permits,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1212154370368458,1207957399163090,user,inbox,false,,2025-11-25 13:52:04,,2026-01-15,false,2025-11-25 13:52:39,Start Owners Books,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1210764545991643,1208562500231177,user,inbox,true,2025-11-17 10:17:44,2025-07-10 09:26:56,,2025-10-28,false,2025-11-17 10:17:45,Send Developer Fee to Stoa Group,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1210764545991654,1209371954135547,user,inbox,true,2025-11-05 16:04:40,2025-07-10 09:26:57,,2025-11-07,false,2025-11-05 16:04:41,Create Developer Fee Invoice,sometimes paid at closing ,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1210764545991662,1209371954135547,user,inbox,true,2025-11-07 09:38:32,2025-07-10 09:26:57,,2025-11-07,false,2025-11-07 09:38:33,Receive Closing Fee Invoice,make sure closing fee is accounted for and an invoice exists ,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1210764545918262,1208562500231177,user,inbox,true,2025-11-17 10:17:50,2025-07-10 09:26:56,,2025-10-29,false,2025-11-17 10:17:51,Send Closing Fee to Preferred Equity,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1210764563150607,1207708126459024,user,inbox,true,2025-10-27 14:54:50,2025-07-10 09:26:59,,2025-10-13,false,2025-10-27 14:54:50,Save all Executed Closing Docs,,0,,543185907056595,workspace,1210752841959547,,,,112.0,2026-01-06 09:59:56
+1210930785704439,,,inbox,true,2025-08-06 09:44:16,2025-07-30 13:03:15,,,false,2025-09-29 09:01:44,Gather data from departments,,0,,543185907056595,workspace,1210930783593056,,,,112.0,2026-01-06 09:59:56
+1210986605424182,,,upcoming,true,2025-08-06 10:36:14,2025-08-06 08:43:43,,2025-08-03,false,2025-09-12 19:35:31,another task,,0,,543185907056595,workspace,1210930783593056,,,,112.0,2026-01-06 09:59:56
+1210986605424185,,,upcoming,true,2025-08-06 10:36:14,2025-08-06 08:43:49,,2025-08-14,false,2025-09-12 19:35:31,task #3,,0,,543185907056595,workspace,1210930783593056,,,,112.0,2026-01-06 09:59:56
+1210987096126380,,,upcoming,true,2025-08-06 10:36:14,2025-08-06 08:48:32,,2025-08-27,false,2025-08-06 10:36:15,site walk,,0,,543185907056595,workspace,1210930783593056,,,,112.0,2026-01-06 09:59:56
+1210986888835757,,,inbox,true,2025-08-06 10:36:15,2025-08-06 09:12:16,,2025-08-14,false,2025-08-06 10:36:15,*Test rule,,0,,543185907056595,workspace,1210930783593056,,,,112.0,2026-01-06 09:59:56
+1210986813398962,,,inbox,true,2025-08-06 10:36:15,2025-08-06 09:14:32,,2025-08-08,false,2025-08-06 10:36:16,Substantial Completion Change,,0,,543185907056595,workspace,1210930783593056,,,,112.0,2026-01-06 09:59:56
+1210986603740978,,,inbox,true,2025-08-06 10:36:15,2025-08-06 08:41:18,,2025-08-10,false,2025-09-12 19:35:32,Check out Wayne's Teaching,,0,,543185907056595,workspace,1210930783593056,,,,112.0,2026-01-06 09:59:56
+1210988034415128,,,inbox,true,2025-08-06 10:36:17,2025-08-06 09:37:01,,2025-07-07,false,2025-08-06 10:36:17,Closing Date,,0,,543185907056595,workspace,1210930783593056,,,,112.0,2026-01-06 09:59:56
+1210987959835904,,,inbox,true,2025-08-06 10:36:21,2025-08-06 09:36:56,,2025-07-07,false,2025-08-06 10:36:22,Closing Date,,0,,543185907056595,workspace,1210930783593056,,,,112.0,2026-01-06 09:59:56
+1210987933638562,,,inbox,true,2025-08-06 10:36:22,2025-08-06 09:35:45,,2025-07-07,false,2025-08-06 10:36:22,Closing Date,,0,,543185907056595,workspace,1210930783593056,,,,112.0,2026-01-06 09:59:56
+1210988026426503,,,inbox,true,2025-08-06 10:36:22,2025-08-06 09:35:43,,2025-07-07,false,2025-08-06 10:36:22,Closing Date,,0,,543185907056595,workspace,1210930783593056,,,,112.0,2026-01-06 09:59:56
+1210987947715037,,,inbox,true,2025-08-06 10:36:22,2025-08-06 09:35:35,,2025-07-07,false,2025-08-06 10:36:22,Closing Date,,0,,543185907056595,workspace,1210930783593056,,,,112.0,2026-01-06 09:59:56
+1210987719300493,,,inbox,true,2025-08-06 10:36:22,2025-08-06 09:16:31,,2025-07-07,false,2025-08-06 10:36:23,Closing Date,,0,,543185907056595,workspace,1210930783593056,,,,112.0,2026-01-06 09:59:56
+1210987712017135,,,inbox,true,2025-08-06 10:36:22,2025-08-06 09:14:03,,2025-08-08,false,2025-08-06 10:36:23,check work ,,0,,543185907056595,workspace,1210930783593056,,,,112.0,2026-01-06 09:59:56
+1210979747190569,,,inbox,true,2025-08-06 10:36:22,2025-08-06 09:13:46,,2025-08-12,false,2025-08-06 10:36:23,training ,,0,,543185907056595,workspace,1210930783593056,,,,112.0,2026-01-06 09:59:56
+1210987097279951,,,inbox,true,2025-08-06 09:15:49,2025-08-06 09:13:26,,2025-08-07,false,2025-08-06 09:34:47,check inventory,,0,,543185907056595,workspace,1210930783593056,,,,112.0,2026-01-06 09:59:56
+1210987380670012,,,upcoming,false,,2025-08-06 08:55:50,,,false,2025-08-06 08:55:50,"wayne, Eh, OK.","Name:
+wayne
+
+Email:
+connect@waynehedlund.com
+
+Department:
+Executive
+
+How did we do?:
+Eh, OK.
+
+What did we do the best?:
+training.
+
+———————————————
+This task was submitted through We want feedback!
+https://form.asana.com/?k=9dHC4r7LgcL-jQ_pwe3DbA&d=543185907056595",0,,543185907056595,workspace,1210930783593059,,,,112.0,2026-01-06 09:59:56
+1210930785704439,,,inbox,true,2025-08-06 09:44:16,2025-07-30 13:03:15,,,false,2025-09-29 09:01:44,Gather data from departments,,0,,543185907056595,workspace,1210930785704435,,,,112.0,2026-01-06 09:59:56
+1210930785704441,,,inbox,true,2025-08-06 09:44:16,2025-07-30 13:03:16,,2025-08-14,false,2025-08-06 09:44:17,Draft initial version,,0,,543185907056595,workspace,1210930785704435,,,,112.0,2026-01-06 09:59:56
+1210930785704443,,,upcoming,true,2025-08-06 09:44:16,2025-07-30 13:03:16,,2025-08-17,false,2025-08-06 09:44:17,Review with leadership,,0,,543185907056595,workspace,1210930785704435,,,,112.0,2026-01-06 09:59:56
+1210930785704445,,,upcoming,true,2025-08-06 09:44:16,2025-07-30 13:03:16,,2025-08-19,false,2025-08-06 09:44:17,Finalize and submit report,,0,,543185907056595,workspace,1210930785704435,,,,112.0,2026-01-06 09:59:56
+1210987097279954,,,inbox,true,2025-08-06 10:04:42,2025-08-06 09:34:50,,2025-08-20,false,2025-08-06 10:04:43,recieve feedback on report,,0,,543185907056595,workspace,1210930785704435,,,,112.0,2026-01-06 09:59:56
+1210986605424311,,,upcoming,false,,2025-08-06 10:08:17,,2025-08-08,false,2025-08-06 10:09:32,Launch Backyard Rocket,,0,,543185907056595,workspace,1210930785704435,,,,112.0,2026-01-06 09:59:56
+1210986605424308,,,upcoming,false,,2025-08-06 10:08:14,,2025-08-15,false,2025-08-06 10:09:28,Launch Backyard Rocket,,0,,543185907056595,workspace,1210930785704435,,,,112.0,2026-01-06 09:59:56
+1210986605424305,,,upcoming,false,,2025-08-06 10:08:11,,2025-08-22,false,2025-08-06 10:09:39,Launch Backyard Rocket,,0,,543185907056595,workspace,1210930785704435,,,,112.0,2026-01-06 09:59:56
+1210986605424302,,,upcoming,false,,2025-08-06 10:08:09,,2025-08-29,false,2025-08-06 10:08:55,Launch Backyard Rocket,,0,,543185907056595,workspace,1210930785704435,,,,112.0,2026-01-06 09:59:56
+1210930785704454,,,upcoming,true,2025-08-06 10:06:43,2025-07-30 13:04:45,,2025-08-17,false,2025-08-06 10:06:43,[Converted to template] Launch Backyard Rocket,,0,,543185907056595,workspace,1210930785704435,,,,112.0,2026-01-06 09:59:56
+1210930785704448,,,upcoming,true,2025-08-06 10:05:50,2025-07-30 13:04:26,,2025-08-15,false,2025-08-06 10:05:50,Deliver Team Presentation,,0,,543185907056595,workspace,1210930785704435,,,,112.0,2026-01-06 09:59:56
+1210980445780140,,,upcoming,true,2025-08-06 10:04:48,2025-08-06 09:35:06,,2025-08-06,false,2025-08-06 10:04:48,Sent POI email,,0,,543185907056595,workspace,1210930785704435,,,,112.0,2026-01-06 09:59:56
+1210980445780142,,,upcoming,true,2025-08-06 10:04:48,2025-08-06 09:35:15,,2025-08-06,false,2025-08-06 10:04:49,Send Rental Verification,,0,,543185907056595,workspace,1210930785704435,,,,112.0,2026-01-06 09:59:56
+1210980445780144,,,upcoming,true,2025-08-06 10:04:48,2025-08-06 09:35:27,,2025-08-06,false,2025-08-06 10:04:49,Screen Applicant,,0,,543185907056595,workspace,1210930785704435,,,,112.0,2026-01-06 09:59:56
+1210980445780146,,,upcoming,true,2025-08-06 10:04:48,2025-08-06 09:35:40,,2025-08-08,false,2025-08-06 10:04:49,Send override if needed,,0,,543185907056595,workspace,1210930785704435,,,,112.0,2026-01-06 09:59:56
+1210980445780158,,,upcoming,true,2025-08-06 10:04:48,2025-08-06 09:37:28,,2025-08-08,false,2025-08-06 10:04:49,Approval or Denial,,0,,543185907056595,workspace,1210930785704435,,,,112.0,2026-01-06 09:59:56
+1210975803005137,,,upcoming,true,2025-08-06 10:04:51,2025-08-06 09:35:04,,2025-08-13,false,2025-08-06 10:04:51,BD 1,,0,,543185907056595,workspace,1210930785704435,,,,112.0,2026-01-06 09:59:56
+1210975803005139,,,upcoming,true,2025-08-06 10:04:51,2025-08-06 09:35:08,,2025-08-21,false,2025-08-06 10:04:52,BD 2,,0,,543185907056595,workspace,1210930785704435,,,,112.0,2026-01-06 09:59:56
+1210975803005141,,,upcoming,true,2025-08-06 10:04:51,2025-08-06 09:35:11,,2025-08-29,false,2025-08-06 10:04:52,BD 3,,0,,543185907056595,workspace,1210930785704435,,,,112.0,2026-01-06 09:59:56
+1210988422940933,,,upcoming,false,,2025-08-06 10:05:58,,2025-08-06,false,2025-08-06 10:06:00,Add Drawings to Procore,,0,,543185907056595,workspace,1210986813980297,,,,112.0,2026-01-06 09:59:56
+1210988422940938,,,upcoming,false,,2025-08-06 10:05:58,,2025-08-15,false,2025-08-06 10:06:00,Look through drawings,,0,,543185907056595,workspace,1210986813980297,,,,112.0,2026-01-06 09:59:56
+1210988422940943,,,upcoming,false,,2025-08-06 10:05:58,,2025-08-27,false,2025-08-06 10:06:00,Create Schedule,,0,,543185907056595,workspace,1210986813980297,,,,112.0,2026-01-06 09:59:56
+1210988422940948,,,upcoming,false,,2025-08-06 10:05:58,,2025-09-03,false,2025-08-06 10:06:00,Project Manager Review,,0,,543185907056595,workspace,1210986813980297,,,,112.0,2026-01-06 09:59:56
+1210988422940953,,,upcoming,false,,2025-08-06 10:05:59,,2025-09-10,false,2025-08-06 10:06:00,Add to Procore,,0,,543185907056595,workspace,1210986813980297,,,,112.0,2026-01-06 09:59:56
+1210988191612538,,,upcoming,true,2025-08-06 10:34:00,2025-08-06 10:01:42,,,false,2025-08-06 10:34:00,Kick-off Meeting,,0,,543185907056595,workspace,1210986888839907,,,,112.0,2026-01-06 09:59:56
+1210988192917543,,,upcoming,true,2025-08-06 10:34:00,2025-08-06 10:01:42,,,false,2025-08-06 10:34:00,Site Start Meeting,,0,,543185907056595,workspace,1210986888839907,,,,112.0,2026-01-06 09:59:56
+1210988192917548,,,upcoming,true,2025-08-06 10:34:00,2025-08-06 10:01:42,,,false,2025-08-06 10:34:00,Framing Start Meeting,,0,,543185907056595,workspace,1210986888839907,,,,112.0,2026-01-06 09:59:56
+1210988197221590,,,inbox,false,,2025-08-06 10:02:48,,2025-08-13,false,2025-08-06 10:34:40,Gather Comps,,0,,543185907056595,workspace,1210986949931645,,,,112.0,2026-01-06 09:59:56
+1210988197221584,,,inbox,false,,2025-08-06 10:02:48,,2025-08-06,false,2025-08-06 10:34:40,Select Marketing Names,,0,,543185907056595,workspace,1210986949931645,,,,112.0,2026-01-06 09:59:56
+1210987271647594,,,upcoming,true,2025-08-06 10:34:11,2025-08-06 10:03:14,,,false,2025-08-06 10:34:11,Manage Schedule,,0,,543185907056595,workspace,1210987271647590,,,,112.0,2026-01-06 09:59:56
+1210988312655787,,,upcoming,true,2025-08-06 10:34:11,2025-08-06 10:03:03,,,false,2025-08-06 10:34:11,Asana Training submission,"Name:
+Aaron Mercier
+
+Email address:
+Amercier@stoagroup.com
+
+———————————————
+This task was submitted through Asana Training
+https://form.asana.com/?k=QoZMpLRe1UdkmV7BmEkRDw&d=543185907056595",0,,543185907056595,workspace,1210987271647590,,,,112.0,2026-01-06 09:59:56
+1210988312655792,,,upcoming,true,2025-08-06 10:34:11,2025-08-06 10:03:04,,,false,2025-08-06 10:34:11,Asana Training submission,"Name:
+Alec Rovner
+
+Email address:
+arovner@stoagroup.com
+
+———————————————
+This task was submitted through Asana Training
+https://form.asana.com/?k=QoZMpLRe1UdkmV7BmEkRDw&d=543185907056595",0,,543185907056595,workspace,1210987271647590,,,,112.0,2026-01-06 09:59:56
+1210988312655797,,,upcoming,true,2025-08-06 10:34:11,2025-08-06 10:03:04,,,false,2025-08-06 10:34:11,Asana Training submission,"Name:
+Ira Ross
+
+Email address:
+iross@stoagroup.com
+
+———————————————
+This task was submitted through Asana Training
+https://form.asana.com/?k=QoZMpLRe1UdkmV7BmEkRDw&d=543185907056595",0,,543185907056595,workspace,1210987271647590,,,,112.0,2026-01-06 09:59:56
+1210988312719750,,,upcoming,true,2025-08-06 10:34:11,2025-08-06 10:03:04,,,false,2025-08-06 10:34:11,Asana Training submission,"Name:
+Ashley
+
+Email address:
+aodak@stoagroup.com
+
+———————————————
+This task was submitted through Asana Training
+https://form.asana.com/?k=QoZMpLRe1UdkmV7BmEkRDw&d=543185907056595",0,,543185907056595,workspace,1210987271647590,,,,112.0,2026-01-06 09:59:56
+1210988312719755,1208112895264779,user,inbox,true,2025-08-06 10:34:11,2025-08-06 10:03:04,,2025-08-06,false,2025-08-06 10:34:12,Practice,,0,,543185907056595,workspace,1210987271647590,,,,112.0,2026-01-06 09:59:56
+1210988415431352,,,upcoming,false,,2025-08-06 10:04:14,,,false,2025-08-06 10:04:16,Create File ,,0,,543185907056595,workspace,1210988258472309,,,,112.0,2026-01-06 09:59:56
+1210988415431342,,,upcoming,false,,2025-08-06 10:04:14,,2025-08-07,false,2025-08-06 10:04:15,Order Abstract,,0,,543185907056595,workspace,1210988258472309,,,,112.0,2026-01-06 09:59:56
+1210988415431347,,,upcoming,false,,2025-08-06 10:04:14,,2025-08-07,false,2025-08-06 10:04:16,Review Abstract,,0,,543185907056595,workspace,1210988258472309,,,,112.0,2026-01-06 09:59:56
+1211036252504745,,,upcoming,false,,2025-08-12 10:46:49,,,false,2025-10-09 13:48:19,Key Parties,"Lender:
+    Wells Fargo
+        Brady Hutka - brady.hutka@wellsfargo.com 
+        Mary Kate Trout - mary.k.trout@wellsfargo.com  
+
+Lender Counsel:
+    Buchalter
+        Landon Hardcastle - lhardcastle@buchalter.com 
+        Keven Rowe - krowe@buchalter.com 
+
+Borrower Counsel:
+    Britain Sledge
+
+Title Company:
+    
+
+Investors:
+    Marble Capital 
+        Robby Walls - rwalls@marblecapitallp.com 
+
+Investor Counsel:
+    Marble Capital
+        Briggs Knight - bknight@marblecapitallp.com  
+
+",0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211036252504751,,,upcoming,false,,2025-08-12 10:46:50,,,false,2025-11-19 14:42:04,Term Sheets/Commitment Letters,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211036251434401,,,upcoming,false,,2025-08-12 10:46:33,,,false,2025-10-07 11:59:28,Bank Package,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211035962894689,,,upcoming,false,,2025-08-12 10:46:39,,,false,2025-12-26 15:21:18,Org Chart,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211036247717357,1207957399163090,user,inbox,true,2025-09-22 15:23:30,2025-08-12 10:46:32,,2025-09-01,false,2025-09-22 15:23:30,Create Bank Package,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211036247717363,1209371954135547,user,inbox,true,2025-09-16 15:09:04,2025-08-12 10:46:32,,2025-09-16,false,2025-09-16 15:09:05,Create Initial IMS Project,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211036247717369,1207957399163090,user,inbox,true,2025-12-29 16:45:03,2025-08-12 10:46:33,,2026-01-02,false,2025-12-29 16:45:04,Upload Initial Due Diligence Docs,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211035962891589,1207957394937659,user,inbox,true,2025-10-07 11:59:10,2025-08-12 10:46:40,,2025-09-16,false,2025-10-07 11:59:11,Select Bank,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211035962891596,1207957394937659,user,inbox,true,2025-10-07 11:59:13,2025-08-12 10:46:40,,2025-09-16,false,2025-10-07 11:59:13,Select Investors,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211035987338243,1207957394937659,user,inbox,true,2025-10-09 12:55:37,2025-08-12 10:46:44,,2025-09-16,false,2025-10-09 12:55:37,Finalize Deal Structure and Org Chart,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211035961746744,1207708126459024,user,inbox,true,2025-12-09 17:41:59,2025-08-12 10:46:38,,2025-09-16,false,2025-12-09 17:42:00,Request Title Engagement Letter,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211035962894675,1207708126459024,user,inbox,true,2025-12-09 17:42:10,2025-08-12 10:46:38,,2025-10-16,false,2025-12-09 17:42:10,Receive Title Engagement Letter,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211036251422373,1207957394937659,user,inbox,true,2025-11-07 09:07:06,2025-08-12 10:46:33,,2025-10-28,false,2025-11-07 09:07:07,Schedule Kick-off Call,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211035987338250,1207957399163090,user,inbox,true,2025-12-19 15:12:04,2025-08-12 10:46:45,,2025-12-10,false,2025-12-19 15:12:04,Upload Detailed Due Diligence Items,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211035962891582,1207957394937659,user,inbox,true,2025-11-07 09:07:05,2025-08-12 10:46:39,,2025-10-28,false,2025-11-07 09:07:06,Receive Bank Term Sheet,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211035988881183,1207957394937659,user,inbox,true,2025-11-07 09:07:03,2025-08-12 10:46:45,,2025-10-28,false,2025-11-07 09:07:04,Approve Bank Term Sheet,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211036251743452,1207957394937659,user,inbox,true,2025-10-09 12:55:15,2025-08-12 10:46:49,,2025-10-16,false,2025-10-09 12:55:15,Receive Investor Term Sheet,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211036251743459,1207957394937659,user,inbox,true,2025-10-09 12:55:18,2025-08-12 10:46:49,,2025-10-21,false,2025-10-09 12:55:18,Approve Investor Term Sheet,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211035987338236,1207957394937659,user,inbox,true,2025-11-07 09:07:08,2025-08-12 10:46:44,,2025-10-28,false,2025-11-07 09:07:09,Order Appraisal,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211036251422379,1207957394937659,user,inbox,false,,2025-08-12 10:46:34,,2026-01-02,false,2026-01-02 00:21:15,Receive Bank Approval,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211035963036695,1207957394937659,user,inbox,true,2025-10-09 12:55:22,2025-08-12 10:46:40,,2025-11-15,false,2025-10-09 12:55:22,Receive Investor Approval,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211035988881176,1207957394937659,user,inbox,true,2025-12-04 09:25:01,2025-08-12 10:46:45,,2025-12-03,false,2025-12-04 09:25:02,Receive Loan Docs,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211035962894695,1207957394937659,user,inbox,false,,2025-08-12 10:46:39,,2026-01-02,false,2026-01-02 00:21:15,Setup Deposit Account,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211035963026961,1207708126459024,user,inbox,true,2025-12-19 15:11:44,2025-08-12 10:46:40,,2025-12-10,false,2025-12-19 15:11:45,Generate Draft Settlement Statement,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211035962894682,1207708126459024,user,inbox,false,,2025-08-12 10:46:39,,2026-01-05,false,2026-01-05 00:41:31,Approve Loan Docs,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211036251521589,1207957394937659,user,inbox,false,,2025-08-12 10:46:35,,2026-01-06,false,2026-01-06 00:29:42,Review Funding,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211035962894702,1207957394937659,user,inbox,false,,2025-08-12 10:46:40,,2026-01-06,false,2026-01-06 00:29:42,Approve Settlement Statement,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211035963036702,1207957394937659,user,inbox,false,,2025-08-12 10:46:41,2026-01-07 09:00:00,2026-01-07,false,2025-12-31 00:05:19,Close Construction Loan,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211036249938226,1209371954135547,user,inbox,false,,2025-08-12 10:46:33,,2026-01-14,false,2025-12-22 16:17:16,Setup Project in IMS,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211036252504757,1209371954135547,user,inbox,false,,2025-08-12 10:46:50,,2026-01-14,false,2025-12-22 16:17:16,Create Stabilized Model,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211036249938232,1209371954135547,user,inbox,false,,2025-08-12 10:46:33,,2026-01-14,false,2025-12-22 16:17:16,Update Portfolio Dashboard,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211036249938214,1207957399163090,user,inbox,false,,2025-08-12 10:46:32,,2026-02-13,false,2025-12-22 16:17:15,Bind Builders Risk Insurance,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211036249938220,1207957399163090,user,inbox,false,,2025-08-12 10:46:32,,2026-02-13,false,2025-12-22 16:17:15,Upload Building Permits,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211036251434412,1208562500231177,user,inbox,false,,2025-08-12 10:46:34,,2026-01-07,false,2025-12-31 00:32:39,Send Developer Fee to Stoa Group,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211036251434418,1209371954135547,user,inbox,false,,2025-08-12 10:46:34,,2026-01-07,false,2025-12-22 16:17:15,Create Developer Fee Invoice,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211036251434424,1209371954135547,user,inbox,false,,2025-08-12 10:46:34,,2026-01-07,false,2025-12-22 16:17:15,Receive Closing Fee Invoice,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211036251434406,1208562500231177,user,inbox,false,,2025-08-12 10:46:33,,2026-01-07,false,2025-12-31 00:32:39,Send Closing Fee to Preferred Equity,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211035961746737,1207708126459024,user,inbox,false,,2025-08-12 10:46:37,,2026-01-08,false,2025-12-22 16:17:15,Save all Executed Closing Docs,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1212154370368455,1207957399163090,user,inbox,false,,2025-11-25 13:06:53,,2026-03-15,false,2025-12-22 16:17:14,Start Owners Books,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1212606067447479,1207957399163090,user,inbox,false,,2025-12-29 16:45:06,,2026-02-02,false,2025-12-29 16:45:41,Send Recorded Sewer Easement to Bank/Pref,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1212606067447484,1207957394937659,user,inbox,false,,2025-12-29 16:45:54,,2026-04-30,false,2025-12-29 16:46:09,Release Commercial Outparcels,,0,,543185907056595,workspace,1211025311566058,,,,112.0,2026-01-06 09:59:56
+1211439872643505,1209371954135547,user,inbox,true,2025-11-21 11:38:07,2025-09-23 08:46:18,,2025-11-21,false,2025-11-21 11:38:09,Add Apartment Ratings to Reviews Section,"
+
+",0,,543185907056595,workspace,1211068565160422,,,,112.0,2026-01-06 09:59:56
+1211068569273307,,,upcoming,true,2025-08-15 14:46:15,2025-08-15 14:45:17,,,false,2025-08-15 14:46:15,Add Birth Order to MMR,,0,,543185907056595,workspace,1211068565160422,,,,112.0,2026-01-06 09:59:56
+1211068569273314,,,upcoming,true,2025-09-23 08:46:11,2025-08-15 14:46:17,,,false,2025-09-23 08:46:11,Lease-up/occupancy over time. Leasing Dashboard,,0,,543185907056595,workspace,1211068565160422,,,,112.0,2026-01-06 09:59:56
+1211440160890844,1209371954135547,user,inbox,true,2025-09-24 09:21:47,2025-09-23 08:51:04,,2025-09-29,false,2025-10-28 14:56:44,Schedule Meeting with Jenny,,0,,543185907056595,workspace,1211068565160422,,,,112.0,2026-01-06 09:59:56
+1211440160890838,1209371954135547,user,inbox,true,2025-09-24 08:34:17,2025-09-23 08:49:56,,2025-09-29,false,2025-10-28 14:56:41,Remove Freeport from MMR Rents,,0,,543185907056595,workspace,1211068565160422,,,,112.0,2026-01-06 09:59:56
+1211440160890824,1209371954135547,user,inbox,true,2025-09-26 14:26:38,2025-09-23 08:48:11,,2025-09-29,false,2025-10-28 14:56:37,Add Historical Leasing Information,,0,,543185907056595,workspace,1211068565160422,,,,112.0,2026-01-06 09:59:56
+1211440160890832,1209371954135547,user,inbox,true,2025-09-26 11:36:39,2025-09-23 08:49:06,,2025-09-29,false,2025-10-28 14:56:40,Add Renewal Rate to Dashboard,,0,,543185907056595,workspace,1211068565160422,,,,112.0,2026-01-06 09:59:56
+1211068569273322,,,upcoming,true,2025-09-23 08:46:12,2025-08-15 14:48:21,,,false,2025-09-23 08:46:12,Work Orders Dashboard,,0,,543185907056595,workspace,1211068565160422,,,,112.0,2026-01-06 09:59:56
+1211971567972697,1209371954135547,user,inbox,true,2025-12-11 16:26:29,2025-11-17 16:00:02,,2025-12-11,false,2025-12-11 16:27:05,Commodity Tracker First Take,,0,,543185907056595,workspace,1211068565160422,,,,112.0,2026-01-06 09:59:56
+1211775317650431,1207957394937659,user,inbox,true,2025-11-21 11:38:43,2025-10-28 14:55:05,,2025-11-10,false,2025-11-21 11:38:44,Portfolio Dashboard Reformatting,,0,,543185907056595,workspace,1211068565160422,,,,112.0,2026-01-06 09:59:56
+1212299288037466,1207957394937659,user,inbox,false,,2025-12-04 20:30:31,,,false,2025-12-19 15:08:26,The Waters at Millerville,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037468,1207957394937659,user,inbox,false,,2025-12-04 20:30:35,,,false,2025-12-19 15:08:26,The Waters at Redstone,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037470,1207957394937659,user,inbox,false,,2025-12-04 20:30:39,,,false,2025-12-19 15:08:26,The Waters at Settlers Trace,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037472,1207957394937659,user,inbox,false,,2025-12-04 20:30:42,,,false,2025-12-19 15:08:26,The Waters at West Village,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037474,1207957394937659,user,inbox,false,,2025-12-04 20:30:45,,,false,2025-12-19 15:08:26,The Waters at Bluebonnet,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037476,1207957394937659,user,inbox,false,,2025-12-04 20:30:48,,,false,2025-12-19 15:08:26,The Waters at Crestview,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037478,1207957394937659,user,inbox,false,,2025-12-04 20:30:52,,,false,2025-12-19 15:08:26,The Heights at Picardy,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037480,1207957394937659,user,inbox,false,,2025-12-04 20:30:55,,,false,2025-12-19 15:08:25,The Waters at McGowin,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037482,1207957394937659,user,inbox,false,,2025-12-04 20:30:58,,2027-04-24,false,2025-12-19 15:08:24,The Waters at Freeport,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037484,1207957394937659,user,inbox,false,,2025-12-04 20:31:02,,2028-07-31,false,2025-12-19 15:08:24,The Heights at Waterpointe,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037498,1207957394937659,user,inbox,false,,2025-12-04 20:36:41,,2028-04-15,false,2025-12-19 15:08:24,The Waters at Promenade,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037486,1207957394937659,user,inbox,false,,2025-12-04 20:31:06,,2028-06-20,false,2025-12-19 15:08:24,The Flats at Ransley,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037488,1207957394937659,user,inbox,false,,2025-12-04 20:31:10,,2028-03-25,false,2025-12-19 15:08:24,The Heights at Materra,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037490,1207957394937659,user,inbox,false,,2025-12-04 20:31:15,,2028-03-27,false,2025-12-19 15:08:24,The Waters at Crosspointe,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037492,1207957394937659,user,inbox,false,,2025-12-04 20:31:19,,,false,2025-12-19 15:08:24,The Waters at Inverness,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037494,1207957394937659,user,inbox,false,,2025-12-04 20:31:24,,,false,2025-12-19 15:08:24,The Waters at Conway,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037496,1207957394937659,user,inbox,false,,2025-12-04 20:31:28,,,false,2025-12-19 15:08:24,The Waters at Covington,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212153078699271,1207957394937659,user,inbox,false,,2025-11-25 13:58:59,,2027-06-13,false,2025-12-04 09:38:12,The Waters at Millerville,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212153078699273,1207957394937659,user,inbox,false,,2025-11-25 13:59:03,,2027-02-25,false,2025-12-04 09:38:22,The Waters at Redstone,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212153078699275,1207957394937659,user,inbox,false,,2025-11-25 13:59:07,,2028-08-24,false,2025-12-04 09:38:29,The Waters at Settlers Trace,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212153078699277,1207957394937659,user,inbox,false,,2025-11-25 13:59:11,,2027-12-15,false,2025-12-04 09:38:39,The Waters at West Village,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212153078699279,1207957394937659,user,inbox,false,,2025-11-25 13:59:17,,2028-04-12,false,2025-12-04 09:38:48,The Waters at Bluebonnet,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212153078699281,1207957394937659,user,inbox,false,,2025-11-25 13:59:21,,2028-08-25,false,2025-12-04 09:38:59,The Waters at Crestview,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212153078699283,1207957394937659,user,inbox,false,,2025-11-25 13:59:26,,2028-10-11,false,2025-12-04 09:39:06,The Heights at Picardy,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212153078699285,1207957394937659,user,inbox,false,,2025-11-25 13:59:30,,2028-01-19,false,2025-12-04 09:39:15,The Waters at McGowin,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212153078699287,1207957394937659,user,inbox,false,,2025-11-25 13:59:40,,2029-04-24,false,2025-12-04 09:39:30,The Waters at Freeport,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212153078699289,1207957394937659,user,inbox,false,,2025-11-25 14:34:04,,2029-07-31,false,2025-12-04 09:39:37,The Heights at Waterpointe,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037500,1207957394937659,user,inbox,false,,2025-12-04 20:36:51,,2029-10-15,false,2025-12-19 15:08:33,The Waters at Promenade,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212153078699291,1207957394937659,user,inbox,false,,2025-11-25 14:34:10,,2028-12-20,false,2025-12-04 09:39:55,The Flats at Ransley,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212153078699293,1207957394937659,user,inbox,false,,2025-11-25 14:34:15,,2030-03-25,false,2025-12-04 09:40:02,The Heights at Materra,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212153078699295,1207957394937659,user,inbox,false,,2025-11-25 14:34:20,,2030-03-27,false,2025-12-04 09:40:18,The Waters at Crosspointe,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212153078699297,1207957394937659,user,inbox,false,,2025-11-25 14:34:24,,,false,2025-12-03 11:49:11,The Waters at Inverness,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212153078699299,1207957394937659,user,inbox,false,,2025-11-25 14:34:28,,,false,2025-12-03 11:49:11,The Waters at Conway,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212153078699301,1207957394937659,user,inbox,false,,2025-11-25 14:34:31,,,false,2025-12-03 11:49:11,The Waters at Covington,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212307977880223,,,upcoming,false,,2025-12-04 09:42:37,,,false,2025-12-04 09:42:37,The Waters at McGowin,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212307977880225,,,upcoming,false,,2025-12-04 09:42:41,,,false,2025-12-04 09:42:42,The Waters at Freeport,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212307977880227,,,upcoming,false,,2025-12-04 09:42:45,,,false,2025-12-04 09:42:45,The Heights at Waterpointe,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037502,,,upcoming,false,,2025-12-04 20:36:59,,,false,2025-12-04 20:37:01,The Waters at Promenade,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212307977880229,,,upcoming,false,,2025-12-04 09:42:48,,,false,2025-12-04 09:42:49,The Flats at Ransley,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212307977880231,,,upcoming,false,,2025-12-04 09:42:53,,,false,2025-12-04 09:42:54,The Heights at Materra,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037288,,,upcoming,false,,2025-12-04 09:42:57,,,false,2025-12-04 09:42:58,The Waters at Crosspointe,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037290,,,upcoming,false,,2025-12-04 09:43:01,,,false,2025-12-04 09:43:01,The Waters at Inverness,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037292,,,upcoming,false,,2025-12-04 09:43:05,,,false,2025-12-04 09:43:06,The Waters at Conway,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037294,,,upcoming,false,,2025-12-04 09:43:08,,,false,2025-12-04 09:43:10,The Waters at Covington,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037322,,,upcoming,false,,2025-12-04 09:44:57,,2027-03-31,false,2025-12-04 09:52:36,The Waters at Crosspointe,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037330,,,upcoming,false,,2025-12-04 09:45:13,,,false,2025-12-04 09:45:14,The Waters at Hammond,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037334,,,upcoming,false,,2025-12-04 09:45:23,,2025-12-31,false,2025-12-04 20:50:35,The Waters at Millerville,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037338,,,upcoming,false,,2025-12-04 09:45:37,,,false,2025-12-04 09:45:38,The Waters at Redstone,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037352,,,upcoming,false,,2025-12-04 09:46:06,,2026-09-30,false,2025-12-04 20:49:43,The Waters at Settlers Trace,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037360,,,upcoming,false,,2025-12-04 09:46:18,,,false,2025-12-04 09:46:19,The Waters at West Village,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037368,,,upcoming,false,,2025-12-04 09:46:29,,2026-03-12,false,2025-12-04 20:50:25,The Waters at Bluebonnet,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037376,,,upcoming,false,,2025-12-04 09:46:41,,2026-09-30,false,2025-12-04 20:51:23,The Waters at Crestview,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037384,,,upcoming,false,,2025-12-04 09:46:51,,2027-04-30,false,2025-12-04 20:53:20,The Heights at Picardy,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037392,,,upcoming,false,,2025-12-04 09:47:01,,2027-06-30,false,2025-12-04 20:53:39,The Waters at McGowin,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037400,,,upcoming,false,,2025-12-04 09:47:11,,2028-04-24,false,2025-12-04 20:55:55,The Waters at Freeport,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037408,,,upcoming,false,,2025-12-04 09:47:23,,2028-01-31,false,2025-12-04 20:56:39,The Heights at Waterpointe,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037506,,,upcoming,false,,2025-12-04 20:37:16,,2028-04-30,false,2025-12-04 20:57:11,The Waters at Promenade,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037416,,,upcoming,false,,2025-12-04 09:47:32,,2027-12-31,false,2025-12-04 20:59:46,The Flats at Ransley,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037424,,,upcoming,false,,2025-12-04 09:47:41,,2027-08-17,false,2025-12-04 20:59:50,The Heights at Materra,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037432,,,upcoming,false,,2025-12-04 09:47:56,,2028-03-27,false,2025-12-04 21:01:26,The Waters at Crosspointe,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037440,,,upcoming,false,,2025-12-04 09:48:13,,,false,2025-12-04 09:48:13,The Waters at Inverness,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037448,,,upcoming,false,,2025-12-04 09:48:28,,,false,2025-12-04 09:48:29,The Waters at Conway,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037456,,,upcoming,false,,2025-12-04 09:48:41,,,false,2025-12-04 09:48:41,The Waters at Covington,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212271517161447,1207957394937659,user,inbox,false,,2025-12-03 11:48:22,,2026-03-31,false,2025-12-04 21:07:18,The Waters at Hammond,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037436,,,upcoming,false,,2025-12-04 09:48:00,,,false,2025-12-04 09:48:01,The Waters at Crosspointe,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037542,,,upcoming,false,,2025-12-04 21:11:08,,,false,2025-12-04 21:11:23,The Waters at Robinwood,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212299288037462,,,upcoming,false,,2025-12-04 09:48:47,,2029-04-15,false,2025-12-04 21:15:44,The Waters at Covington,,0,,543185907056595,workspace,1212153078699255,,,,112.0,2026-01-06 09:59:56
+1212561603701355,,,upcoming,false,,2025-12-22 16:28:47,,,false,2025-12-22 16:28:50,Key Parties,"Lender:
+    
+
+Lender Counsel:
+    
+
+Borrower Counsel:
+    
+
+Title Company:
+    
+
+Investors:
+    
+
+Investor Counsel:
+    
+",0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561603701363,,,upcoming,false,,2025-12-22 16:28:47,,,false,2025-12-22 16:28:50,Term Sheets/Commitment Letters,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561603689905,,,upcoming,false,,2025-12-22 16:28:36,,,false,2025-12-30 16:43:51,Bank Package,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561602480980,,,upcoming,false,,2025-12-22 16:28:42,,,false,2025-12-22 16:28:45,Org Chart,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561599388582,1207957399163090,user,inbox,true,2025-12-30 20:29:01,2025-12-22 16:28:35,,2025-12-31,false,2025-12-30 20:29:02,Create Initial Bank Package,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561594659911,1207957394937659,user,inbox,false,,2025-12-22 16:28:35,,2026-01-15,false,2025-12-22 16:28:55,Finalize Bank Package,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561599388593,1209371954135547,user,inbox,false,,2025-12-22 16:28:35,,2026-01-15,false,2025-12-22 16:28:55,Create Initial IMS Project,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561603689768,1207957399163090,user,inbox,false,,2025-12-22 16:28:35,,2026-01-15,false,2025-12-22 16:29:31,Upload Initial Due Diligence Docs,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561602478632,1207957394937659,user,inbox,false,,2025-12-22 16:28:41,,2026-01-15,false,2025-12-22 16:28:55,Select Bank,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561601877176,1207957394937659,user,inbox,false,,2025-12-22 16:28:41,,2026-01-15,false,2025-12-22 16:28:55,Select Investors,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561602480837,1207957394937659,user,inbox,false,,2025-12-22 16:28:42,,2026-01-15,false,2025-12-22 16:28:56,Finalize Deal Structure and Org Chart,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561601828308,1207708126459024,user,inbox,false,,2025-12-22 16:28:40,,2026-01-15,false,2025-12-22 16:28:56,Request Title Engagement Letter,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561602184228,1207708126459024,user,inbox,false,,2025-12-22 16:28:41,,2026-02-14,false,2025-12-22 16:28:56,Receive Title Engagement Letter,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561603689779,1207957394937659,user,inbox,false,,2025-12-22 16:28:36,,2026-02-14,false,2025-12-22 16:28:55,Schedule Kick-off Call,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561602480849,1207957399163090,user,inbox,false,,2025-12-22 16:28:42,,2026-02-14,false,2025-12-22 16:34:28,Upload Detailed Due Diligence Items,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561602478620,1207957394937659,user,inbox,false,,2025-12-22 16:28:40,,2026-02-14,false,2025-12-22 16:28:55,Receive Bank Term Sheet,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561602481063,1207957394937659,user,inbox,false,,2025-12-22 16:28:42,,2026-02-19,false,2025-12-22 16:28:56,Approve Bank Term Sheet,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561603700161,1207957394937659,user,inbox,false,,2025-12-22 16:28:47,,2026-02-14,false,2025-12-22 16:28:56,Receive Investor Term Sheet,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561603700173,1207957394937659,user,inbox,false,,2025-12-22 16:28:47,,2026-02-19,false,2025-12-22 16:28:56,Approve Investor Term Sheet,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561602480825,1207957394937659,user,inbox,false,,2025-12-22 16:28:42,,2026-02-14,false,2025-12-22 16:28:56,Order Appraisal,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561602474724,1207957394937659,user,inbox,false,,2025-12-22 16:28:36,,2026-03-16,false,2025-12-22 16:28:55,Receive Bank Approval,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561601877188,1207957394937659,user,inbox,false,,2025-12-22 16:28:41,,2026-03-16,false,2025-12-22 16:28:55,Receive Investor Approval,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561602481051,1207957394937659,user,inbox,false,,2025-12-22 16:28:42,,2026-03-16,false,2025-12-22 16:28:56,Receive Loan Docs,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561602480988,1207957394937659,user,inbox,false,,2025-12-22 16:28:42,,2026-03-21,false,2025-12-22 16:28:56,Setup Deposit Account,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561603697378,1207708126459024,user,inbox,false,,2025-12-22 16:28:42,,2026-03-21,false,2025-12-22 16:28:56,Generate Draft Settlement Statement,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561602184240,1207708126459024,user,inbox,false,,2025-12-22 16:28:41,,2026-03-26,false,2025-12-22 16:28:56,Approve Loan Docs,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561602475018,1207957394937659,user,inbox,false,,2025-12-22 16:28:37,,2026-03-26,false,2025-12-22 16:28:56,Review Funding,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561602481000,1207957394937659,user,inbox,false,,2025-12-22 16:28:42,,2026-03-26,false,2025-12-22 16:28:56,Approve Settlement Statement,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561601877200,1207957394937659,user,inbox,false,,2025-12-22 16:28:41,2026-03-31 10:00:00,2026-03-31,false,2025-12-30 20:29:01,Close Construction Loan,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561601869495,1209371954135547,user,inbox,false,,2025-12-22 16:28:35,,2026-05-15,false,2025-12-22 16:28:56,Setup Project in IMS,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561603701371,1209371954135547,user,inbox,false,,2025-12-22 16:28:47,,2026-05-15,false,2025-12-22 16:28:57,Create Stabilized Model,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561603689894,1209371954135547,user,inbox,false,,2025-12-22 16:28:36,,2026-05-15,false,2025-12-22 16:28:57,Update Portfolio Dashboard,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561601869473,1207957399163090,user,inbox,false,,2025-12-22 16:28:35,,2026-06-14,false,2025-12-22 16:28:57,Bind Builders Risk Insurance,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561601869484,1207957399163090,user,inbox,false,,2025-12-22 16:28:35,,2026-06-14,false,2025-12-22 16:28:57,Upload Building Permits,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561602474804,1209371954135547,user,inbox,false,,2025-12-22 16:28:37,,2026-04-16,false,2025-12-22 16:28:57,Create Developer Fee Invoice,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561602474793,1208562500231177,user,inbox,false,,2025-12-22 16:28:36,,2026-04-16,false,2025-12-22 16:28:57,Send Developer Fee to Stoa Group,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561602474815,1209371954135547,user,inbox,false,,2025-12-22 16:28:37,,2026-04-16,false,2025-12-22 16:28:57,Receive Closing Fee Invoice,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561603689912,1208562500231177,user,inbox,false,,2025-12-22 16:28:36,,2026-04-17,false,2025-12-22 16:28:57,Send Closing Fee to Preferred Equity,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561601828296,1207708126459024,user,inbox,false,,2025-12-22 16:28:40,,2026-04-20,false,2025-12-22 16:28:58,Save all Executed Closing Docs,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561603697390,1207957399163090,user,inbox,false,,2025-12-22 16:28:42,,2026-07-14,false,2025-12-22 16:28:58,Start Owners Books,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561603697402,1209371954135547,user,inbox,false,,2025-12-22 16:28:43,,2026-04-16,false,2025-12-22 16:28:58,Add Dates to Loan Covenants and Maturities Section,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561601875286,1207957394937659,user,inbox,false,,2025-12-22 16:28:36,,,false,2025-12-22 16:30:27,Construction Period Maturity,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561601875297,1207957394937659,user,inbox,false,,2025-12-22 16:28:36,,,false,2025-12-22 16:30:26,Mini-Perm Loan Maturities,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561601875308,1207957394937659,user,inbox,false,,2025-12-22 16:28:36,,,false,2025-12-22 16:30:28,Construction Completion Covenant,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561602474825,1207957394937659,user,inbox,false,,2025-12-22 16:28:36,,,false,2025-12-22 16:30:30,1st DSCR Covenant,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561601876483,1207957394937659,user,inbox,false,,2025-12-22 16:28:37,,,false,2025-12-22 16:30:31,2nd DSCR Covenant,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561602474836,1207957394937659,user,inbox,false,,2025-12-22 16:28:37,,,false,2025-12-22 16:30:33,Occupancy Covenant,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561602474847,1207957394937659,user,inbox,false,,2025-12-22 16:28:37,,,false,2025-12-22 16:30:35,Compliance Certificates,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561601876472,1207957394937659,user,inbox,false,,2025-12-22 16:28:37,,,false,2025-12-22 16:30:36,Redemption Plans,,0,,543185907056595,workspace,1212552979289023,,,,112.0,2026-01-06 09:59:56
+1212561620615769,,,upcoming,false,,2025-12-22 16:33:04,,,false,2025-12-22 16:33:06,Key Parties,"Lender:
+    
+
+Lender Counsel:
+    
+
+Borrower Counsel:
+    
+
+Title Company:
+    
+
+Investors:
+    
+
+Investor Counsel:
+    
+",0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561620615777,,,upcoming,false,,2025-12-22 16:33:04,,,false,2025-12-22 16:33:06,Term Sheets/Commitment Letters,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561619704978,,,upcoming,false,,2025-12-22 16:32:53,,,false,2025-12-22 16:32:58,Bank Package,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561619850073,,,upcoming,false,,2025-12-22 16:32:59,,,false,2025-12-22 16:33:02,Org Chart,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561619822641,1207957399163090,user,inbox,false,,2025-12-22 16:32:52,,2025-12-31,false,2025-12-31 00:00:54,Create Initial Bank Package,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212551724213756,1207957394937659,user,inbox,false,,2025-12-22 16:32:52,,2026-01-02,false,2026-01-02 00:21:15,Finalize Bank Package,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561619822652,1209371954135547,user,inbox,true,2025-12-31 09:09:38,2025-12-22 16:32:52,,2025-12-31,false,2025-12-31 09:09:39,Create Initial IMS Project,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561619703914,1207957399163090,user,inbox,false,,2025-12-22 16:32:53,,2026-01-02,false,2026-01-02 00:25:53,Upload Initial Due Diligence Docs,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561621211146,1207957394937659,user,inbox,false,,2025-12-22 16:32:58,,2026-01-02,false,2026-01-02 00:21:15,Select Bank,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561621211254,1207957394937659,user,inbox,false,,2025-12-22 16:32:58,,2026-01-02,false,2026-01-02 00:21:15,Select Investors,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561619708957,1207957394937659,user,inbox,false,,2025-12-22 16:32:59,,2026-01-02,false,2026-01-02 00:21:15,Finalize Deal Structure and Org Chart,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561621057994,1207708126459024,user,inbox,false,,2025-12-22 16:32:58,,2026-01-02,false,2026-01-02 00:11:38,Request Title Engagement Letter,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561621058006,1207708126459024,user,inbox,false,,2025-12-22 16:32:58,,2026-01-15,false,2025-12-22 16:33:14,Receive Title Engagement Letter,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561619703925,1207957394937659,user,inbox,false,,2025-12-22 16:32:53,,2026-01-15,false,2025-12-22 16:33:13,Schedule Kick-off Call,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561621212402,1207957399163090,user,inbox,false,,2025-12-22 16:32:59,,2026-01-15,false,2025-12-22 16:34:13,Upload Detailed Due Diligence Items,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561621211134,1207957394937659,user,inbox,false,,2025-12-22 16:32:58,,2026-01-15,false,2025-12-22 16:33:13,Receive Bank Term Sheet,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561621212426,1207957394937659,user,inbox,false,,2025-12-22 16:33:00,,2026-01-20,false,2025-12-22 16:33:14,Approve Bank Term Sheet,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561621197544,1207957394937659,user,inbox,false,,2025-12-22 16:33:04,,2026-01-15,false,2025-12-22 16:33:14,Receive Investor Term Sheet,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561621197556,1207957394937659,user,inbox,false,,2025-12-22 16:33:04,,2026-01-20,false,2025-12-22 16:33:14,Approve Investor Term Sheet,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561619708945,1207957394937659,user,inbox,false,,2025-12-22 16:32:59,,2026-01-15,false,2025-12-22 16:33:14,Order Appraisal,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561619703936,1207957394937659,user,inbox,false,,2025-12-22 16:32:53,,2026-02-14,false,2025-12-22 16:33:13,Receive Bank Approval,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561621211266,1207957394937659,user,inbox,false,,2025-12-22 16:32:58,,2026-02-14,false,2025-12-22 16:33:13,Receive Investor Approval,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561621212414,1207957394937659,user,inbox,false,,2025-12-22 16:32:59,,2026-02-14,false,2025-12-22 16:33:14,Receive Loan Docs,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561619850081,1207957394937659,user,inbox,false,,2025-12-22 16:32:59,,2026-02-19,false,2025-12-22 16:33:14,Setup Deposit Account,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561619850237,1207708126459024,user,inbox,false,,2025-12-22 16:33:00,,2026-02-19,false,2025-12-22 16:33:14,Generate Draft Settlement Statement,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561619850060,1207708126459024,user,inbox,false,,2025-12-22 16:32:59,,2026-02-24,false,2025-12-22 16:33:15,Approve Loan Docs,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561620607423,1207957394937659,user,inbox,false,,2025-12-22 16:32:55,,2026-02-24,false,2025-12-22 16:33:15,Review Funding,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561619850225,1207957394937659,user,inbox,false,,2025-12-22 16:32:59,,2026-02-24,false,2025-12-22 16:33:15,Approve Settlement Statement,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561621211278,1207957394937659,user,inbox,false,,2025-12-22 16:32:58,2026-03-01 10:00:00,2026-03-01,false,2025-12-31 09:09:38,Close Construction Loan,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561619845965,1209371954135547,user,inbox,false,,2025-12-22 16:32:53,,2026-04-15,false,2025-12-22 16:33:15,Setup Project in IMS,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561620615785,1209371954135547,user,inbox,false,,2025-12-22 16:33:04,,2026-04-15,false,2025-12-22 16:33:15,Create Stabilized Model,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561619845976,1209371954135547,user,inbox,false,,2025-12-22 16:32:53,,2026-04-15,false,2025-12-22 16:33:15,Update Portfolio Dashboard,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212546854141139,1207957399163090,user,inbox,false,,2025-12-22 16:32:52,,2026-05-15,false,2025-12-22 16:33:15,Bind Builders Risk Insurance,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561619845954,1207957399163090,user,inbox,false,,2025-12-22 16:32:52,,2026-05-15,false,2025-12-22 16:33:15,Upload Building Permits,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561620607401,1209371954135547,user,inbox,false,,2025-12-22 16:32:54,,2026-03-17,false,2025-12-22 16:33:15,Create Developer Fee Invoice,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561619704996,1208562500231177,user,inbox,false,,2025-12-22 16:32:54,,2026-03-17,false,2025-12-22 16:33:15,Send Developer Fee to Stoa Group,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561620607412,1209371954135547,user,inbox,false,,2025-12-22 16:32:55,,2026-03-17,false,2025-12-22 16:33:15,Receive Closing Fee Invoice,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561619704985,1208562500231177,user,inbox,false,,2025-12-22 16:32:54,,2026-03-18,false,2025-12-22 16:33:15,Send Closing Fee to Preferred Equity,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561621057982,1207708126459024,user,inbox,false,,2025-12-22 16:32:57,,2026-03-21,false,2025-12-22 16:33:15,Save all Executed Closing Docs,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561619850249,1207957399163090,user,inbox,false,,2025-12-22 16:33:00,,2026-06-14,false,2025-12-22 16:33:15,Start Owners Books,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561621061566,1209371954135547,user,inbox,false,,2025-12-22 16:33:00,,2026-03-17,false,2025-12-22 16:33:16,Add Dates to Loan Covenants and Maturities Section,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212551724213767,1207957394937659,user,inbox,false,,2025-12-22 16:32:52,,,false,2025-12-22 16:33:28,Construction Period Maturity,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212551724213778,1207957394937659,user,inbox,false,,2025-12-22 16:32:53,,,false,2025-12-22 16:33:29,Mini-Perm Loan Maturities,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561621209263,1207957394937659,user,inbox,false,,2025-12-22 16:32:53,,,false,2025-12-22 16:33:30,Construction Completion Covenant,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561621209274,1207957394937659,user,inbox,false,,2025-12-22 16:32:53,,,false,2025-12-22 16:33:32,1st DSCR Covenant,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561620607230,1207957394937659,user,inbox,false,,2025-12-22 16:32:54,,,false,2025-12-22 16:33:33,2nd DSCR Covenant,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561621209285,1207957394937659,user,inbox,false,,2025-12-22 16:32:53,,,false,2025-12-22 16:33:34,Occupancy Covenant,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561620607208,1207957394937659,user,inbox,false,,2025-12-22 16:32:54,,,false,2025-12-22 16:33:35,Compliance Certificates,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212561620607219,1207957394937659,user,inbox,false,,2025-12-22 16:32:54,,,false,2025-12-22 16:33:37,Redemption Plans,,0,,543185907056595,workspace,1212552979289027,,,,112.0,2026-01-06 09:59:56
+1212625288221178,,,upcoming,false,,2025-12-30 20:39:30,,,false,2025-12-30 20:39:32,Key Parties,"Lender:
+    
+
+Lender Counsel:
+    
+
+Borrower Counsel:
+    
+
+Title Company:
+    
+
+Investors:
+    
+
+Investor Counsel:
+    
+",0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625288222519,,,upcoming,false,,2025-12-30 20:39:30,,,false,2025-12-30 20:39:32,Term Sheets/Commitment Letters,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625287712306,,,upcoming,false,,2025-12-30 20:39:20,,,false,2025-12-30 20:39:25,Bank Package,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625287713492,,,upcoming,false,,2025-12-30 20:39:22,,,false,2025-12-30 20:39:26,Org Chart,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625288670150,1207957399163090,user,inbox,false,,2025-12-30 20:39:19,,2026-05-19,false,2025-12-30 20:39:45,Create Initial Bank Package,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625285442103,1207957394937659,user,inbox,false,,2025-12-30 20:39:19,,2026-06-03,false,2025-12-30 20:39:41,Finalize Bank Package,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625288670161,1209371954135547,user,inbox,false,,2025-12-30 20:39:19,,2026-06-03,false,2025-12-30 20:39:40,Create Initial IMS Project,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625288670172,1207957399163090,user,inbox,false,,2025-12-30 20:39:19,,2026-06-03,false,2025-12-30 20:39:40,Upload Initial Due Diligence Docs,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625288672518,1207957394937659,user,inbox,false,,2025-12-30 20:39:24,,2026-06-03,false,2025-12-30 20:39:41,Select Bank,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625288672530,1207957394937659,user,inbox,false,,2025-12-30 20:39:24,,2026-06-03,false,2025-12-30 20:39:41,Select Investors,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212617072239485,1207957394937659,user,inbox,false,,2025-12-30 20:39:25,,2026-06-03,false,2025-12-30 20:39:41,Finalize Deal Structure and Org Chart,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625287210565,1207708126459024,user,inbox,false,,2025-12-30 20:39:21,,2026-06-03,false,2025-12-30 20:39:41,Request Title Engagement Letter,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625287713467,1207708126459024,user,inbox,false,,2025-12-30 20:39:21,,2026-07-03,false,2025-12-30 20:39:41,Receive Title Engagement Letter,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625288670215,1207957394937659,user,inbox,false,,2025-12-30 20:39:20,,2026-07-03,false,2025-12-30 20:39:40,Schedule Kick-off Call,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212617072239497,1207957399163090,user,inbox,false,,2025-12-30 20:39:25,,2026-07-03,false,2025-12-30 20:39:42,Upload Detailed Due Diligence Items,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625282443410,1207957394937659,user,inbox,false,,2025-12-30 20:39:24,,2026-07-03,false,2025-12-30 20:39:41,Receive Bank Term Sheet,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625287212953,1207957394937659,user,inbox,false,,2025-12-30 20:39:26,,2026-07-08,false,2025-12-30 20:39:42,Approve Bank Term Sheet,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625288221154,1207957394937659,user,inbox,false,,2025-12-30 20:39:29,,2026-07-03,false,2025-12-30 20:39:42,Receive Investor Term Sheet,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625288221166,1207957394937659,user,inbox,false,,2025-12-30 20:39:29,,2026-07-08,false,2025-12-30 20:39:42,Approve Investor Term Sheet,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625287713743,1207957394937659,user,inbox,false,,2025-12-30 20:39:25,,2026-07-03,false,2025-12-30 20:39:42,Order Appraisal,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625288670226,1207957394937659,user,inbox,false,,2025-12-30 20:39:20,,2026-08-02,false,2025-12-30 20:39:41,Receive Bank Approval,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625288672542,1207957394937659,user,inbox,false,,2025-12-30 20:39:25,,2026-08-02,false,2025-12-30 20:39:41,Receive Investor Approval,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212617072239509,1207957394937659,user,inbox,false,,2025-12-30 20:39:26,,2026-08-02,false,2025-12-30 20:39:42,Receive Loan Docs,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625283956958,1207957394937659,user,inbox,false,,2025-12-30 20:39:24,,2026-08-07,false,2025-12-30 20:39:42,Setup Deposit Account,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212617072239419,1207708126459024,user,inbox,false,,2025-12-30 20:39:25,,2026-08-07,false,2025-12-30 20:39:43,Generate Draft Settlement Statement,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625287713479,1207708126459024,user,inbox,false,,2025-12-30 20:39:22,,2026-08-12,false,2025-12-30 20:39:43,Approve Loan Docs,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625288219897,1207957394937659,user,inbox,false,,2025-12-30 20:39:21,,2026-08-12,false,2025-12-30 20:39:43,Review Funding,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212617072239407,1207957394937659,user,inbox,false,,2025-12-30 20:39:25,,2026-08-12,false,2025-12-30 20:39:43,Approve Settlement Statement,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625287713731,1207957394937659,user,inbox,false,,2025-12-30 20:39:25,2026-08-17 10:00:00,2026-08-17,false,2025-12-30 20:39:44,Close Construction Loan,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625288670204,1209371954135547,user,inbox,false,,2025-12-30 20:39:19,,2026-10-01,false,2025-12-30 20:39:43,Setup Project in IMS,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625288222527,1209371954135547,user,inbox,false,,2025-12-30 20:39:30,,2026-10-01,false,2025-12-30 20:39:43,Create Stabilized Model,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625287712295,1209371954135547,user,inbox,false,,2025-12-30 20:39:20,,2026-10-01,false,2025-12-30 20:39:43,Update Portfolio Dashboard,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625288670182,1207957399163090,user,inbox,false,,2025-12-30 20:39:19,,2026-10-31,false,2025-12-30 20:39:44,Bind Builders Risk Insurance,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625288670193,1207957399163090,user,inbox,false,,2025-12-30 20:39:19,,2026-10-31,false,2025-12-30 20:39:44,Upload Building Permits,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625288219875,1209371954135547,user,inbox,false,,2025-12-30 20:39:20,,2026-09-02,false,2025-12-30 20:39:44,Create Developer Fee Invoice,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625287712324,1208562500231177,user,inbox,false,,2025-12-30 20:39:20,,2026-09-02,false,2025-12-30 20:39:44,Send Developer Fee to Stoa Group,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625288219886,1209371954135547,user,inbox,false,,2025-12-30 20:39:21,,2026-09-02,false,2025-12-30 20:39:44,Receive Closing Fee Invoice,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625287712313,1208562500231177,user,inbox,false,,2025-12-30 20:39:20,,2026-09-03,false,2025-12-30 20:39:44,Send Closing Fee to Preferred Equity,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625287210553,1207708126459024,user,inbox,false,,2025-12-30 20:39:21,,2026-09-06,false,2025-12-30 20:39:44,Save all Executed Closing Docs,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625287211892,1207957399163090,user,inbox,false,,2025-12-30 20:39:25,,2026-11-30,false,2025-12-30 20:39:44,Start Owners Books and Create Recurring Tasks,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625287211904,1209371954135547,user,inbox,false,,2025-12-30 20:39:25,,2026-09-02,false,2025-12-30 20:39:47,Add Dates to Loan Covenants and Maturities Section,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625286302507,1207957394937659,user,inbox,false,,2025-12-30 20:39:19,,,false,2025-12-30 20:39:46,Construction Period Maturity,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625286302518,1207957394937659,user,inbox,false,,2025-12-30 20:39:19,,,false,2025-12-30 20:39:46,Mini-Perm Loan Maturities,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625286302529,1207957394937659,user,inbox,false,,2025-12-30 20:39:19,,,false,2025-12-30 20:39:46,Construction Completion Covenant,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212617072237159,1207957394937659,user,inbox,false,,2025-12-30 20:39:20,,,false,2025-12-30 20:39:46,1st DSCR Covenant,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625288219944,1207957394937659,user,inbox,false,,2025-12-30 20:39:21,,,false,2025-12-30 20:39:46,2nd DSCR Covenant,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212617072237170,1207957394937659,user,inbox,false,,2025-12-30 20:39:20,,,false,2025-12-30 20:39:46,Occupancy Covenant,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212617072237181,1207957394937659,user,inbox,false,,2025-12-30 20:39:21,,,false,2025-12-30 20:39:46,Compliance Certificates,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212625288219933,1207957394937659,user,inbox,false,,2025-12-30 20:39:21,,,false,2025-12-30 20:39:46,Redemption Plans,,0,,543185907056595,workspace,1212583363079368,,,,112.0,2026-01-06 09:59:56
+1212611517822972,,,upcoming,false,,2025-12-29 15:58:04,,,false,2025-12-29 15:58:07,Key Parties,"Lender:
+    
+
+Lender Counsel:
+    
+
+Borrower Counsel:
+    
+
+Title Company:
+    
+
+Investors:
+    
+
+Investor Counsel:
+    
+",0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611517822980,,,upcoming,false,,2025-12-29 15:58:04,,,false,2025-12-29 15:58:07,Term Sheets/Commitment Letters,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611517808626,,,upcoming,false,,2025-12-29 15:57:52,,,false,2025-12-29 15:57:58,Bank Package,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611517518355,,,upcoming,false,,2025-12-29 15:57:54,,,false,2025-12-29 15:57:59,Org Chart,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611515901412,1207957399163090,user,inbox,false,,2025-12-29 15:57:51,,2026-03-02,false,2025-12-29 16:00:50,Create Initial Bank Package,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212579761637994,1207957394937659,user,inbox,false,,2025-12-29 15:57:51,,2026-03-17,false,2025-12-29 15:58:13,Finalize Bank Package,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611518819989,1209371954135547,user,inbox,false,,2025-12-29 15:57:51,,2026-03-17,false,2025-12-29 15:58:12,Create Initial IMS Project,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611518820000,1207957399163090,user,inbox,false,,2025-12-29 15:57:52,,2026-03-17,false,2025-12-29 15:58:12,Upload Initial Due Diligence Docs,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611518421276,1207957394937659,user,inbox,false,,2025-12-29 15:57:57,,2026-03-17,false,2025-12-29 15:58:12,Select Bank,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611518421288,1207957394937659,user,inbox,false,,2025-12-29 15:57:58,,2026-03-17,false,2025-12-29 15:58:12,Select Investors,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611517818942,1207957394937659,user,inbox,false,,2025-12-29 15:57:59,,2026-03-17,false,2025-12-29 15:58:13,Finalize Deal Structure and Org Chart,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611517810993,1207708126459024,user,inbox,false,,2025-12-29 15:57:54,,2026-03-17,false,2025-12-29 15:58:13,Request Title Engagement Letter,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611517811005,1207708126459024,user,inbox,false,,2025-12-29 15:57:54,,2026-04-16,false,2025-12-29 15:58:13,Receive Title Engagement Letter,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611518820011,1207957394937659,user,inbox,false,,2025-12-29 15:57:52,,2026-04-16,false,2025-12-29 15:58:12,Schedule Kick-off Call,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611517524013,1207957399163090,user,inbox,false,,2025-12-29 15:57:59,,2026-04-16,false,2025-12-29 15:58:13,Upload Detailed Due Diligence Items,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611517520846,1207957394937659,user,inbox,false,,2025-12-29 15:57:57,,2026-04-16,false,2025-12-29 15:58:12,Receive Bank Term Sheet,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611517820130,1207957394937659,user,inbox,false,,2025-12-29 15:57:59,,2026-04-21,false,2025-12-29 15:58:13,Approve Bank Term Sheet,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611518981900,1207957394937659,user,inbox,false,,2025-12-29 15:58:03,,2026-04-16,false,2025-12-29 15:58:13,Receive Investor Term Sheet,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611517822960,1207957394937659,user,inbox,false,,2025-12-29 15:58:04,,2026-04-21,false,2025-12-29 15:58:13,Approve Investor Term Sheet,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611517818930,1207957394937659,user,inbox,false,,2025-12-29 15:57:58,,2026-04-16,false,2025-12-29 15:58:13,Order Appraisal,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611517810697,1207957394937659,user,inbox,false,,2025-12-29 15:57:52,,2026-05-16,false,2025-12-29 15:58:12,Receive Bank Approval,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611518421300,1207957394937659,user,inbox,false,,2025-12-29 15:57:58,,2026-05-16,false,2025-12-29 15:58:12,Receive Investor Approval,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611517524025,1207957394937659,user,inbox,false,,2025-12-29 15:57:59,,2026-05-16,false,2025-12-29 15:58:13,Receive Loan Docs,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611516231071,1207957394937659,user,inbox,false,,2025-12-29 15:57:58,,2026-05-21,false,2025-12-29 15:58:13,Setup Deposit Account,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611517818961,1207708126459024,user,inbox,false,,2025-12-29 15:57:58,,2026-05-21,false,2025-12-29 15:58:13,Generate Draft Settlement Statement,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611517518342,1207708126459024,user,inbox,false,,2025-12-29 15:57:54,,2026-05-26,false,2025-12-29 15:58:13,Approve Loan Docs,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611518823276,1207957394937659,user,inbox,false,,2025-12-29 15:57:53,,2026-05-26,false,2025-12-29 15:58:14,Review Funding,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611517818949,1207957394937659,user,inbox,false,,2025-12-29 15:57:58,,2026-05-26,false,2025-12-29 15:58:14,Approve Settlement Statement,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611517818918,1207957394937659,user,inbox,false,,2025-12-29 15:57:58,2026-05-31 10:00:00,2026-05-31,false,2025-12-29 15:58:14,Close Construction Loan,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611517808604,1209371954135547,user,inbox,false,,2025-12-29 15:57:52,,2026-07-15,false,2025-12-29 15:58:14,Setup Project in IMS,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611518429341,1209371954135547,user,inbox,false,,2025-12-29 15:58:04,,2026-07-15,false,2025-12-29 15:58:14,Create Stabilized Model,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611517808615,1209371954135547,user,inbox,false,,2025-12-29 15:57:52,,2026-07-15,false,2025-12-29 15:58:14,Update Portfolio Dashboard,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212586295090352,1207957399163090,user,inbox,false,,2025-12-29 15:57:51,,2026-08-14,false,2025-12-29 15:58:14,Bind Builders Risk Insurance,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212586295090363,1207957399163090,user,inbox,false,,2025-12-29 15:57:51,,2026-08-14,false,2025-12-29 15:58:14,Upload Building Permits,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611518821110,1209371954135547,user,inbox,false,,2025-12-29 15:57:53,,2026-06-16,false,2025-12-29 15:58:14,Create Developer Fee Invoice,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611518821099,1210575550893319,user,inbox,false,,2025-12-29 15:57:53,,2026-06-16,false,2025-12-29 15:58:14,Send Developer Fee to Stoa Group,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611518823265,1209371954135547,user,inbox,false,,2025-12-29 15:57:53,,2026-06-16,false,2025-12-29 15:58:14,Receive Closing Fee Invoice,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611518821088,1210575550893319,user,inbox,false,,2025-12-29 15:57:52,,2026-06-17,false,2025-12-29 15:58:14,Send Closing Fee to Preferred Equity,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611518823288,1207708126459024,user,inbox,false,,2025-12-29 15:57:54,,2026-06-20,false,2025-12-29 15:58:14,Save all Executed Closing Docs,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611517818973,1207957399163090,user,inbox,false,,2025-12-29 15:57:58,,2026-09-13,false,2025-12-29 15:58:14,Start Owners Books and Create Recurring Tasks,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611518423398,1209371954135547,user,inbox,false,,2025-12-29 15:57:59,,2026-06-16,false,2025-12-29 15:58:15,Add Dates to Loan Covenants and Maturities Section,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611518418228,1207957394937659,user,inbox,false,,2025-12-29 15:57:51,,,false,2025-12-29 15:58:15,Construction Period Maturity,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611518418239,1207957394937659,user,inbox,false,,2025-12-29 15:57:52,,,false,2025-12-29 15:58:15,Mini-Perm Loan Maturities,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611518418250,1207957394937659,user,inbox,false,,2025-12-29 15:57:52,,,false,2025-12-29 15:58:15,Construction Completion Covenant,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611517511798,1207957394937659,user,inbox,false,,2025-12-29 15:57:52,,,false,2025-12-29 15:58:15,1st DSCR Covenant,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611518821134,1207957394937659,user,inbox,false,,2025-12-29 15:57:53,,,false,2025-12-29 15:58:15,2nd DSCR Covenant,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611517511809,1207957394937659,user,inbox,false,,2025-12-29 15:57:52,,,false,2025-12-29 15:58:15,Occupancy Covenant,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611517511820,1207957394937659,user,inbox,false,,2025-12-29 15:57:53,,,false,2025-12-29 15:58:15,Compliance Certificates,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611518821123,1207957394937659,user,inbox,false,,2025-12-29 15:57:53,,,false,2025-12-29 15:58:15,Redemption Plans,,0,,543185907056595,workspace,1212606053090913,,,,112.0,2026-01-06 09:59:56
+1212611748100524,,,upcoming,false,,2025-12-29 16:03:35,,,false,2025-12-29 16:03:38,Key Parties,"Lender:
+    
+
+Lender Counsel:
+    
+
+Borrower Counsel:
+    
+
+Title Company:
+    
+
+Investors:
+    
+
+Investor Counsel:
+    
+",0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212611748100532,,,upcoming,false,,2025-12-29 16:03:35,,,false,2025-12-29 16:03:38,Term Sheets/Commitment Letters,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212583338654532,,,upcoming,false,,2025-12-29 16:03:25,,,false,2025-12-29 16:03:31,Bank Package,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212611748094611,,,upcoming,false,,2025-12-29 16:03:27,,,false,2025-12-29 16:03:32,Org Chart,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212611748400930,1207957399163090,user,inbox,false,,2025-12-29 16:03:24,,2026-02-16,false,2025-12-30 20:29:50,Create Initial Bank Package,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212611748081753,1207957394937659,user,inbox,false,,2025-12-29 16:03:24,,2026-03-03,false,2025-12-29 16:03:45,Finalize Bank Package,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212611748400941,1209371954135547,user,inbox,false,,2025-12-29 16:03:24,,2026-03-03,false,2025-12-29 16:03:44,Create Initial IMS Project,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212611748400952,1207957399163090,user,inbox,false,,2025-12-29 16:03:24,,2026-03-03,false,2025-12-29 16:03:44,Upload Initial Due Diligence Docs,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212611748098836,1207957394937659,user,inbox,false,,2025-12-29 16:03:29,,2026-03-03,false,2025-12-29 16:03:44,Select Bank,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212611748098848,1207957394937659,user,inbox,false,,2025-12-29 16:03:30,,2026-03-03,false,2025-12-29 16:03:44,Select Investors,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212583338661541,1207957394937659,user,inbox,false,,2025-12-29 16:03:30,,2026-03-03,false,2025-12-29 16:03:45,Finalize Deal Structure and Org Chart,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212583338654716,1207708126459024,user,inbox,false,,2025-12-29 16:03:26,,2026-03-03,false,2025-12-29 16:03:45,Request Title Engagement Letter,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212583338654728,1207708126459024,user,inbox,false,,2025-12-29 16:03:27,,2026-04-02,false,2025-12-29 16:03:45,Receive Title Engagement Letter,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212611747942320,1207957394937659,user,inbox,false,,2025-12-29 16:03:25,,2026-04-02,false,2025-12-29 16:03:44,Schedule Kick-off Call,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212611748098940,1207957399163090,user,inbox,false,,2025-12-29 16:03:31,,2026-04-02,false,2025-12-29 16:03:45,Upload Detailed Due Diligence Items,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212611746741143,1207957394937659,user,inbox,false,,2025-12-29 16:03:29,,2026-04-02,false,2025-12-29 16:03:44,Receive Bank Term Sheet,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212611748406088,1207957394937659,user,inbox,false,,2025-12-29 16:03:31,,2026-04-07,false,2025-12-29 16:03:45,Approve Bank Term Sheet,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212583338591636,1207957394937659,user,inbox,false,,2025-12-29 16:03:35,,2026-04-02,false,2025-12-29 16:03:45,Receive Investor Term Sheet,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212583338591648,1207957394937659,user,inbox,false,,2025-12-29 16:03:35,,2026-04-07,false,2025-12-29 16:03:45,Approve Investor Term Sheet,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212583338661529,1207957394937659,user,inbox,false,,2025-12-29 16:03:30,,2026-04-02,false,2025-12-29 16:03:45,Order Appraisal,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212611747942331,1207957394937659,user,inbox,false,,2025-12-29 16:03:25,,2026-05-02,false,2025-12-29 16:03:44,Receive Bank Approval,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212611748098860,1207957394937659,user,inbox,false,,2025-12-29 16:03:30,,2026-05-02,false,2025-12-29 16:03:44,Receive Investor Approval,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212611748098952,1207957394937659,user,inbox,false,,2025-12-29 16:03:31,,2026-05-02,false,2025-12-29 16:03:45,Receive Loan Docs,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212579761695370,1207957394937659,user,inbox,false,,2025-12-29 16:03:30,,2026-05-07,false,2025-12-29 16:03:45,Setup Deposit Account,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212611748404912,1207708126459024,user,inbox,false,,2025-12-29 16:03:31,,2026-05-07,false,2025-12-29 16:03:45,Generate Draft Settlement Statement,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212583338654740,1207708126459024,user,inbox,false,,2025-12-29 16:03:27,,2026-05-12,false,2025-12-29 16:03:46,Approve Loan Docs,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212611748094486,1207957394937659,user,inbox,false,,2025-12-29 16:03:26,,2026-05-12,false,2025-12-29 16:03:46,Review Funding,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212579761695382,1207957394937659,user,inbox,false,,2025-12-29 16:03:31,,2026-05-12,false,2025-12-29 16:03:46,Approve Settlement Statement,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212583338661517,1207957394937659,user,inbox,false,,2025-12-29 16:03:30,2026-05-17 10:00:00,2026-05-17,false,2025-12-29 16:03:46,Close Construction Loan,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212583338654510,1209371954135547,user,inbox,false,,2025-12-29 16:03:24,,2026-07-01,false,2025-12-29 16:03:46,Setup Project in IMS,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212611748100540,1209371954135547,user,inbox,false,,2025-12-29 16:03:36,,2026-07-01,false,2025-12-29 16:03:46,Create Stabilized Model,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212583338654521,1209371954135547,user,inbox,false,,2025-12-29 16:03:25,,2026-07-01,false,2025-12-29 16:03:46,Update Portfolio Dashboard,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212611748049739,1207957399163090,user,inbox,false,,2025-12-29 16:03:24,,2026-07-31,false,2025-12-29 16:03:46,Bind Builders Risk Insurance,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212611748049750,1207957399163090,user,inbox,false,,2025-12-29 16:03:24,,2026-07-31,false,2025-12-29 16:03:46,Upload Building Permits,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212611754255572,1209371954135547,user,inbox,false,,2025-12-29 16:03:26,,2026-06-02,false,2025-12-29 16:03:46,Create Developer Fee Invoice,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212611754255561,1210575550893319,user,inbox,false,,2025-12-29 16:03:25,,2026-06-02,false,2025-12-29 16:03:46,Send Developer Fee to Stoa Group,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212611748094475,1209371954135547,user,inbox,false,,2025-12-29 16:03:26,,2026-06-02,false,2025-12-29 16:03:46,Receive Closing Fee Invoice,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212611754255550,1210575550893319,user,inbox,false,,2025-12-29 16:03:25,,2026-06-03,false,2025-12-29 16:03:46,Send Closing Fee to Preferred Equity,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212611748094498,1207708126459024,user,inbox,false,,2025-12-29 16:03:26,,2026-06-06,false,2025-12-29 16:03:46,Save all Executed Closing Docs,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212611748404924,1207957399163090,user,inbox,false,,2025-12-29 16:03:31,,2026-08-30,false,2025-12-29 16:03:46,Start Owners Books and Create Recurring Tasks,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212583338662710,1209371954135547,user,inbox,false,,2025-12-29 16:03:31,,2026-06-02,false,2025-12-29 16:03:47,Add Dates to Loan Covenants and Maturities Section,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212611748081764,1207957394937659,user,inbox,false,,2025-12-29 16:03:24,,,false,2025-12-29 16:03:47,Construction Period Maturity,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212583338654540,1207957394937659,user,inbox,false,,2025-12-29 16:03:24,,,false,2025-12-29 16:03:47,Mini-Perm Loan Maturities,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212583338654551,1207957394937659,user,inbox,false,,2025-12-29 16:03:25,,,false,2025-12-29 16:03:47,Construction Completion Covenant,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212583338654562,1207957394937659,user,inbox,false,,2025-12-29 16:03:25,,,false,2025-12-29 16:03:47,1st DSCR Covenant,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212611747943394,1207957394937659,user,inbox,false,,2025-12-29 16:03:26,,,false,2025-12-29 16:03:47,2nd DSCR Covenant,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212611754255520,1207957394937659,user,inbox,false,,2025-12-29 16:03:25,,,false,2025-12-29 16:03:47,Occupancy Covenant,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212611754255531,1207957394937659,user,inbox,false,,2025-12-29 16:03:25,,,false,2025-12-29 16:03:47,Compliance Certificates,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212611754255542,1207957394937659,user,inbox,false,,2025-12-29 16:03:25,,,false,2025-12-29 16:03:47,Redemption Plans,,0,,543185907056595,workspace,1212606067447475,,,,112.0,2026-01-06 09:59:56
+1212625283384004,,,upcoming,false,,2025-12-30 20:36:24,,,false,2025-12-30 20:36:26,Key Parties,"Lender:
+    
+
+Lender Counsel:
+    
+
+Borrower Counsel:
+    
+
+Title Company:
+    
+
+Investors:
+    
+
+Investor Counsel:
+    
+",0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625283384012,,,upcoming,false,,2025-12-30 20:36:24,,,false,2025-12-30 20:36:26,Term Sheets/Commitment Letters,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625284828397,,,upcoming,false,,2025-12-30 20:36:12,,,false,2025-12-30 20:36:18,Bank Package,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625285437047,,,upcoming,false,,2025-12-30 20:36:14,,,false,2025-12-30 20:36:18,Org Chart,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212586321420745,1207957399163090,user,inbox,false,,2025-12-30 20:36:11,,2026-04-01,false,2025-12-30 20:37:44,Create Initial Bank Package,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625283951409,1207957394937659,user,inbox,false,,2025-12-30 20:36:11,,2026-04-16,false,2025-12-30 20:36:33,Finalize Bank Package,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625283374726,1209371954135547,user,inbox,false,,2025-12-30 20:36:12,,2026-04-16,false,2025-12-30 20:36:32,Create Initial IMS Project,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625283374737,1207957399163090,user,inbox,false,,2025-12-30 20:36:12,,2026-04-16,false,2025-12-30 20:36:33,Upload Initial Due Diligence Docs,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625285439372,1207957394937659,user,inbox,false,,2025-12-30 20:36:17,,2026-04-16,false,2025-12-30 20:36:33,Select Bank,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625285439384,1207957394937659,user,inbox,false,,2025-12-30 20:36:18,,2026-04-16,false,2025-12-30 20:36:33,Select Investors,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212617072219057,1207957394937659,user,inbox,false,,2025-12-30 20:36:18,,2026-04-16,false,2025-12-30 20:36:34,Finalize Deal Structure and Org Chart,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625285434945,1207708126459024,user,inbox,false,,2025-12-30 20:36:14,,2026-04-16,false,2025-12-30 20:36:34,Request Title Engagement Letter,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625283378031,1207708126459024,user,inbox,false,,2025-12-30 20:36:14,,2026-05-16,false,2025-12-30 20:36:34,Receive Title Engagement Letter,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625283374748,1207957394937659,user,inbox,false,,2025-12-30 20:36:12,,2026-05-16,false,2025-12-30 20:36:33,Schedule Kick-off Call,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212617072219069,1207957399163090,user,inbox,false,,2025-12-30 20:36:19,,2026-05-16,false,2025-12-30 20:36:34,Upload Detailed Due Diligence Items,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625285439360,1207957394937659,user,inbox,false,,2025-12-30 20:36:17,,2026-05-16,false,2025-12-30 20:36:33,Receive Bank Term Sheet,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625283971691,1207957394937659,user,inbox,false,,2025-12-30 20:36:19,,2026-05-21,false,2025-12-30 20:36:34,Approve Bank Term Sheet,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625283383855,1207957394937659,user,inbox,false,,2025-12-30 20:36:23,,2026-05-16,false,2025-12-30 20:36:34,Receive Investor Term Sheet,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625283383992,1207957394937659,user,inbox,false,,2025-12-30 20:36:23,,2026-05-21,false,2025-12-30 20:36:34,Approve Investor Term Sheet,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625285439580,1207957394937659,user,inbox,false,,2025-12-30 20:36:18,,2026-05-16,false,2025-12-30 20:36:34,Order Appraisal,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625285434752,1207957394937659,user,inbox,false,,2025-12-30 20:36:12,,2026-06-15,false,2025-12-30 20:36:33,Receive Bank Approval,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625285439556,1207957394937659,user,inbox,false,,2025-12-30 20:36:18,,2026-06-15,false,2025-12-30 20:36:33,Receive Investor Approval,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625283971679,1207957394937659,user,inbox,false,,2025-12-30 20:36:19,,2026-06-15,false,2025-12-30 20:36:34,Receive Loan Docs,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625281801681,1207957394937659,user,inbox,false,,2025-12-30 20:36:17,,2026-06-20,false,2025-12-30 20:36:34,Setup Deposit Account,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212617072218989,1207708126459024,user,inbox,false,,2025-12-30 20:36:17,,2026-06-20,false,2025-12-30 20:36:34,Generate Draft Settlement Statement,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625283378043,1207708126459024,user,inbox,false,,2025-12-30 20:36:14,,2026-06-25,false,2025-12-30 20:36:34,Approve Loan Docs,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625285434921,1207957394937659,user,inbox,false,,2025-12-30 20:36:13,,2026-06-25,false,2025-12-30 20:36:34,Review Funding,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625281801693,1207957394937659,user,inbox,false,,2025-12-30 20:36:17,,2026-06-25,false,2025-12-30 20:36:35,Approve Settlement Statement,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625285439568,1207957394937659,user,inbox,false,,2025-12-30 20:36:18,2026-06-30 10:00:00,2026-06-30,false,2025-12-30 20:36:35,Close Construction Loan,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625282336342,1209371954135547,user,inbox,false,,2025-12-30 20:36:12,,2026-08-14,false,2025-12-30 20:36:35,Setup Project in IMS,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625283384020,1209371954135547,user,inbox,false,,2025-12-30 20:36:24,,2026-08-14,false,2025-12-30 20:36:35,Create Stabilized Model,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625284828386,1209371954135547,user,inbox,false,,2025-12-30 20:36:12,,2026-08-14,false,2025-12-30 20:36:35,Update Portfolio Dashboard,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625282336320,1207957399163090,user,inbox,false,,2025-12-30 20:36:11,,2026-09-13,false,2025-12-30 20:36:35,Bind Builders Risk Insurance,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625282336331,1207957399163090,user,inbox,false,,2025-12-30 20:36:12,,2026-09-13,false,2025-12-30 20:36:35,Upload Building Permits,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625283969195,1209371954135547,user,inbox,false,,2025-12-30 20:36:13,,2026-07-16,false,2025-12-30 20:36:35,Create Developer Fee Invoice,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625283969184,1210575550893319,user,inbox,false,,2025-12-30 20:36:13,,2026-07-16,false,2025-12-30 20:36:35,Send Developer Fee to Stoa Group,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625283969206,1209371954135547,user,inbox,false,,2025-12-30 20:36:13,,2026-07-16,false,2025-12-30 20:36:35,Receive Closing Fee Invoice,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625284828404,1210575550893319,user,inbox,false,,2025-12-30 20:36:12,,2026-07-17,false,2025-12-30 20:36:35,Send Closing Fee to Preferred Equity,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625285434933,1207708126459024,user,inbox,false,,2025-12-30 20:36:14,,2026-07-20,false,2025-12-30 20:36:35,Save all Executed Closing Docs,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212617072219001,1207957399163090,user,inbox,false,,2025-12-30 20:36:17,,2026-10-13,false,2025-12-30 20:36:35,Start Owners Books and Create Recurring Tasks,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212617072219013,1209371954135547,user,inbox,false,,2025-12-30 20:36:18,,2026-07-16,false,2025-12-30 20:36:36,Add Dates to Loan Covenants and Maturities Section,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625283951420,1207957394937659,user,inbox,false,,2025-12-30 20:36:12,,,false,2025-12-30 20:36:36,Construction Period Maturity,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625283951431,1207957394937659,user,inbox,false,,2025-12-30 20:36:12,,,false,2025-12-30 20:36:36,Mini-Perm Loan Maturities,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625284828419,1207957394937659,user,inbox,false,,2025-12-30 20:36:12,,,false,2025-12-30 20:36:36,Construction Completion Covenant,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625284828430,1207957394937659,user,inbox,false,,2025-12-30 20:36:12,,,false,2025-12-30 20:36:36,1st DSCR Covenant,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625284828442,1207957394937659,user,inbox,false,,2025-12-30 20:36:13,,,false,2025-12-30 20:36:36,2nd DSCR Covenant,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625285434783,1207957394937659,user,inbox,false,,2025-12-30 20:36:12,,,false,2025-12-30 20:36:36,Occupancy Covenant,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625285434794,1207957394937659,user,inbox,false,,2025-12-30 20:36:13,,,false,2025-12-30 20:36:36,Compliance Certificates,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1212625285434805,1207957394937659,user,inbox,false,,2025-12-30 20:36:13,,,false,2025-12-30 20:36:36,Redemption Plans,,0,,543185907056595,workspace,1212618918885486,,,,112.0,2026-01-06 09:59:56
+1207592227936684,,,upcoming,false,,2024-06-17 11:05:49,,2024-07-31,false,2024-06-17 11:05:53,Promenade Due Diligence,,0,,543185907056595,workspace,1207455912614132,,,,112.0,2026-01-06 09:59:56
+1207483690804090,,,upcoming,false,,2024-06-04 10:43:25,,2024-07-15,false,2024-06-17 11:05:46,Covington Due Diligence,,0,,543185907056595,workspace,1207455912614132,,,,112.0,2026-01-06 09:59:56
+1207483689491743,,,upcoming,false,,2024-06-04 10:42:56,,2024-07-18,false,2024-06-04 10:44:42,Crosspointe Due Diligence,,0,,543185907056595,workspace,1207455912614132,,,,112.0,2026-01-06 09:59:56
+1207455912614159,1207455871059032,user,inbox,true,2024-07-18 12:14:27,2024-05-31 16:09:22,,2024-07-05,false,2024-07-18 12:14:27,Inverness Due Diligence Extension,,0,,543185907056595,workspace,1207455912614132,,,,112.0,2026-01-06 09:59:56
+1207815675913972,,,upcoming,false,,2024-07-16 13:01:22,,,false,2024-07-19 09:48:12,Okaloosa Ophthalmology,,0,,543185907056595,workspace,1207815675913965,,,,112.0,2026-01-06 09:59:56
+1207815675913968,,,upcoming,false,,2024-07-16 12:52:23,,2024-08-31,false,2024-08-14 13:51:18,Starbucks,"DD - 8/31/3024
+Closing - 9/30/2024",0,,543185907056595,workspace,1207815675913965,,,,112.0,2026-01-06 09:59:56
+1207855381471934,,,upcoming,false,,2024-07-19 09:51:44,,2024-11-15,false,2024-08-27 15:36:16,Prime Healthcare,,0,,543185907056595,workspace,1207815675913965,,,,112.0,2026-01-06 09:59:56
+1207868341357891,,,upcoming,false,,2024-07-24 13:32:20,,,false,2024-07-24 13:33:41,Properties Tracker,,0,,543185907056595,workspace,1207815675913965,,,,112.0,2026-01-06 09:59:56
+1210145843275895,,,upcoming,false,,2025-05-02 12:02:51,,,false,2025-05-02 12:02:59,Photo Updates,,0,,543185907056595,workspace,1210145843275892,,,,112.0,2026-01-06 09:59:56
+1210988412429326,,,upcoming,false,,2025-08-06 10:03:29,,2025-08-07,false,2025-08-06 10:03:31,ADP,,0,,543185907056595,workspace,1210979749180458,,,,112.0,2026-01-06 09:59:56
+1210988412429321,,,upcoming,false,,2025-08-06 10:03:29,,2025-08-07,false,2025-08-06 10:03:30,Orientation ,,0,,543185907056595,workspace,1210979749180458,,,,112.0,2026-01-06 09:59:56
+1210988412429316,,,upcoming,false,,2025-08-06 10:03:29,,2025-07-31,false,2025-08-06 10:03:30,IT set up,,0,,543185907056595,workspace,1210979749180458,,,,112.0,2026-01-06 09:59:56
+1210988412429311,,,upcoming,false,,2025-08-06 10:03:29,,2025-07-30,false,2025-08-06 10:03:30,Onboarding,,0,,543185907056595,workspace,1210979749180458,,,,112.0,2026-01-06 09:59:56

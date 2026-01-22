@@ -1,0 +1,629 @@
+{
+    "id": "3e065168-82dc-49c8-9c1c-0d1317199a02",
+    "name": "Deal Pipeline",
+    "version": "0.0.1",
+    "datasetsMapping": [
+       {
+          "dataSetId": "cfb8336a-dd07-4c1b-bce4-8548ac0a2a2f",
+          "alias": "procoreProjectInfo",
+          "fields": [
+             {
+                "alias": "actualstartdate",
+                "columnName": "actual_start_date"
+             },
+             {
+                "alias": "address",
+                "columnName": "address"
+             },
+             {
+                "alias": "city",
+                "columnName": "city"
+             },
+             {
+                "alias": "county",
+                "columnName": "county"
+             },
+             {
+                "alias": "estimatedstartdate",
+                "columnName": "estimated_start_date"
+             },
+             {
+                "alias": "latitude",
+                "columnName": "latitude"
+             },
+             {
+                "alias": "locale",
+                "columnName": "locale"
+             },
+             {
+                "alias": "longitude",
+                "columnName": "longitude"
+             },
+             {
+                "alias": "name",
+                "columnName": "name"
+             },
+             {
+                "alias": "region",
+                "columnName": "region"
+             },
+             {
+                "alias": "squarefeet",
+                "columnName": "square_feet"
+             },
+             {
+                "alias": "totalvalue",
+                "columnName": "total_value"
+             },
+             {
+                "alias": "updatedat",
+                "columnName": "updated_at"
+             },
+             {
+                "alias": "zip",
+                "columnName": "zip"
+             },
+             {
+                "alias": "actualcompletiondate",
+                "columnName": "actual_completion_date"
+             }
+          ],
+          "dql": null
+       },
+       {
+          "dataSetId": "d68bc3dc-da2b-4c9d-9816-cdc73454f3fb",
+          "alias": "asanaCustomFields",
+          "fields": [
+             {
+                "alias": "gid",
+                "columnName": "gid"
+             },
+             {
+                "alias": "name",
+                "columnName": "name"
+             },
+             {
+                "alias": "resourcesubtype",
+                "columnName": "resource_subtype"
+             },
+             {
+                "alias": "resourcetype",
+                "columnName": "resource_type"
+             },
+             {
+                "alias": "type",
+                "columnName": "type"
+             },
+             {
+                "alias": "privacysetting",
+                "columnName": "privacy_setting"
+             },
+             {
+                "alias": "defaultaccesslevel",
+                "columnName": "default_access_level"
+             },
+             {
+                "alias": "isformulafield",
+                "columnName": "is_formula_field"
+             },
+             {
+                "alias": "enumoptionsgid",
+                "columnName": "enum_options_gid"
+             },
+             {
+                "alias": "enumoptionscolor",
+                "columnName": "enum_options_color"
+             },
+             {
+                "alias": "enumoptionsenabled",
+                "columnName": "enum_options_enabled"
+             },
+             {
+                "alias": "enumoptionsname",
+                "columnName": "enum_options_name"
+             },
+             {
+                "alias": "enumoptionsresourcetype",
+                "columnName": "enum_options_resource_type"
+             },
+             {
+                "alias": "precision",
+                "columnName": "precision"
+             }
+          ],
+          "dql": null
+       },
+       {
+          "dataSetId": "f951daea-42a2-4f5a-b53e-5d3c87c0c21b",
+          "alias": "asanaTasksData",
+          "fields": [
+             {
+                "alias": "gid",
+                "columnName": "gid"
+             },
+             {
+                "alias": "assigneegid",
+                "columnName": "assignee_gid"
+             },
+             {
+                "alias": "assigneeresourcetype",
+                "columnName": "assignee_resource_type"
+             },
+             {
+                "alias": "assigneestatus",
+                "columnName": "assignee_status"
+             },
+             {
+                "alias": "completed",
+                "columnName": "completed"
+             },
+             {
+                "alias": "completedat",
+                "columnName": "completed_at"
+             },
+             {
+                "alias": "createdat",
+                "columnName": "created_at"
+             },
+             {
+                "alias": "dueat",
+                "columnName": "due_at"
+             },
+             {
+                "alias": "dueon",
+                "columnName": "due_on"
+             },
+             {
+                "alias": "hearted",
+                "columnName": "hearted"
+             },
+             {
+                "alias": "modifiedat",
+                "columnName": "modified_at"
+             },
+             {
+                "alias": "name",
+                "columnName": "name"
+             },
+             {
+                "alias": "notes",
+                "columnName": "notes"
+             },
+             {
+                "alias": "numhearts",
+                "columnName": "num_hearts"
+             },
+             {
+                "alias": "parent",
+                "columnName": "parent"
+             },
+             {
+                "alias": "workspacegid",
+                "columnName": "workspace_gid"
+             },
+             {
+                "alias": "workspaceresourcetype",
+                "columnName": "workspace_resource_type"
+             },
+             {
+                "alias": "projectid",
+                "columnName": "project_id"
+             },
+             {
+                "alias": "parentgid",
+                "columnName": "parent_gid"
+             },
+             {
+                "alias": "parentresourcetype",
+                "columnName": "parent_resource_type"
+             },
+             {
+                "alias": "actualtimeminutes",
+                "columnName": "actual_time_minutes"
+             },
+             {
+                "alias": "liked",
+                "columnName": "liked"
+             },
+             {
+                "alias": "likes",
+                "columnName": "likes"
+             },
+             {
+                "alias": "numlikes",
+                "columnName": "num_likes"
+             },
+             {
+                "alias": "permalinkurl",
+                "columnName": "permalink_url"
+             },
+             {
+                "alias": "resourcetype",
+                "columnName": "resource_type"
+             },
+             {
+                "alias": "startat",
+                "columnName": "start_at"
+             },
+             {
+                "alias": "starton",
+                "columnName": "start_on"
+             },
+             {
+                "alias": "resourcesubtype",
+                "columnName": "resource_subtype"
+             },
+             {
+                "alias": "workspacename",
+                "columnName": "workspace_name"
+             },
+             {
+                "alias": "customfieldsgid",
+                "columnName": "custom_fields_gid"
+             },
+             {
+                "alias": "customfieldsenabled",
+                "columnName": "custom_fields_enabled"
+             },
+             {
+                "alias": "customfieldsenumoptions",
+                "columnName": "custom_fields_enum_options"
+             },
+             {
+                "alias": "customfieldsenumvaluegid",
+                "columnName": "custom_fields_enum_value_gid"
+             },
+             {
+                "alias": "customfieldsenumvaluecolor",
+                "columnName": "custom_fields_enum_value_color"
+             },
+             {
+                "alias": "customfieldsenumvalueenabled",
+                "columnName": "custom_fields_enum_value_enabled"
+             },
+             {
+                "alias": "customfieldsenumvaluename",
+                "columnName": "custom_fields_enum_value_name"
+             },
+             {
+                "alias": "customfieldsenumvalueresourcetype",
+                "columnName": "custom_fields_enum_value_resource_type"
+             },
+             {
+                "alias": "customfieldsname",
+                "columnName": "custom_fields_name"
+             },
+             {
+                "alias": "customfieldsdescription",
+                "columnName": "custom_fields_description"
+             },
+             {
+                "alias": "customfieldscreatedbygid",
+                "columnName": "custom_fields_created_by_gid"
+             },
+             {
+                "alias": "customfieldscreatedbyname",
+                "columnName": "custom_fields_created_by_name"
+             },
+             {
+                "alias": "customfieldscreatedbyresourcetype",
+                "columnName": "custom_fields_created_by_resource_type"
+             },
+             {
+                "alias": "customfieldsdisplayvalue",
+                "columnName": "custom_fields_display_value"
+             },
+             {
+                "alias": "customfieldsresourcesubtype",
+                "columnName": "custom_fields_resource_subtype"
+             },
+             {
+                "alias": "customfieldsresourcetype",
+                "columnName": "custom_fields_resource_type"
+             },
+             {
+                "alias": "customfieldsisformulafield",
+                "columnName": "custom_fields_is_formula_field"
+             },
+             {
+                "alias": "customfieldsisvaluereadonly",
+                "columnName": "custom_fields_is_value_read_only"
+             },
+             {
+                "alias": "customfieldstype",
+                "columnName": "custom_fields_type"
+             },
+             {
+                "alias": "customfieldstextvalue",
+                "columnName": "custom_fields_text_value"
+             },
+             {
+                "alias": "customfieldsdatevalue",
+                "columnName": "custom_fields_date_value"
+             },
+             {
+                "alias": "customfieldsmultienumvalues",
+                "columnName": "custom_fields_multi_enum_values"
+             },
+             {
+                "alias": "customfieldsenumvalue",
+                "columnName": "custom_fields_enum_value"
+             },
+             {
+                "alias": "customfieldspeoplevalue",
+                "columnName": "custom_fields_people_value"
+             },
+             {
+                "alias": "customfieldsdatevaluedate",
+                "columnName": "custom_fields_date_value_date"
+             },
+             {
+                "alias": "customfieldsdatevaluedatetime",
+                "columnName": "custom_fields_date_value_date_time"
+             },
+             {
+                "alias": "assigneename",
+                "columnName": "assignee_name"
+             },
+             {
+                "alias": "assigneesectiongid",
+                "columnName": "assignee_section_gid"
+             },
+             {
+                "alias": "assigneesectionname",
+                "columnName": "assignee_section_name"
+             },
+             {
+                "alias": "assigneesectionresourcetype",
+                "columnName": "assignee_section_resource_type"
+             },
+             {
+                "alias": "parentname",
+                "columnName": "parent_name"
+             },
+             {
+                "alias": "parentresourcesubtype",
+                "columnName": "parent_resource_subtype"
+             },
+             {
+                "alias": "customfieldsnumbervalue",
+                "columnName": "custom_fields_number_value"
+             },
+             {
+                "alias": "customfieldsprecision",
+                "columnName": "custom_fields_precision"
+             },
+             {
+                "alias": "customfieldscreatedby",
+                "columnName": "custom_fields_created_by"
+             },
+             {
+                "alias": "BATCHID",
+                "columnName": "_BATCH_ID_"
+             },
+             {
+                "alias": "BATCHLASTRUN",
+                "columnName": "_BATCH_LAST_RUN_"
+             },
+             {
+                "alias": "projectsgid",
+                "columnName": "projects_gid"
+             },
+             {
+                "alias": "projectsarchived",
+                "columnName": "projects_archived"
+             },
+             {
+                "alias": "projectscolor",
+                "columnName": "projects_color"
+             },
+             {
+                "alias": "projectscompleted",
+                "columnName": "projects_completed"
+             },
+             {
+                "alias": "projectscompletedat",
+                "columnName": "projects_completed_at"
+             },
+             {
+                "alias": "projectscreatedat",
+                "columnName": "projects_created_at"
+             },
+             {
+                "alias": "projectscurrentstatus",
+                "columnName": "projects_current_status"
+             },
+             {
+                "alias": "projectscurrentstatusupdate",
+                "columnName": "projects_current_status_update"
+             },
+             {
+                "alias": "projectscustomfields",
+                "columnName": "projects_custom_fields"
+             },
+             {
+                "alias": "projectscustomfieldsettings",
+                "columnName": "projects_custom_field_settings"
+             },
+             {
+                "alias": "projectsdefaultaccesslevel",
+                "columnName": "projects_default_access_level"
+             },
+             {
+                "alias": "projectsdefaultview",
+                "columnName": "projects_default_view"
+             },
+             {
+                "alias": "projectsdueon",
+                "columnName": "projects_due_on"
+             },
+             {
+                "alias": "projectsduedate",
+                "columnName": "projects_due_date"
+             },
+             {
+                "alias": "projectsminimumaccesslevelforcustomization",
+                "columnName": "projects_minimum_access_level_for_customization"
+             },
+             {
+                "alias": "projectsminimumaccesslevelforsharing",
+                "columnName": "projects_minimum_access_level_for_sharing"
+             },
+             {
+                "alias": "projectsmodifiedat",
+                "columnName": "projects_modified_at"
+             },
+             {
+                "alias": "projectsname",
+                "columnName": "projects_name"
+             },
+             {
+                "alias": "projectsnotes",
+                "columnName": "projects_notes"
+             },
+             {
+                "alias": "projectsownergid",
+                "columnName": "projects_owner_gid"
+             },
+             {
+                "alias": "projectsownername",
+                "columnName": "projects_owner_name"
+             },
+             {
+                "alias": "projectsownerresourcetype",
+                "columnName": "projects_owner_resource_type"
+             },
+             {
+                "alias": "projectspermalinkurl",
+                "columnName": "projects_permalink_url"
+             },
+             {
+                "alias": "projectsprivacysetting",
+                "columnName": "projects_privacy_setting"
+             },
+             {
+                "alias": "projectspublic",
+                "columnName": "projects_public"
+             },
+             {
+                "alias": "projectsresourcetype",
+                "columnName": "projects_resource_type"
+             },
+             {
+                "alias": "projectsstarton",
+                "columnName": "projects_start_on"
+             },
+             {
+                "alias": "projectsteamgid",
+                "columnName": "projects_team_gid"
+             },
+             {
+                "alias": "projectsteamname",
+                "columnName": "projects_team_name"
+             },
+             {
+                "alias": "projectsteamresourcetype",
+                "columnName": "projects_team_resource_type"
+             },
+             {
+                "alias": "projectsworkspacegid",
+                "columnName": "projects_workspace_gid"
+             },
+             {
+                "alias": "projectsworkspacename",
+                "columnName": "projects_workspace_name"
+             },
+             {
+                "alias": "projectsworkspaceresourcetype",
+                "columnName": "projects_workspace_resource_type"
+             },
+             {
+                "alias": "projectscurrentstatusgid",
+                "columnName": "projects_current_status_gid"
+             },
+             {
+                "alias": "projectscurrentstatusauthorgid",
+                "columnName": "projects_current_status_author_gid"
+             },
+             {
+                "alias": "projectscurrentstatusauthorname",
+                "columnName": "projects_current_status_author_name"
+             },
+             {
+                "alias": "projectscurrentstatusauthorresourcetype",
+                "columnName": "projects_current_status_author_resource_type"
+             },
+             {
+                "alias": "projectscurrentstatuscolor",
+                "columnName": "projects_current_status_color"
+             },
+             {
+                "alias": "projectscurrentstatuscreatedat",
+                "columnName": "projects_current_status_created_at"
+             },
+             {
+                "alias": "projectscurrentstatuscreatedbygid",
+                "columnName": "projects_current_status_created_by_gid"
+             },
+             {
+                "alias": "projectscurrentstatuscreatedbyname",
+                "columnName": "projects_current_status_created_by_name"
+             },
+             {
+                "alias": "projectscurrentstatuscreatedbyresourcetype",
+                "columnName": "projects_current_status_created_by_resource_type"
+             },
+             {
+                "alias": "projectscurrentstatusmodifiedat",
+                "columnName": "projects_current_status_modified_at"
+             },
+             {
+                "alias": "projectscurrentstatusresourcetype",
+                "columnName": "projects_current_status_resource_type"
+             },
+             {
+                "alias": "projectscurrentstatustext",
+                "columnName": "projects_current_status_text"
+             },
+             {
+                "alias": "projectscurrentstatustitle",
+                "columnName": "projects_current_status_title"
+             },
+             {
+                "alias": "projectscurrentstatusupdategid",
+                "columnName": "projects_current_status_update_gid"
+             },
+             {
+                "alias": "projectscurrentstatusupdateresourcetype",
+                "columnName": "projects_current_status_update_resource_type"
+             },
+             {
+                "alias": "projectscurrentstatusupdateresourcesubtype",
+                "columnName": "projects_current_status_update_resource_subtype"
+             },
+             {
+                "alias": "projectscurrentstatusupdatetitle",
+                "columnName": "projects_current_status_update_title"
+             },
+             {
+                "alias": "projectsteam",
+                "columnName": "projects_team"
+             },
+             {
+                "alias": "email",
+                "columnName": "email"
+             },
+             {
+                "alias": "Assignee",
+                "columnName": "Assignee"
+             }
+          ],
+          "dql": null
+       }
+    ],
+    "size": {
+       "width": 1,
+       "height": 1
+    },
+    "fullpage": true
+ }
