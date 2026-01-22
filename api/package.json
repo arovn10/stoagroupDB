@@ -42,6 +42,7 @@
     "db:remove-duplicate-parent-holdings": "npx ts-node --transpile-only scripts/remove-duplicate-parent-holdings.ts",
     "db:import-asana-deal-pipeline": "npx ts-node --transpile-only scripts/import-asana-deal-pipeline.ts",
     "db:import-asana-precon-managers": "npx ts-node --transpile-only scripts/import-asana-precon-managers.ts",
+    "db:deduplicate-precon-managers": "npx ts-node --transpile-only scripts/deduplicate-precon-managers.ts",
     "db:create-admin-user": "npx ts-node --transpile-only scripts/create-admin-user.ts",
     "db:update-holdco-stage": "npx ts-node --transpile-only scripts/update-holdco-stage.ts"
   },
