@@ -291,6 +291,30 @@ export const updateLoan = async (req: Request, res: Response, next: NextFunction
       WHERE LoanId = @id
     `);
 
+    // Get updated loan to sync maturity covenants
+    const loanCheck = await pool.request()
+      .input('id', sql.Int, id)
+      .query('SELECT ProjectId, LoanPhase, IOMaturityDate, MaturityDate, MiniPermMaturity, PermPhaseMaturity FROM banking.Loan WHERE LoanId = @id');
+    
+    if (loanCheck.recordset.length === 0) {
+      res.status(404).json({ success: false, error: { message: 'Loan not found' } });
+      return;
+    }
+
+    const loanRecord = loanCheck.recordset[0];
+    
+    // Auto-create/update all maturity covenants
+    await syncAllMaturityCovenants(
+      pool,
+      loanRecord.ProjectId,
+      parseInt(id),
+      loanRecord.LoanPhase,
+      loanRecord.IOMaturityDate,
+      loanRecord.MaturityDate,
+      loanRecord.MiniPermMaturity,
+      loanRecord.PermPhaseMaturity
+    );
+
     const result = await pool.request()
       .input('id', sql.Int, id)
       .query(`
@@ -306,11 +330,6 @@ export const updateLoan = async (req: Request, res: Response, next: NextFunction
         FROM banking.Loan l
         WHERE l.LoanId = @id
       `);
-
-    if (result.recordset.length === 0) {
-      res.status(404).json({ success: false, error: { message: 'Loan not found' } });
-      return;
-    }
 
     res.json({ success: true, data: result.recordset[0] });
   } catch (error: any) {
