@@ -1323,17 +1323,16 @@ async function syncIOMaturityCovenant(
       await pool.request()
         .input('projectId', sql.Int, projectId)
         .input('loanId', sql.Int, loanId)
-        .input('financingType', sql.NVarChar, 'Construction')
         .input('covenantType', sql.NVarChar, 'I/O Maturity')
         .input('covenantDate', sql.Date, maturityDate)
         .input('requirement', sql.NVarChar, 'Construction I/O Maturity')
         .query(`
           INSERT INTO banking.Covenant (
-            ProjectId, LoanId, FinancingType, CovenantType,
+            ProjectId, LoanId, CovenantType,
             CovenantDate, Requirement, IsCompleted
           )
           VALUES (
-            @projectId, @loanId, @financingType, @covenantType,
+            @projectId, @loanId, @covenantType,
             @covenantDate, @requirement, 0
           )
         `);

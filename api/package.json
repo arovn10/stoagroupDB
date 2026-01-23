@@ -45,7 +45,9 @@
     "db:deduplicate-precon-managers": "npx ts-node --transpile-only scripts/deduplicate-precon-managers.ts",
     "db:create-admin-user": "npx ts-node --transpile-only scripts/create-admin-user.ts",
     "db:update-holdco-stage": "npx ts-node --transpile-only scripts/update-holdco-stage.ts",
-    "db:add-is-completed-to-covenants": "npx ts-node --transpile-only scripts/add-is-completed-to-covenants.ts"
+    "db:add-is-completed-to-covenants": "npx ts-node --transpile-only scripts/add-is-completed-to-covenants.ts",
+    "db:test-covenants": "npx ts-node --transpile-only scripts/test-covenants.ts",
+    "db:sync-io-maturity-covenants": "npx ts-node --transpile-only scripts/sync-io-maturity-covenants.ts"
   },
   "keywords": ["api", "rest", "azure-sql"],
   "author": "",
