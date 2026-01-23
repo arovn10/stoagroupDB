@@ -520,7 +520,7 @@ export const getDSCRTestsByProject = async (req: Request, res: Response, next: N
 
 export const createDSCRTest = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { ProjectId, LoanId, FinancingType, TestNumber, TestDate, ProjectedInterestRate, Requirement, ProjectedValue } = req.body;
+    const { ProjectId, LoanId, FinancingType, TestNumber, TestDate, ProjectedInterestRate, Requirement, ProjectedValue, IsCompleted } = req.body;
 
     if (!ProjectId || !TestNumber) {
       res.status(400).json({ success: false, error: { message: 'ProjectId and TestNumber are required' } });
@@ -545,12 +545,13 @@ export const createDSCRTest = async (req: Request, res: Response, next: NextFunc
       .input('TestDate', sql.Date, TestDate)
       .input('ProjectedInterestRate', sql.NVarChar, ProjectedInterestRate)
       .input('Requirement', sql.Decimal(10, 2), Requirement)
-      .input('ProjectedValue', sql.NVarChar, ProjectedValue);
+      .input('ProjectedValue', sql.NVarChar, ProjectedValue)
+      .input('IsCompleted', sql.Bit, IsCompleted !== undefined ? IsCompleted : false);
 
     // Insert without OUTPUT clause (triggers prevent OUTPUT INSERTED.*)
     await request.query(`
-      INSERT INTO banking.DSCRTest (ProjectId, LoanId, FinancingType, TestNumber, TestDate, ProjectedInterestRate, Requirement, ProjectedValue)
-      VALUES (@ProjectId, @LoanId, @FinancingType, @TestNumber, @TestDate, @ProjectedInterestRate, @Requirement, @ProjectedValue)
+      INSERT INTO banking.DSCRTest (ProjectId, LoanId, FinancingType, TestNumber, TestDate, ProjectedInterestRate, Requirement, ProjectedValue, IsCompleted)
+      VALUES (@ProjectId, @LoanId, @FinancingType, @TestNumber, @TestDate, @ProjectedInterestRate, @Requirement, @ProjectedValue, @IsCompleted)
     `);
 
     // Get the inserted record
@@ -603,6 +604,8 @@ export const updateDSCRTest = async (req: Request, res: Response, next: NextFunc
           request.input(key, sql.Decimal(10, 2), updateData[key]);
         } else if (key === 'TestDate') {
           request.input(key, sql.Date, updateData[key]);
+        } else if (key === 'IsCompleted') {
+          request.input(key, sql.Bit, updateData[key]);
         } else {
           request.input(key, sql.NVarChar, updateData[key]);
         }
@@ -1307,7 +1310,8 @@ export const createCovenant = async (req: Request, res: Response, next: NextFunc
       LiquidityRequirementLendingBank,
       // Other fields (legacy)
       CovenantDate, Requirement, ProjectedValue,
-      Notes 
+      Notes,
+      IsCompleted
     } = req.body;
 
     if (!ProjectId || !CovenantType) {
@@ -1355,7 +1359,8 @@ export const createCovenant = async (req: Request, res: Response, next: NextFunc
       .input('CovenantDate', sql.Date, CovenantDate)
       .input('Requirement', sql.NVarChar, Requirement)
       .input('ProjectedValue', sql.NVarChar, ProjectedValue)
-      .input('Notes', sql.NVarChar(sql.MAX), Notes);
+      .input('Notes', sql.NVarChar(sql.MAX), Notes)
+      .input('IsCompleted', sql.Bit, IsCompleted !== undefined ? IsCompleted : false);
 
     // Insert without OUTPUT clause (triggers prevent OUTPUT INSERTED.*)
     await request.query(`
@@ -1365,7 +1370,7 @@ export const createCovenant = async (req: Request, res: Response, next: NextFunc
         OccupancyCovenantDate, OccupancyRequirement, ProjectedOccupancy,
         LiquidityRequirementLendingBank,
         CovenantDate, Requirement, ProjectedValue,
-        Notes
+        Notes, IsCompleted
       )
       VALUES (
         @ProjectId, @LoanId, @FinancingType, @CovenantType,
@@ -1373,7 +1378,7 @@ export const createCovenant = async (req: Request, res: Response, next: NextFunc
         @OccupancyCovenantDate, @OccupancyRequirement, @ProjectedOccupancy,
         @LiquidityRequirementLendingBank,
         @CovenantDate, @Requirement, @ProjectedValue,
-        @Notes
+        @Notes, @IsCompleted
       )
     `);
 
@@ -1414,7 +1419,8 @@ export const createCovenantByProject = async (req: Request, res: Response, next:
       LiquidityRequirementLendingBank,
       // Other fields (legacy)
       CovenantDate, Requirement, ProjectedValue,
-      Notes 
+      Notes,
+      IsCompleted
     } = req.body;
 
     if (!CovenantType) {
@@ -1472,6 +1478,7 @@ export const createCovenantByProject = async (req: Request, res: Response, next:
       .input('Requirement', sql.NVarChar, Requirement)
       .input('ProjectedValue', sql.NVarChar, ProjectedValue)
       .input('Notes', sql.NVarChar(sql.MAX), Notes)
+      .input('IsCompleted', sql.Bit, IsCompleted !== undefined ? IsCompleted : false)
       .query(`
         INSERT INTO banking.Covenant (
           ProjectId, LoanId, CovenantType,
@@ -1479,7 +1486,7 @@ export const createCovenantByProject = async (req: Request, res: Response, next:
           OccupancyCovenantDate, OccupancyRequirement, ProjectedOccupancy,
           LiquidityRequirementLendingBank,
           CovenantDate, Requirement, ProjectedValue,
-          Notes
+          Notes, IsCompleted
         )
         OUTPUT INSERTED.*
         VALUES (
@@ -1488,7 +1495,7 @@ export const createCovenantByProject = async (req: Request, res: Response, next:
           @OccupancyCovenantDate, @OccupancyRequirement, @ProjectedOccupancy,
           @LiquidityRequirementLendingBank,
           @CovenantDate, @Requirement, @ProjectedValue,
-          @Notes
+          @Notes, @IsCompleted
         )
       `);
 
@@ -1533,6 +1540,8 @@ export const updateCovenant = async (req: Request, res: Response, next: NextFunc
           request.input(key, sql.Date, covenantData[key]);
         } else if (key === 'LiquidityRequirementLendingBank') {
           request.input(key, sql.Decimal(18, 2), covenantData[key]);
+        } else if (key === 'IsCompleted') {
+          request.input(key, sql.Bit, covenantData[key]);
         } else if (key === 'Notes') {
           request.input(key, sql.NVarChar(sql.MAX), covenantData[key]);
         } else {
@@ -1635,7 +1644,7 @@ export const getLiquidityRequirementsByProject = async (req: Request, res: Respo
 
 export const createLiquidityRequirement = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { ProjectId, LoanId, FinancingType, TotalAmount, LendingBankAmount, Notes } = req.body;
+    const { ProjectId, LoanId, FinancingType, TotalAmount, LendingBankAmount, Notes, IsCompleted } = req.body;
 
     if (!ProjectId) {
       res.status(400).json({ success: false, error: { message: 'ProjectId is required' } });
@@ -1658,12 +1667,13 @@ export const createLiquidityRequirement = async (req: Request, res: Response, ne
       .input('FinancingType', sql.NVarChar, finalFinancingType)
       .input('TotalAmount', sql.Decimal(18, 2), TotalAmount)
       .input('LendingBankAmount', sql.Decimal(18, 2), LendingBankAmount)
-      .input('Notes', sql.NVarChar(sql.MAX), Notes);
+      .input('Notes', sql.NVarChar(sql.MAX), Notes)
+      .input('IsCompleted', sql.Bit, IsCompleted !== undefined ? IsCompleted : false);
 
     // Insert without OUTPUT clause (triggers prevent OUTPUT INSERTED.*)
     await request.query(`
-      INSERT INTO banking.LiquidityRequirement (ProjectId, LoanId, FinancingType, TotalAmount, LendingBankAmount, Notes)
-      VALUES (@ProjectId, @LoanId, @FinancingType, @TotalAmount, @LendingBankAmount, @Notes)
+      INSERT INTO banking.LiquidityRequirement (ProjectId, LoanId, FinancingType, TotalAmount, LendingBankAmount, Notes, IsCompleted)
+      VALUES (@ProjectId, @LoanId, @FinancingType, @TotalAmount, @LendingBankAmount, @Notes, @IsCompleted)
     `);
 
     // Get the inserted record
@@ -1693,7 +1703,7 @@ export const createLiquidityRequirement = async (req: Request, res: Response, ne
 export const updateLiquidityRequirement = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
-    const { ProjectId, LoanId, TotalAmount, LendingBankAmount, Notes } = req.body;
+    const { ProjectId, LoanId, TotalAmount, LendingBankAmount, Notes, IsCompleted } = req.body;
 
     const pool = await getConnection();
     const result = await pool.request()
@@ -1703,10 +1713,11 @@ export const updateLiquidityRequirement = async (req: Request, res: Response, ne
       .input('TotalAmount', sql.Decimal(18, 2), TotalAmount)
       .input('LendingBankAmount', sql.Decimal(18, 2), LendingBankAmount)
       .input('Notes', sql.NVarChar(sql.MAX), Notes)
+      .input('IsCompleted', sql.Bit, IsCompleted !== undefined ? IsCompleted : false)
       .query(`
         UPDATE banking.LiquidityRequirement
         SET ProjectId = @ProjectId, LoanId = @LoanId, TotalAmount = @TotalAmount,
-            LendingBankAmount = @LendingBankAmount, Notes = @Notes
+            LendingBankAmount = @LendingBankAmount, Notes = @Notes, IsCompleted = @IsCompleted
         OUTPUT INSERTED.*
         WHERE LiquidityRequirementId = @id
       `);

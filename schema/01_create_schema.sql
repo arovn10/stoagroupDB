@@ -160,6 +160,7 @@ CREATE TABLE banking.DSCRTest (
     ProjectedInterestRate NVARCHAR(50) NULL,  -- Store as entered
     Requirement          DECIMAL(10,2) NULL, -- e.g., 1.25
     ProjectedValue       NVARCHAR(50) NULL,   -- Store as entered (sometimes not numeric)
+    IsCompleted          BIT NOT NULL DEFAULT 0,  -- Toggle to track if test has been completed
     
     CONSTRAINT FK_DSCR_Project FOREIGN KEY (ProjectId) REFERENCES core.Project(ProjectId),
     CONSTRAINT FK_DSCR_Loan    FOREIGN KEY (LoanId) REFERENCES banking.Loan(LoanId),
@@ -198,6 +199,7 @@ CREATE TABLE banking.Covenant (
     ProjectedValue NVARCHAR(50) NULL,     -- For general use
     
     Notes NVARCHAR(MAX) NULL,
+    IsCompleted    BIT NOT NULL DEFAULT 0,  -- Toggle to track if covenant has been completed
     
     CONSTRAINT FK_Covenant_Project FOREIGN KEY (ProjectId) REFERENCES core.Project(ProjectId),
     CONSTRAINT FK_Covenant_Loan    FOREIGN KEY (LoanId) REFERENCES banking.Loan(LoanId),
@@ -217,6 +219,7 @@ CREATE TABLE banking.LiquidityRequirement (
     LendingBankAmount DECIMAL(18,2) NULL,
     
     Notes NVARCHAR(MAX) NULL,
+    IsCompleted    BIT NOT NULL DEFAULT 0,  -- Toggle to track if liquidity requirement has been completed
     
     CONSTRAINT FK_Liquidity_Project FOREIGN KEY (ProjectId) REFERENCES core.Project(ProjectId),
     CONSTRAINT FK_Liquidity_Loan   FOREIGN KEY (LoanId) REFERENCES banking.Loan(LoanId),

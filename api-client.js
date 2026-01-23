@@ -652,8 +652,10 @@
  * @param {string} [data.ProjectedInterestRate] - Projected interest rate
  * @param {number} [data.Requirement] - DSCR requirement (e.g., 1.25)
  * @param {string} [data.ProjectedValue] - Projected DSCR value
+ * @param {boolean} [data.IsCompleted] - Completion status (defaults to false)
  * @returns {Promise<object>} { success: true, data: {...} }
  * @note FinancingType separates Construction vs Permanent financing data
+ * @note IsCompleted: boolean toggle to track if the DSCR test has been completed
  */
   async function createDSCRTest(data) {
   return apiRequest('/api/banking/dscr-tests', 'POST', data);
@@ -908,10 +910,12 @@
  *   LiquidityRequirementLendingBank?,
  *   // Other fields:
  *   CovenantDate?, Requirement?, ProjectedValue?,
- *   Notes?
+ *   Notes?,
+ *   IsCompleted? (boolean, defaults to false)
  * }
  * @returns {Promise<object>} { success: true, data: {...} }
  * @note FinancingType separates Construction vs Permanent financing data
+ * @note IsCompleted: boolean toggle to track if the covenant has been completed
  * 
  * @example
  * // Create a DSCR covenant
@@ -969,9 +973,11 @@
  *   LiquidityRequirementLendingBank?,
  *   // Other fields:
  *   CovenantDate?, Requirement?, ProjectedValue?,
- *   Notes?
+ *   Notes?,
+ *   IsCompleted? (boolean, defaults to false)
  * }
  * @returns {Promise<object>} { success: true, data: {...} }
+ * @note IsCompleted: boolean toggle to track if the covenant has been completed
  * 
  * @example
  * // Create a DSCR covenant for a project
@@ -1042,8 +1048,10 @@
  * @param {number} [data.TotalAmount] - Total amount
  * @param {number} [data.LendingBankAmount] - Lending bank amount
  * @param {string} [data.Notes] - Notes
+ * @param {boolean} [data.IsCompleted] - Completion status (defaults to false)
  * @returns {Promise<object>} { success: true, data: {...} }
  * @note FinancingType separates Construction vs Permanent financing data
+ * @note IsCompleted: boolean toggle to track if the liquidity requirement has been completed
  */
   async function createLiquidityRequirement(data) {
   return apiRequest('/api/banking/liquidity-requirements', 'POST', data);
@@ -1804,6 +1812,7 @@
  * - ProjectName, City, State, Region, Units, ProductType, Stage, EstimatedConstructionStartDate
  * 
  * Deal Pipeline specific attributes:
+ * - ProjectId: number (optional - if not provided, will create project from ProjectName)
  * - Bank: string (bank name)
  * - StartDate: string (YYYY-MM-DD)
  * - UnitCount: number (updates core.Project.Units if Units not provided)
@@ -1828,9 +1837,16 @@
  * @param {object} data - Deal pipeline data
  * @returns {Promise<object>} { success: true, data: {...} }
  * @example
+ * // With existing ProjectId
  * await createDealPipeline({
  *   ProjectId: 1,
  *   ProjectName: 'The Heights at Picardy',
+ *   ...
+ * });
+ * 
+ * // Without ProjectId (will auto-create project)
+ * await createDealPipeline({
+ *   ProjectName: 'New Deal Name',
  *   City: 'Baton Rouge',
  *   State: 'LA',
  *   Region: 'Gulf Coast',

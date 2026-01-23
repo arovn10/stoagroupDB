@@ -1620,18 +1620,65 @@ export const createDealPipeline = async (req: Request, res: Response, next: Next
       AsanaProjectGid
     } = req.body;
 
-    if (!ProjectId) {
-      res.status(400).json({ success: false, error: { message: 'ProjectId is required' } });
+    const pool = await getConnection();
+    
+    let actualProjectId = ProjectId;
+    
+    // If ProjectId not provided but ProjectName is, create the project first
+    if (!ProjectId && ProjectName) {
+      try {
+        // Check if project already exists by name
+        const existingProject = await pool.request()
+          .input('ProjectName', sql.NVarChar(255), ProjectName)
+          .query('SELECT ProjectId FROM core.Project WHERE ProjectName = @ProjectName');
+        
+        if (existingProject.recordset.length > 0) {
+          actualProjectId = existingProject.recordset[0].ProjectId;
+        } else {
+          // Create new project
+          const createProjectResult = await pool.request()
+            .input('ProjectName', sql.NVarChar(255), ProjectName)
+            .input('City', sql.NVarChar(100), City)
+            .input('State', sql.NVarChar(50), State)
+            .input('Region', sql.NVarChar(50), Region)
+            .input('Units', sql.Int, Units)
+            .input('ProductType', sql.NVarChar(50), ProductType)
+            .input('Stage', sql.NVarChar(50), Stage)
+            .input('EstimatedConstructionStartDate', sql.Date, EstimatedConstructionStartDate)
+            .query(`
+              INSERT INTO core.Project (ProjectName, City, State, Region, Units, ProductType, Stage, EstimatedConstructionStartDate)
+              VALUES (@ProjectName, @City, @State, @Region, @Units, @ProductType, @Stage, @EstimatedConstructionStartDate);
+              SELECT SCOPE_IDENTITY() AS ProjectId;
+            `);
+          
+          // Get the created ProjectId
+          const getIdResult = await pool.request()
+            .input('ProjectName', sql.NVarChar(255), ProjectName)
+            .query('SELECT ProjectId FROM core.Project WHERE ProjectName = @ProjectName');
+          
+          actualProjectId = getIdResult.recordset[0].ProjectId;
+        }
+      } catch (error: any) {
+        if (error.number === 2627) {
+          // Project already exists, get its ID
+          const existingProject = await pool.request()
+            .input('ProjectName', sql.NVarChar(255), ProjectName)
+            .query('SELECT ProjectId FROM core.Project WHERE ProjectName = @ProjectName');
+          actualProjectId = existingProject.recordset[0].ProjectId;
+        } else {
+          throw error;
+        }
+      }
+    } else if (!ProjectId) {
+      res.status(400).json({ success: false, error: { message: 'ProjectId or ProjectName is required' } });
       return;
     }
-
-    const pool = await getConnection();
     
     // Update CORE attributes if provided
     if (ProjectName !== undefined || City !== undefined || State !== undefined || Region !== undefined || 
         Units !== undefined || ProductType !== undefined || Stage !== undefined || EstimatedConstructionStartDate !== undefined) {
       const updateFields: string[] = [];
-      const updateRequest = pool.request().input('ProjectId', sql.Int, ProjectId);
+      const updateRequest = pool.request().input('ProjectId', sql.Int, actualProjectId);
       
       if (ProjectName !== undefined) {
         updateFields.push('ProjectName = @ProjectName');
@@ -1683,14 +1730,14 @@ export const createDealPipeline = async (req: Request, res: Response, next: Next
     // Use UnitCount to update Units in CORE if UnitCount is provided but Units is not
     if (UnitCount !== undefined && Units === undefined) {
       await pool.request()
-        .input('ProjectId', sql.Int, ProjectId)
+        .input('ProjectId', sql.Int, actualProjectId)
         .input('UnitCount', sql.Int, UnitCount)
         .query('UPDATE core.Project SET Units = @UnitCount, UpdatedAt = SYSDATETIME() WHERE ProjectId = @ProjectId');
     }
 
     // Insert Deal Pipeline specific data
     const result = await pool.request()
-      .input('ProjectId', sql.Int, ProjectId)
+      .input('ProjectId', sql.Int, actualProjectId)
       .input('Bank', sql.NVarChar(255), Bank)
       .input('StartDate', sql.Date, StartDate)
       .input('UnitCount', sql.Int, UnitCount)
@@ -1732,7 +1779,7 @@ export const createDealPipeline = async (req: Request, res: Response, next: Next
 
     // Get the newly created or existing record
     const fullRecord = await pool.request()
-      .input('ProjectId', sql.Int, ProjectId)
+      .input('ProjectId', sql.Int, actualProjectId)
       .query(`
         SELECT 
           dp.DealPipelineId,
