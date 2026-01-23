@@ -997,8 +997,17 @@
 
 /**
  * Update a covenant (REQUIRES AUTHENTICATION)
+ * 
+ * When updating IsCompleted to true, you can optionally add a note:
+ * @example
+ * // Mark covenant as completed with a note
+ * await updateCovenant(1, {
+ *   IsCompleted: true,
+ *   Notes: 'Completed on 2025-01-15. All requirements met.'
+ * });
+ * 
  * @param {number} id - Covenant ID
- * @param {object} data - Updated covenant data
+ * @param {object} data - Updated covenant data (IsCompleted, Notes, etc.)
  * @returns {Promise<object>} { success: true, data: {...} }
  */
   async function updateCovenant(id, data) {

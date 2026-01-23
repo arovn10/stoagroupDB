@@ -1280,7 +1280,7 @@ export const deleteGuarantee = async (req: Request, res: Response, next: NextFun
 
 /**
  * Auto-creates or updates an I/O Maturity covenant based on loan's IOMaturityDate
- * Sets IsCompleted = true if current date >= IOMaturityDate
+ * IsCompleted remains manual - users must check it off themselves
  */
 async function syncIOMaturityCovenant(
   pool: sql.ConnectionPool,
@@ -1291,14 +1291,7 @@ async function syncIOMaturityCovenant(
   try {
     if (!ioMaturityDate) return;
     
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Normalize to start of day for comparison
-    
     const maturityDate = typeof ioMaturityDate === 'string' ? new Date(ioMaturityDate) : ioMaturityDate;
-    const maturityDateNormalized = new Date(maturityDate);
-    maturityDateNormalized.setHours(0, 0, 0, 0);
-    
-    const isCompleted = today >= maturityDateNormalized;
 
     // Check if I/O Maturity covenant already exists
     const existingCovenant = await pool.request()
@@ -1313,22 +1306,20 @@ async function syncIOMaturityCovenant(
       `);
 
     if (existingCovenant.recordset.length > 0) {
-      // Update existing covenant
+      // Update existing covenant date only (preserve manual IsCompleted and Notes)
       const covenantId = existingCovenant.recordset[0].CovenantId;
       await pool.request()
         .input('covenantId', sql.Int, covenantId)
         .input('covenantDate', sql.Date, maturityDate)
-        .input('isCompleted', sql.Bit, isCompleted)
         .query(`
           UPDATE banking.Covenant
           SET CovenantDate = @covenantDate,
               Requirement = 'Construction I/O Maturity',
-              IsCompleted = @isCompleted,
               UpdatedAt = SYSDATETIME()
           WHERE CovenantId = @covenantId
         `);
     } else {
-      // Create new I/O Maturity covenant
+      // Create new I/O Maturity covenant (IsCompleted defaults to false)
       await pool.request()
         .input('projectId', sql.Int, projectId)
         .input('loanId', sql.Int, loanId)
@@ -1336,7 +1327,6 @@ async function syncIOMaturityCovenant(
         .input('covenantType', sql.NVarChar, 'I/O Maturity')
         .input('covenantDate', sql.Date, maturityDate)
         .input('requirement', sql.NVarChar, 'Construction I/O Maturity')
-        .input('isCompleted', sql.Bit, isCompleted)
         .query(`
           INSERT INTO banking.Covenant (
             ProjectId, LoanId, FinancingType, CovenantType,
@@ -1344,7 +1334,7 @@ async function syncIOMaturityCovenant(
           )
           VALUES (
             @projectId, @loanId, @financingType, @covenantType,
-            @covenantDate, @requirement, @isCompleted
+            @covenantDate, @requirement, 0
           )
         `);
     }
