@@ -464,6 +464,10 @@ CREATE TABLE pipeline.DealPipeline (
     BrokerReferralSource NVARCHAR(255) NULL,
     RejectedReason NVARCHAR(500) NULL,
     
+    -- Location (from KMZ attachments)
+    Latitude DECIMAL(18,8) NULL,
+    Longitude DECIMAL(18,8) NULL,
+    
     -- Asana metadata
     AsanaTaskGid NVARCHAR(100) NULL,
     AsanaProjectGid NVARCHAR(100) NULL,

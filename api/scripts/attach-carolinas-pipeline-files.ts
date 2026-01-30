@@ -1,31 +1,28 @@
 #!/usr/bin/env ts-node
 /**
  * Attach files from data/CAROLINASPIPELINEFILES to the corresponding deal pipeline
- * records (Carolinas region). Matches filenames to deals by keyword rules.
- * When AZURE_STORAGE_CONNECTION_STRING and AZURE_STORAGE_CONTAINER are set, uploads
- * to Azure Blob (files persist across redeploys). Otherwise copies to api/uploads/.
+ * records (Carolinas region) via the API. Matches filenames to deals by keyword rules.
+ * Uses POST /api/pipeline/deal-pipeline/:id/attachments (multipart "file"); the API
+ * handles DB and Azure Blob.
  *
  * Usage: npm run db:attach-carolinas-files
- * Prereq: Carolinas deals seeded (db:seed-site-tracking-carolinas), attachment table exists.
+ * Prereq: Carolinas deals seeded, API running. Set API_BASE_URL (default http://localhost:3000), optional API_TOKEN.
  */
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { randomUUID } from 'crypto';
-import sql from 'mssql';
 import dotenv from 'dotenv';
-import { isBlobStorageConfigured, uploadBufferToBlob, ensureContainerExists } from '../src/config/azureBlob';
-import { getConnection, closeConnection } from '../src/config/database';
 
-// Load backend env (same as API server: api/.env when run from api/)
+// Load api/.env then repo root .env (root has all secrets; scripts run from api/)
 dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
+dotenv.config({ path: path.resolve(__dirname, '..', '..', '.env') });
+
+const API_BASE_URL = (process.env.API_BASE_URL || 'http://localhost:3000').replace(/\/$/, '');
+const API_TOKEN = process.env.API_TOKEN || process.env.JWT_TOKEN || '';
 
 const FILES_DIR = path.resolve(__dirname, '../../data/CAROLINASPIPELINEFILES');
-/** Same base as API (api/uploads) so download endpoint finds files. */
-const UPLOAD_DIR = process.env.UPLOAD_DIR || path.resolve(__dirname, '..', 'uploads');
-const DEAL_PIPELINE_SUBDIR = 'deal-pipeline';
 
-// Match filename (case-insensitive) by substring → ProjectName as in DB (Site column from CSV)
+// Match filename (case-insensitive) by substring → ProjectName as in API (Site column from CSV)
 const FILE_TO_PROJECT_NAME: { patterns: string[]; projectName: string }[] = [
   { patterns: ['1450 Meeting'], projectName: '1450 Meeting St' },
   { patterns: ['239 W Mallard Creek', 'Mallard Creek Church Rd'], projectName: '239 W Mallard Creek Church Rd, Charlotte, NC 28262' },
@@ -74,16 +71,6 @@ const FILE_TO_PROJECT_NAME: { patterns: string[]; projectName: string }[] = [
   { patterns: ['The Heights at RP'], projectName: '8740 Research Park Dr' },
 ];
 
-function getDealPipelineUploadDir(dealPipelineId: number): string {
-  const dir = path.join(UPLOAD_DIR, DEAL_PIPELINE_SUBDIR, String(dealPipelineId));
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  return dir;
-}
-
-function relativeStoragePath(fullPath: string): string {
-  return path.relative(UPLOAD_DIR, fullPath).split(path.sep).join('/');
-}
-
 function matchFileToProjectName(fileName: string): string | null {
   const lower = fileName.toLowerCase();
   for (const { patterns, projectName } of FILE_TO_PROJECT_NAME) {
@@ -92,6 +79,36 @@ function matchFileToProjectName(fileName: string): string | null {
     }
   }
   return null;
+}
+
+async function getDealsFromApi(): Promise<{ DealPipelineId: number; ProjectName: string; RegionName?: string }[]> {
+  const url = `${API_BASE_URL}/api/pipeline/deal-pipeline`;
+  const headers: Record<string, string> = { Accept: 'application/json' };
+  if (API_TOKEN) headers['Authorization'] = `Bearer ${API_TOKEN}`;
+  const res = await fetch(url, { headers });
+  if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`);
+  const json = await res.json();
+  if (!json.success || !Array.isArray(json.data)) throw new Error('API did not return success or data array');
+  return json.data;
+}
+
+async function uploadFileToDeal(dealId: number, filePath: string, fileName: string): Promise<void> {
+  const url = `${API_BASE_URL}/api/pipeline/deal-pipeline/${dealId}/attachments`;
+  const buffer = fs.readFileSync(filePath);
+  const form = new FormData();
+  form.append('file', new Blob([buffer]), fileName);
+  const headers: Record<string, string> = {};
+  if (API_TOKEN) headers['Authorization'] = `Bearer ${API_TOKEN}`;
+  const res = await fetch(url, { method: 'POST', body: form, headers });
+  if (!res.ok) {
+    const text = await res.text();
+    let errMsg = `API ${res.status}: ${res.statusText}`;
+    try {
+      const j = JSON.parse(text);
+      if (j?.error?.message) errMsg = j.error.message;
+    } catch (_) {}
+    throw new Error(errMsg);
+  }
 }
 
 async function main() {
@@ -108,27 +125,21 @@ async function main() {
     process.exit(0);
   }
 
-  if (!process.env.DB_SERVER || !process.env.DB_DATABASE || !process.env.DB_USER || !process.env.DB_PASSWORD) {
-    console.error('Set DB_SERVER, DB_DATABASE, DB_USER, DB_PASSWORD');
-    process.exit(1);
-  }
-
-  const pool = await getConnection();
-  const dealsResult = await pool.request().query(`
-    SELECT dp.DealPipelineId, p.ProjectName
-    FROM pipeline.DealPipeline dp
-    INNER JOIN core.Project p ON dp.ProjectId = p.ProjectId
-    WHERE p.Region = 'Carolinas'
-  `);
+  console.log('Fetching deals from API:', API_BASE_URL);
+  const deals = await getDealsFromApi();
+  const carolinasDeals = deals.filter(
+    (d) => (d.RegionName || (d as { Region?: string }).Region) === 'Carolinas'
+  );
   const projectNameToDealId = new Map<string, number>();
-  for (const row of dealsResult.recordset) {
-    projectNameToDealId.set(row.ProjectName, row.DealPipelineId);
+  for (const d of carolinasDeals) {
+    projectNameToDealId.set(d.ProjectName, d.DealPipelineId);
   }
+  console.log(`Found ${carolinasDeals.length} Carolinas deal(s).\n`);
 
   const matched: { file: string; projectName: string; dealId: number }[] = [];
   const unmatched: string[] = [];
-
   const matchedNoDeal: { file: string; projectName: string }[] = [];
+
   for (const file of files) {
     const projectName = matchFileToProjectName(file);
     if (!projectName) {
@@ -142,61 +153,30 @@ async function main() {
     }
     matched.push({ file, projectName, dealId });
   }
+
   if (matchedNoDeal.length > 0) {
-    console.log(`Matched to a deal name but deal not in DB (seed Carolinas first): ${matchedNoDeal.length}`);
+    console.log(`Matched to a deal name but deal not in API (seed Carolinas first): ${matchedNoDeal.length}`);
     matchedNoDeal.slice(0, 15).forEach(({ file, projectName }) => console.log(`  ${file} → ${projectName}`));
     if (matchedNoDeal.length > 15) console.log(`  ... and ${matchedNoDeal.length - 15} more`);
   }
 
-  const useBlob = isBlobStorageConfigured();
-  if (useBlob) {
-    console.log('Using Azure Blob Storage for attachments.');
-    await ensureContainerExists();
-    console.log('');
-  }
   let uploaded = 0;
   let errors = 0;
   for (const { file, projectName, dealId } of matched) {
     const srcPath = path.join(FILES_DIR, file);
-    const ext = path.extname(file) || '';
-    const base = file.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 180);
-    const destFileName = `${randomUUID()}-${base}${ext}`;
     try {
-      let storagePath: string;
-      let fileSize: number;
-      if (useBlob) {
-        const buffer = fs.readFileSync(srcPath);
-        fileSize = buffer.length;
-        storagePath = `${DEAL_PIPELINE_SUBDIR}/${dealId}/${destFileName}`.split(path.sep).join('/');
-        await uploadBufferToBlob(storagePath, buffer);
-      } else {
-        const destDir = getDealPipelineUploadDir(dealId);
-        const destPath = path.join(destDir, destFileName);
-        fs.copyFileSync(srcPath, destPath);
-        fileSize = fs.statSync(destPath).size;
-        storagePath = relativeStoragePath(destPath);
-      }
-      await pool.request()
-        .input('DealPipelineId', sql.Int, dealId)
-        .input('FileName', sql.NVarChar(255), file)
-        .input('StoragePath', sql.NVarChar(1000), storagePath)
-        .input('ContentType', sql.NVarChar(100), null)
-        .input('FileSizeBytes', sql.BigInt, fileSize)
-        .query(`
-          INSERT INTO pipeline.DealPipelineAttachment (DealPipelineId, FileName, StoragePath, ContentType, FileSizeBytes)
-          VALUES (@DealPipelineId, @FileName, @StoragePath, @ContentType, @FileSizeBytes)
-        `);
+      await uploadFileToDeal(dealId, srcPath, file);
       uploaded++;
       if (uploaded <= 20 || uploaded % 30 === 0) {
         console.log(`  Attached: ${file} → ${projectName}`);
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       errors++;
-      console.error(`  Error ${file}: ${e.message}`);
+      const msg = e instanceof Error ? e.message : String(e);
+      console.error(`  Error ${file}: ${msg}`);
     }
   }
 
-  await closeConnection();
   console.log('\n---');
   console.log(`Attached: ${uploaded} files`);
   console.log(`Errors: ${errors}`);

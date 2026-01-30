@@ -67,15 +67,23 @@ Each script:
 
 ## Attaching files to deals
 
-After seeding, you can attach files from the pipeline file folders to the corresponding deals:
+After seeding, you can attach files from the pipeline file folders to the corresponding deals **via the API**:
 
 - **Carolinas:** `data/CAROLINASPIPELINEFILES` → `npm run db:attach-carolinas-files`
 - **Gulf Coast:** `data/GULFCOASTPIPELINEFILES` → `npm run db:attach-gulf-coast-files`
 
-The attach scripts use the **same env as the backend**: they load `api/.env` and use the API’s database config and Azure Blob config (`DB_*`, `AZURE_STORAGE_CONNECTION_STRING`, `AZURE_STORAGE_CONTAINER`). Run from `api/` so `api/.env` is used.
+The attach scripts **use the API** (they do not connect to the DB or Azure directly):
+
+1. **GET** `/api/pipeline/deal-pipeline` to get deals (Carolinas script filters by `RegionName === 'Carolinas'`).
+2. For each file that matches a deal (by filename rules in the script), **POST** the file to `/api/pipeline/deal-pipeline/:id/attachments` (multipart field `file`).
+
+**Env for the scripts:** The scripts load **`api/.env`** then **repo root `.env`** (so the root `.env` can hold all secrets). Set:
+
+- **`API_BASE_URL`** — Base URL of the API (default `http://localhost:3000`). Use your deployed URL (e.g. `https://your-app.onrender.com`) to attach files to the live API.
+- **`API_TOKEN`** or **`JWT_TOKEN`** (optional) — Bearer token if the API requires auth for pipeline endpoints.
+
+No DB or Azure env vars are needed in the scripts; the API handles storage (disk or Azure Blob).
 
 Filename-to-deal mapping is defined in the attach scripts; unmatched files are reported and can be ignored or mapped later.
 
-**Azure Blob (recommended for deploy):** Store the **Azure Storage key** (connection string) in your host’s environment — e.g. in **Render**: Environment → add **`AZURE_STORAGE_CONNECTION_STRING`** (from Azure Portal → Storage Account → Access keys → Connection string) and **`AZURE_STORAGE_CONTAINER`** (e.g. `deal-pipeline-attachments`). Do not put the connection string in code or Git. Then uploads and the attach scripts store files in Azure Blob, so they persist across redeploys. Run attach scripts locally with the same env vars so uploads go to the same container.
-
-**Where files are stored (disk):** Both the API and the attach scripts use **`api/uploads/deal-pipeline/{DealPipelineId}/`** by default (or the directory set by `UPLOAD_DIR`). The download endpoint looks for files there. If you get "File not found on server", the attachment row exists in the DB but the file is missing at that path—e.g. you ran the attach script on one machine and the API on another, or `uploads/` wasn’t deployed (it’s in `.gitignore`). Fix: run the attach script from `api/` on the same machine that runs the API, or set `UPLOAD_DIR` to the same path everywhere and ensure that directory is present (e.g. a persistent volume in production).
+**Azure Blob (for the API):** Store **`AZURE_STORAGE_CONNECTION_STRING`** and **`AZURE_STORAGE_CONTAINER`** in the **API** environment (e.g. Render). The API will store uploaded files in Azure Blob when those are set. The attach scripts simply POST files to the API; the API does the rest.

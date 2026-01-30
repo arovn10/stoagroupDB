@@ -54,7 +54,8 @@
     "db:attach-carolinas-files": "npx ts-node --transpile-only scripts/attach-carolinas-pipeline-files.ts",
     "db:attach-gulf-coast-files": "npx ts-node --transpile-only scripts/attach-gulf-coast-pipeline-files.ts",
     "db:list-potential-duplicates": "npx ts-node --transpile-only scripts/list-potential-deal-duplicates.ts",
-    "db:merge-duplicate-deals": "npx ts-node --transpile-only scripts/merge-duplicate-deals.ts"
+    "db:merge-duplicate-deals": "npx ts-node --transpile-only scripts/merge-duplicate-deals.ts",
+    "extract-kmz-coordinates": "npx ts-node --transpile-only scripts/extract-kmz-coordinates.ts"
   },
   "keywords": [
     "api",
@@ -65,6 +66,7 @@
   "license": "ISC",
   "dependencies": {
     "@azure/storage-blob": "^12.30.0",
+    "adm-zip": "^0.5.16",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",

@@ -8,7 +8,8 @@ import { getFullPath, getRelativeStoragePath, buildStoragePath } from '../middle
 import {
   isBlobStorageConfigured,
   uploadBufferToBlob,
-  downloadBlobToStream,
+  downloadBlobToBuffer,
+  blobExists,
   deleteBlob as deleteBlobFile,
 } from '../config/azureBlob';
 
@@ -1458,6 +1459,8 @@ export const getAllDealPipelines = async (req: Request, res: Response, next: Nex
         dp.ListingStatus,
         dp.BrokerReferralSource,
         dp.RejectedReason,
+        dp.Latitude,
+        dp.Longitude,
         dp.AsanaTaskGid,
         dp.AsanaProjectGid,
         dp.CreatedAt,
@@ -1659,7 +1662,9 @@ export const createDealPipeline = async (req: Request, res: Response, next: Next
       Zoned,
       ListingStatus,
       BrokerReferralSource,
-      RejectedReason
+      RejectedReason,
+      Latitude,
+      Longitude
     } = req.body;
 
     const pool = await getConnection();
@@ -1807,6 +1812,8 @@ export const createDealPipeline = async (req: Request, res: Response, next: Next
       .input('RejectedReason', sql.NVarChar(500), RejectedReason)
       .input('AsanaTaskGid', sql.NVarChar(100), AsanaTaskGid)
       .input('AsanaProjectGid', sql.NVarChar(100), AsanaProjectGid)
+      .input('Latitude', sql.Decimal(18, 8), Latitude)
+      .input('Longitude', sql.Decimal(18, 8), Longitude)
       .query(`
         IF NOT EXISTS (SELECT 1 FROM pipeline.DealPipeline WHERE ProjectId = @ProjectId)
         BEGIN
@@ -1816,7 +1823,7 @@ export const createDealPipeline = async (req: Request, res: Response, next: Next
             SqFtPrice, ExecutionDate, DueDiligenceDate, ClosingDate,
             PurchasingEntity, Cash, OpportunityZone, ClosingNotes,
             County, ZipCode, MFAcreage, Zoning, Zoned, ListingStatus, BrokerReferralSource, RejectedReason,
-            AsanaTaskGid, AsanaProjectGid
+            AsanaTaskGid, AsanaProjectGid, Latitude, Longitude
           )
           VALUES (
             @ProjectId, @Bank, @StartDate, @UnitCount, @PreConManagerId,
@@ -1824,7 +1831,7 @@ export const createDealPipeline = async (req: Request, res: Response, next: Next
             @SqFtPrice, @ExecutionDate, @DueDiligenceDate, @ClosingDate,
             @PurchasingEntity, @Cash, @OpportunityZone, @ClosingNotes,
             @County, @ZipCode, @MFAcreage, @Zoning, @Zoned, @ListingStatus, @BrokerReferralSource, @RejectedReason,
-            @AsanaTaskGid, @AsanaProjectGid
+            @AsanaTaskGid, @AsanaProjectGid, @Latitude, @Longitude
           );
         END
       `);
@@ -1875,6 +1882,8 @@ export const createDealPipeline = async (req: Request, res: Response, next: Next
           dp.RejectedReason,
           dp.AsanaTaskGid,
           dp.AsanaProjectGid,
+          dp.Latitude,
+          dp.Longitude,
           dp.CreatedAt,
           dp.UpdatedAt
         FROM pipeline.DealPipeline dp
@@ -1942,7 +1951,9 @@ export const updateDealPipeline = async (req: Request, res: Response, next: Next
       Zoned,
       ListingStatus,
       BrokerReferralSource,
-      RejectedReason
+      RejectedReason,
+      Latitude,
+      Longitude
     } = req.body;
 
     const pool = await getConnection();
@@ -2122,6 +2133,14 @@ export const updateDealPipeline = async (req: Request, res: Response, next: Next
       fields.push('RejectedReason = @RejectedReason');
       request.input('RejectedReason', sql.NVarChar(500), RejectedReason);
     }
+    if (Latitude !== undefined) {
+      fields.push('Latitude = @Latitude');
+      request.input('Latitude', sql.Decimal(18, 8), Latitude);
+    }
+    if (Longitude !== undefined) {
+      fields.push('Longitude = @Longitude');
+      request.input('Longitude', sql.Decimal(18, 8), Longitude);
+    }
 
     // Recalculate SqFtPrice if LandPrice or Acreage changed
     if (LandPrice !== undefined || Acreage !== undefined) {
@@ -2199,17 +2218,19 @@ export const updateDealPipeline = async (req: Request, res: Response, next: Next
           dp.Zoning,
           dp.Zoned,
           dp.ListingStatus,
-          dp.BrokerReferralSource,
-          dp.RejectedReason,
-          dp.AsanaTaskGid,
-          dp.AsanaProjectGid,
-          dp.CreatedAt,
-          dp.UpdatedAt
-        FROM pipeline.DealPipeline dp
-        LEFT JOIN core.Project p ON dp.ProjectId = p.ProjectId
-        LEFT JOIN core.Region r ON p.Region = r.RegionName
-        LEFT JOIN core.PreConManager pm ON dp.PreConManagerId = pm.PreConManagerId
-        WHERE dp.DealPipelineId = @id
+        dp.BrokerReferralSource,
+        dp.RejectedReason,
+        dp.Latitude,
+        dp.Longitude,
+        dp.AsanaTaskGid,
+        dp.AsanaProjectGid,
+        dp.CreatedAt,
+        dp.UpdatedAt
+      FROM pipeline.DealPipeline dp
+      LEFT JOIN core.Project p ON dp.ProjectId = p.ProjectId
+      LEFT JOIN core.Region r ON p.Region = r.RegionName
+      LEFT JOIN core.PreConManager pm ON dp.PreConManagerId = pm.PreConManagerId
+      WHERE dp.DealPipelineId = @id
       `);
 
     if (updated.recordset.length === 0) {
@@ -2311,6 +2332,10 @@ export const uploadDealPipelineAttachment = async (req: Request, res: Response, 
     if (isBlobStorageConfigured() && file.buffer) {
       storagePath = buildStoragePath(dealPipelineId, fileName);
       await uploadBufferToBlob(storagePath, file.buffer, contentType || undefined);
+      const verified = await blobExists(storagePath);
+      if (!verified) {
+        throw new Error('Upload to Azure succeeded but blob was not found; not saving attachment record.');
+      }
     } else if (file.path) {
       storagePath = getRelativeStoragePath(file.path);
     } else {
@@ -2352,11 +2377,11 @@ export const downloadDealPipelineAttachment = async (req: Request, res: Response
     }
     const row = result.recordset[0];
     if (isBlobStorageConfigured()) {
-      const blobResult = await downloadBlobToStream(row.StoragePath);
-      if (blobResult) {
-        res.setHeader('Content-Type', row.ContentType || blobResult.contentType || 'application/octet-stream');
+      const buffer = await downloadBlobToBuffer(row.StoragePath);
+      if (buffer && buffer.length > 0) {
+        res.setHeader('Content-Type', row.ContentType || 'application/octet-stream');
         res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(row.FileName)}"`);
-        blobResult.readableStream.pipe(res);
+        res.send(buffer);
         return;
       }
     }

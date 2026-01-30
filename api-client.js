@@ -1831,6 +1831,8 @@
  * - ListingStatus: string (Listed/Unlisted, Site Tracking)
  * - BrokerReferralSource: string (Site Tracking)
  * - RejectedReason: string (Site Tracking)
+ * - Latitude: number (optional; also populated from KMZ attachments)
+ * - Longitude: number (optional; also populated from KMZ attachments)
  * 
  * Note: SqFtPrice is automatically calculated as LandPrice / (Acreage * 43560)
  * 
