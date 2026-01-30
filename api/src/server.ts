@@ -1,5 +1,6 @@
-// Ensure Node.js crypto is loaded at startup (required for attachment download/signing and deps like Azure SDK)
-import 'crypto';
+// Ensure Node.js crypto is loaded and available globally (required for attachment download/signing and deps that expect global crypto)
+import nodeCrypto from 'crypto';
+(globalThis as Record<string, unknown>).crypto = nodeCrypto;
 
 import express, { Request, Response } from 'express';
 import cors from 'cors';
