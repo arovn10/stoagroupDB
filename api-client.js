@@ -1823,6 +1823,14 @@
  * - ClosingNotes: string
  * - AsanaTaskGid: string (for sync tracking)
  * - AsanaProjectGid: string (for sync tracking)
+ * - County: string (Site Tracking)
+ * - ZipCode: string (Site Tracking)
+ * - MFAcreage: number (MF Acreage, Site Tracking)
+ * - Zoning: string (Site Tracking)
+ * - Zoned: string (Yes/No/Partially, Site Tracking)
+ * - ListingStatus: string (Listed/Unlisted, Site Tracking)
+ * - BrokerReferralSource: string (Site Tracking)
+ * - RejectedReason: string (Site Tracking)
  * 
  * Note: SqFtPrice is automatically calculated as LandPrice / (Acreage * 43560)
  * 
@@ -1880,6 +1888,65 @@
  */
   async function deleteDealPipeline(id) {
   return apiRequest(`/api/pipeline/deal-pipeline/${id}`, 'DELETE');
+}
+
+// ============================================================
+// PIPELINE: DEAL PIPELINE ATTACHMENTS (file uploads per deal)
+// ============================================================
+
+/**
+ * List all file attachments for a deal pipeline record
+ * @param {number} dealPipelineId - Deal Pipeline ID
+ * @returns {Promise<object>} { success: true, data: [{ DealPipelineAttachmentId, DealPipelineId, FileName, ContentType, FileSizeBytes, CreatedAt }, ...] }
+ */
+  async function listDealPipelineAttachments(dealPipelineId) {
+  return apiRequest(`/api/pipeline/deal-pipeline/${dealPipelineId}/attachments`);
+}
+
+/**
+ * Upload a file attachment for a deal pipeline record
+ * Uses multipart/form-data; field name must be "file". Max file size 200MB.
+ * @param {number} dealPipelineId - Deal Pipeline ID
+ * @param {File|Blob} file - File or Blob to upload (e.g. from <input type="file">)
+ * @returns {Promise<object>} { success: true, data: { DealPipelineAttachmentId, DealPipelineId, FileName, ContentType, FileSizeBytes, CreatedAt } }
+ */
+  async function uploadDealPipelineAttachment(dealPipelineId, file) {
+  const formData = new FormData();
+  formData.append('file', file);
+  const options = {
+    method: 'POST',
+    headers: {},
+    body: formData,
+  };
+  if (authToken) {
+    options.headers['Authorization'] = `Bearer ${authToken}`;
+  }
+  const response = await fetch(`${API_BASE_URL}/api/pipeline/deal-pipeline/${dealPipelineId}/attachments`, options);
+  const result = await response.json();
+  if (!response.ok) {
+    throw new Error(result.error?.message || `API Error: ${response.status}`);
+  }
+  return result;
+}
+
+/**
+ * Get the URL to download a deal pipeline attachment (file stream).
+ * Use this URL in <a href="..." download> or open in new tab. If the API requires auth,
+ * use fetch with Authorization header and response.blob() then createObjectURL(blob).
+ * @param {number} attachmentId - DealPipelineAttachmentId
+ * @returns {string} Full URL to the download endpoint
+ */
+  function getDealPipelineAttachmentDownloadUrl(attachmentId) {
+  return `${API_BASE_URL}/api/pipeline/deal-pipeline/attachments/${attachmentId}/download`;
+}
+
+/**
+ * Delete a deal pipeline attachment (and the file on the server)
+ * @param {number} attachmentId - DealPipelineAttachmentId
+ * @returns {Promise<object>} { success: true, message: 'Attachment deleted' }
+ */
+  async function deleteDealPipelineAttachment(attachmentId) {
+  return apiRequest(`/api/pipeline/deal-pipeline/attachments/${attachmentId}`, 'DELETE');
 }
 
 // ============================================================
@@ -2160,7 +2227,12 @@
   API.createDealPipeline = createDealPipeline;
   API.updateDealPipeline = updateDealPipeline;
   API.deleteDealPipeline = deleteDealPipeline;
-  
+  // Deal Pipeline Attachments (file uploads per deal)
+  API.listDealPipelineAttachments = listDealPipelineAttachments;
+  API.uploadDealPipelineAttachment = uploadDealPipelineAttachment;
+  API.getDealPipelineAttachmentDownloadUrl = getDealPipelineAttachmentDownloadUrl;
+  API.deleteDealPipelineAttachment = deleteDealPipelineAttachment;
+
   // IMS Investor Resolution
   API.getInvestorNameFromIMSId = getInvestorNameFromIMSId;
   API.resolveInvestorName = resolveInvestorName;
