@@ -1943,6 +1943,16 @@
 }
 
 /**
+ * Update a deal pipeline attachment (metadata only: display name and/or content type)
+ * @param {number} attachmentId - DealPipelineAttachmentId
+ * @param {object} data - { FileName?: string, ContentType?: string }
+ * @returns {Promise<object>} { success: true, data: { DealPipelineAttachmentId, DealPipelineId, FileName, ContentType, FileSizeBytes, CreatedAt } }
+ */
+  async function updateDealPipelineAttachment(attachmentId, data) {
+  return apiRequest(`/api/pipeline/deal-pipeline/attachments/${attachmentId}`, 'PUT', data);
+}
+
+/**
  * Delete a deal pipeline attachment (and the file on the server)
  * @param {number} attachmentId - DealPipelineAttachmentId
  * @returns {Promise<object>} { success: true, message: 'Attachment deleted' }
@@ -2232,6 +2242,7 @@
   // Deal Pipeline Attachments (file uploads per deal)
   API.listDealPipelineAttachments = listDealPipelineAttachments;
   API.uploadDealPipelineAttachment = uploadDealPipelineAttachment;
+  API.updateDealPipelineAttachment = updateDealPipelineAttachment;
   API.getDealPipelineAttachmentDownloadUrl = getDealPipelineAttachmentDownloadUrl;
   API.deleteDealPipelineAttachment = deleteDealPipelineAttachment;
 

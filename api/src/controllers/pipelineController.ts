@@ -2408,6 +2408,55 @@ export const downloadDealPipelineAttachment = async (req: Request, res: Response
   }
 };
 
+export const updateDealPipelineAttachment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const attachmentId = req.params.attachmentId;
+    const id = parseInt(attachmentId, 10);
+    if (isNaN(id)) {
+      res.status(400).json({ success: false, error: { message: 'Invalid attachment id' } });
+      return;
+    }
+    const { FileName, ContentType } = req.body as { FileName?: string; ContentType?: string };
+    if (FileName === undefined && ContentType === undefined) {
+      res.status(400).json({ success: false, error: { message: 'Provide at least one of FileName or ContentType to update' } });
+      return;
+    }
+    const pool = await getConnection();
+    const check = await pool.request()
+      .input('id', sql.Int, id)
+      .query('SELECT DealPipelineAttachmentId FROM pipeline.DealPipelineAttachment WHERE DealPipelineAttachmentId = @id');
+    if (check.recordset.length === 0) {
+      res.status(404).json({ success: false, error: { message: 'Attachment not found' } });
+      return;
+    }
+    const updates: string[] = [];
+    const request = pool.request().input('id', sql.Int, id);
+    if (FileName !== undefined) {
+      updates.push('FileName = @FileName');
+      request.input('FileName', sql.NVarChar(255), FileName);
+    }
+    if (ContentType !== undefined) {
+      updates.push('ContentType = @ContentType');
+      request.input('ContentType', sql.NVarChar(100), ContentType);
+    }
+    await request.query(`
+      UPDATE pipeline.DealPipelineAttachment
+      SET ${updates.join(', ')}
+      WHERE DealPipelineAttachmentId = @id
+    `);
+    const result = await pool.request()
+      .input('id', sql.Int, id)
+      .query(`
+        SELECT DealPipelineAttachmentId, DealPipelineId, FileName, ContentType, FileSizeBytes, CreatedAt
+        FROM pipeline.DealPipelineAttachment
+        WHERE DealPipelineAttachmentId = @id
+      `);
+    res.json({ success: true, data: result.recordset[0] });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const deleteDealPipelineAttachment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const attachmentId = req.params.attachmentId;

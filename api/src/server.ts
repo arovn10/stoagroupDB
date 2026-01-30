@@ -225,6 +225,7 @@ app.get('/api', (req: Request, res: Response) => {
             list: 'GET /api/pipeline/deal-pipeline/:id/attachments',
             upload: 'POST /api/pipeline/deal-pipeline/:id/attachments (multipart field "file", max 200MB)',
             download: 'GET /api/pipeline/deal-pipeline/attachments/:attachmentId/download',
+            update: 'PUT /api/pipeline/deal-pipeline/attachments/:attachmentId (body: { FileName?, ContentType? })',
             delete: 'DELETE /api/pipeline/deal-pipeline/attachments/:attachmentId',
           },
         },

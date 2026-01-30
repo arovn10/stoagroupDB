@@ -40,6 +40,7 @@ router.get('/deal-pipeline', pipelineController.getAllDealPipelines);
 router.get('/deal-pipeline/project/:projectId', pipelineController.getDealPipelineByProjectId); // Get by ProjectId (must come before /:id)
 // Attachments (more specific paths first)
 router.get('/deal-pipeline/attachments/:attachmentId/download', pipelineController.downloadDealPipelineAttachment);
+router.put('/deal-pipeline/attachments/:attachmentId', pipelineController.updateDealPipelineAttachment);
 router.delete('/deal-pipeline/attachments/:attachmentId', pipelineController.deleteDealPipelineAttachment);
 router.get('/deal-pipeline/:id/attachments', pipelineController.listDealPipelineAttachments);
 router.post('/deal-pipeline/:id/attachments', dealPipelineAttachmentUpload.single('file'), pipelineController.uploadDealPipelineAttachment);
