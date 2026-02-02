@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import * as bankingController from '../controllers/bankingController';
 import { authenticate } from '../middleware/authMiddleware';
+import { bankingFileUpload } from '../middleware/uploadMiddleware';
 
 const router = Router();
 
@@ -103,6 +104,12 @@ router.get('/guarantee-burndowns/person/:personId', bankingController.getGuarant
 router.post('/guarantee-burndowns', authenticate, bankingController.createGuaranteeBurndown);
 router.put('/guarantee-burndowns/:id', authenticate, bankingController.updateGuaranteeBurndown);
 router.delete('/guarantee-burndowns/:id', authenticate, bankingController.deleteGuaranteeBurndown);
+
+// Banking Files (per-project file uploads for Banking Dashboard)
+router.get('/projects/:projectId/files', authenticate, bankingController.listBankingFiles);
+router.post('/projects/:projectId/files', authenticate, bankingFileUpload.single('file'), bankingController.uploadBankingFile);
+router.get('/files/:attachmentId/download', authenticate, bankingController.downloadBankingFile);
+router.delete('/files/:attachmentId', authenticate, bankingController.deleteBankingFile);
 
 export default router;
 

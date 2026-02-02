@@ -1,7 +1,17 @@
 import { Request, Response, NextFunction } from 'express';
 import sql from 'mssql';
+import fs from 'fs';
+import path from 'path';
 import { getConnection } from '../config/database';
 import { normalizeState, normalizeStateInPayload } from '../utils/stateAbbrev';
+import { getFullPath, getRelativeStoragePath, buildBankingFileStoragePath } from '../middleware/uploadMiddleware';
+import {
+  isBlobStorageConfigured,
+  uploadBufferToBlob,
+  downloadBlobToBuffer,
+  blobExists,
+  deleteBlob as deleteBlobFile,
+} from '../config/azureBlob';
 
 // ============================================================
 // LOAN CONTROLLER
@@ -3269,6 +3279,166 @@ export const deleteGuaranteeBurndown = async (req: Request, res: Response, next:
     }
     
     res.json({ success: true, message: 'GuaranteeBurndown deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ============================================================
+// BANKING FILES (per-project file uploads for Banking Dashboard)
+// ============================================================
+
+export const listBankingFiles = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const projectId = parseInt(req.params.projectId, 10);
+    if (isNaN(projectId)) {
+      res.status(400).json({ success: false, error: { message: 'Invalid project id' } });
+      return;
+    }
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input('projectId', sql.Int, projectId)
+      .query(`
+        SELECT BankingFileId, ProjectId, FileName, ContentType, FileSizeBytes, CreatedAt
+        FROM banking.BankingFile
+        WHERE ProjectId = @projectId
+        ORDER BY CreatedAt DESC
+      `);
+    res.json({ success: true, data: result.recordset });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const uploadBankingFile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const projectId = parseInt(req.params.projectId, 10);
+    if (isNaN(projectId)) {
+      res.status(400).json({ success: false, error: { message: 'Invalid project id' } });
+      return;
+    }
+    const file = (req as Request & {
+      file?: { path?: string; buffer?: Buffer; originalname?: string; mimetype?: string; size?: number };
+    }).file;
+    if (!file || (!file.path && !file.buffer)) {
+      res.status(400).json({ success: false, error: { message: 'No file uploaded; use multipart field "file"' } });
+      return;
+    }
+    const pool = await getConnection();
+    const exists = await pool.request()
+      .input('projectId', sql.Int, projectId)
+      .query('SELECT 1 FROM core.Project WHERE ProjectId = @projectId');
+    if (exists.recordset.length === 0) {
+      try { if (file.path) fs.unlinkSync(file.path); } catch (_) {}
+      res.status(404).json({ success: false, error: { message: 'Project not found' } });
+      return;
+    }
+    let storagePath: string;
+    const fileName = file.originalname || (file.path ? path.basename(file.path) : 'file');
+    const contentType = file.mimetype || null;
+    const fileSize = file.size ?? (file.buffer ? file.buffer.length : null);
+    if (isBlobStorageConfigured() && file.buffer) {
+      storagePath = buildBankingFileStoragePath(projectId, fileName);
+      await uploadBufferToBlob(storagePath, file.buffer, contentType || undefined);
+      if (!(await blobExists(storagePath))) {
+        throw new Error('Upload to Azure succeeded but blob was not found; not saving record.');
+      }
+    } else if (file.path) {
+      storagePath = getRelativeStoragePath(file.path);
+    } else {
+      res.status(500).json({ success: false, error: { message: 'Azure Blob configured but file buffer missing' } });
+      return;
+    }
+    const result = await pool.request()
+      .input('ProjectId', sql.Int, projectId)
+      .input('FileName', sql.NVarChar(255), fileName)
+      .input('StoragePath', sql.NVarChar(1000), storagePath)
+      .input('ContentType', sql.NVarChar(100), contentType)
+      .input('FileSizeBytes', sql.BigInt, fileSize)
+      .query(`
+        INSERT INTO banking.BankingFile (ProjectId, FileName, StoragePath, ContentType, FileSizeBytes)
+        OUTPUT INSERTED.BankingFileId, INSERTED.ProjectId, INSERTED.FileName, INSERTED.ContentType, INSERTED.FileSizeBytes, INSERTED.CreatedAt
+        VALUES (@ProjectId, @FileName, @StoragePath, @ContentType, @FileSizeBytes)
+      `);
+    res.status(201).json({ success: true, data: result.recordset[0] });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const downloadBankingFile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const attachmentId = req.params.attachmentId;
+    const id = parseInt(attachmentId, 10);
+    if (isNaN(id)) {
+      res.status(400).json({ success: false, error: { message: 'Invalid attachment id' } });
+      return;
+    }
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input('id', sql.Int, id)
+      .query('SELECT FileName, StoragePath, ContentType FROM banking.BankingFile WHERE BankingFileId = @id');
+    if (result.recordset.length === 0) {
+      res.status(404).json({ success: false, error: { message: 'File not found' } });
+      return;
+    }
+    const row = result.recordset[0];
+    if (isBlobStorageConfigured()) {
+      const buffer = await downloadBlobToBuffer(row.StoragePath);
+      if (buffer && buffer.length > 0) {
+        res.setHeader('Content-Type', row.ContentType || 'application/octet-stream');
+        res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(row.FileName)}"`);
+        res.send(buffer);
+        return;
+      }
+    }
+    const fullPath = getFullPath(row.StoragePath);
+    if (!fs.existsSync(fullPath)) {
+      res.status(404).json({
+        success: false,
+        error: {
+          message: 'File not found on server',
+          detail: isBlobStorageConfigured()
+            ? 'Record exists but file was not found in Azure Blob.'
+            : 'Record exists but file is missing on disk.',
+        },
+      });
+      return;
+    }
+    res.setHeader('Content-Type', row.ContentType || 'application/octet-stream');
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(row.FileName)}"`);
+    res.sendFile(path.resolve(fullPath));
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteBankingFile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const attachmentId = req.params.attachmentId;
+    const id = parseInt(attachmentId, 10);
+    if (isNaN(id)) {
+      res.status(400).json({ success: false, error: { message: 'Invalid attachment id' } });
+      return;
+    }
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input('id', sql.Int, id)
+      .query('SELECT StoragePath FROM banking.BankingFile WHERE BankingFileId = @id');
+    if (result.recordset.length === 0) {
+      res.status(404).json({ success: false, error: { message: 'File not found' } });
+      return;
+    }
+    const storagePath = result.recordset[0].StoragePath;
+    await pool.request().input('id', sql.Int, id).query('DELETE FROM banking.BankingFile WHERE BankingFileId = @id');
+    if (isBlobStorageConfigured()) {
+      await deleteBlobFile(storagePath);
+    }
+    try {
+      const fullPath = getFullPath(storagePath);
+      if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
+    } catch (_) {}
+    res.json({ success: true, message: 'File deleted' });
   } catch (error) {
     next(error);
   }

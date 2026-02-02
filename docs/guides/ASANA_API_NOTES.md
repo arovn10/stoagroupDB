@@ -156,4 +156,3 @@ Common HTTP Status Codes:
 2. **Bidirectional Sync**: Update Asana when changes are made in Domo
 3. **Bulk Operations**: Use batch API for updating multiple deals
 4. **Conflict Resolution**: Handle cases where data is updated in both systems
-

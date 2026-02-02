@@ -176,6 +176,28 @@
   clearAuthToken();
 }
 
+/**
+ * Domo SSO login – sign in using Domo user email (no password).
+ * Backend looks up auth.[User] by email and returns same JWT as /api/auth/login.
+ * @param {{ email: string, name?: string, userId?: string }} domoUser - From getDomoCurrentUser()
+ * @returns {Promise<object>} { success: true, data: { token, user: {...} } } same shape as login
+ */
+  async function loginWithDomo(domoUser) {
+  if (!domoUser || !domoUser.email || !String(domoUser.email).trim()) {
+    return { success: false, error: { message: 'Email is required for Domo SSO' } };
+  }
+  const body = {
+    email: String(domoUser.email).trim(),
+    name: domoUser.name ? String(domoUser.name).trim() : undefined,
+    userId: domoUser.userId ? String(domoUser.userId).trim() : undefined
+  };
+  const result = await apiRequest('/api/auth/domo', 'POST', body);
+  if (result.success && result.data && result.data.token) {
+    authToken = result.data.token;
+  }
+  return result;
+}
+
 // ============================================================
 // CORE SCHEMA - Projects, Banks, Persons, Equity Partners
 // ============================================================
@@ -1962,6 +1984,63 @@
 }
 
 // ============================================================
+// BANKING FILES (per-project banking documents – separate from Deal Pipeline)
+// Backend must implement these endpoints. See BACKEND-GUIDE-BANKING-FILES.md.
+// ============================================================
+
+/**
+ * List all banking file attachments for a project (Banking Dashboard only; not Deal Pipeline).
+ * @param {number} projectId - Project ID (ProjectId / Row)
+ * @returns {Promise<object>} { success: true, data: [{ BankingFileId, ProjectId, FileName, ContentType, FileSizeBytes, CreatedAt }, ...] }
+ */
+  async function listBankingFiles(projectId) {
+  return apiRequest(`/api/banking/projects/${projectId}/files`);
+}
+
+/**
+ * Upload a banking file for a project. Uses multipart/form-data; field name "file". Max size 200MB.
+ * @param {number} projectId - Project ID
+ * @param {File|Blob} file - File to upload
+ * @returns {Promise<object>} { success: true, data: { BankingFileId, ProjectId, FileName, ContentType, FileSizeBytes, CreatedAt } }
+ */
+  async function uploadBankingFile(projectId, file) {
+  const formData = new FormData();
+  formData.append('file', file);
+  const options = {
+    method: 'POST',
+    headers: {},
+    body: formData,
+  };
+  if (authToken) {
+    options.headers['Authorization'] = `Bearer ${authToken}`;
+  }
+  const response = await fetch(`${API_BASE_URL}/api/banking/projects/${projectId}/files`, options);
+  const result = await response.json();
+  if (!response.ok) {
+    throw new Error(result.error?.message || `API Error: ${response.status}`);
+  }
+  return result;
+}
+
+/**
+ * Get download URL for a banking file.
+ * @param {number} attachmentId - BankingFileId
+ * @returns {string} Full URL to download endpoint
+ */
+  function getBankingFileDownloadUrl(attachmentId) {
+  return `${API_BASE_URL}/api/banking/files/${attachmentId}/download`;
+}
+
+/**
+ * Delete a banking file (and file on server).
+ * @param {number} attachmentId - BankingFileId
+ * @returns {Promise<object>} { success: true, message: 'File deleted' }
+ */
+  async function deleteBankingFile(attachmentId) {
+  return apiRequest(`/api/banking/files/${attachmentId}`, 'DELETE');
+}
+
+// ============================================================
 // IMS INVESTOR HELPER FUNCTIONS (Legacy - kept for compatibility)
 // ============================================================
 
@@ -2060,6 +2139,7 @@
   
   // Authentication functions
   API.login = login;
+  API.loginWithDomo = loginWithDomo;
   API.verifyAuth = verifyAuth;
   API.getCurrentUser = getCurrentUser;
   API.logout = logout;
@@ -2245,6 +2325,11 @@
   API.updateDealPipelineAttachment = updateDealPipelineAttachment;
   API.getDealPipelineAttachmentDownloadUrl = getDealPipelineAttachmentDownloadUrl;
   API.deleteDealPipelineAttachment = deleteDealPipelineAttachment;
+  // Banking Files (per-project; separate from Deal Pipeline)
+  API.listBankingFiles = listBankingFiles;
+  API.uploadBankingFile = uploadBankingFile;
+  API.getBankingFileDownloadUrl = getBankingFileDownloadUrl;
+  API.deleteBankingFile = deleteBankingFile;
 
   // IMS Investor Resolution
   API.getInvestorNameFromIMSId = getInvestorNameFromIMSId;

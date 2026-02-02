@@ -39,3 +39,8 @@ api/.env
 # Temporary files
 *.tmp
 *.temp
+
+# Generated / large local data (optional: remove to track)
+smartsheet_row_attachments.csv
+data/CAROLINASPIPELINEFILES/
+data/GULFCOASTPIPELINEFILES/
