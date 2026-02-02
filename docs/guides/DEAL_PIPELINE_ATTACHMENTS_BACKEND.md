@@ -1,6 +1,20 @@
 # Deal Pipeline Attachments – Backend
 
-Backend behavior and fixes for deal pipeline file attachments (list, upload, download, delete).
+Backend behavior and fixes for deal pipeline file attachments (list, upload, download, update, delete).
+
+---
+
+## Backend checklist (fix "File not found on server")
+
+If users see **"File not found on server"** when viewing or downloading deal files:
+
+1. **Upload:** POST multipart `file` → save to **persistent** storage (disk or blob), store **StoragePath** in DB. Do not save only metadata or to a temp dir that is cleared on restart.
+2. **Download:** Look up attachment by `attachmentId`, read the **stored path/key**, serve the file from that location. Return 404 only when the file is actually missing at that path.
+3. **List:** Return metadata only; do not return "file not found" for a valid deal.
+4. **Update (rename):** PUT `/api/pipeline/deal-pipeline/attachments/:attachmentId` with body `{ "FileName": "new-name.pdf" }` (and optionally `ContentType`) updates the row and returns the attachment.
+5. **Delete:** Remove the DB row **and** delete the file from disk/blob so the path is not left dangling.
+
+Versioning (optional): To support "Upload new version" in the UI, you can add `ParentAttachmentId` and `VersionNumber` to the schema and accept `parentAttachmentId` on upload. Not required for current behavior.
 
 ---
 
@@ -31,6 +45,7 @@ Backend behavior and fixes for deal pipeline file attachments (list, upload, dow
 | List     | GET    | `/api/pipeline/deal-pipeline/:id/attachments` |
 | Upload   | POST   | `/api/pipeline/deal-pipeline/:id/attachments` (multipart `file`, max 200MB) |
 | Download | GET    | `/api/pipeline/deal-pipeline/attachments/:attachmentId/download` |
+| Update   | PUT    | `/api/pipeline/deal-pipeline/attachments/:attachmentId` (body: `FileName`, `ContentType`) |
 | Delete   | DELETE | `/api/pipeline/deal-pipeline/attachments/:attachmentId` |
 
 ---
