@@ -161,7 +161,7 @@ If there is a dedicated flow, we can expose it in the UI (e.g. "Add new person/g
 | 7 | Heights at Waterpointe | Add property to source system and APIs so it appears in the dashboard. | Done: schema/boss_feedback_data_updates.sql inserts project. |
 | 8 | Crosspointe name | Rename "The Waters at Crosspointe" → "The Flats at Crosspointe" in data. | Done: schema/boss_feedback_data_updates.sql. |
 | 9 | West Village region | Set West Village property Region to "Gulf Coast" (not "Lafayette"). | Done: schema/boss_feedback_data_updates.sql. |
-| 10 | Banks/Lenders form | Add Address, ContactName, ContactEmail, ContactPhone to Banks table and API (GET/POST/PUT) so the Deal Pipeline Lenders form can save and display them. | **To do:** Add columns to core.Bank and update core bank controller/routes. |
+| 10 | Banks/Lenders form | Add Address, ContactName, ContactEmail, ContactPhone to Banks table and API (GET/POST/PUT) so the Deal Pipeline Lenders form can save and display them. | Done: schema/add_bank_address_contact.sql; createBank/updateBank accept and return these fields. Run migration first. |
 
 After backend implements the above, the frontend can be updated where needed (e.g. bank + state display, guarantor dropdown, permanent debt / modifications UI, and full Lenders form payload once Banks support Address/Contact*).
 
@@ -184,8 +184,7 @@ Guarantors are **persons**. There is no separate "guarantors" table; the banking
 
 ### Banks/Lenders form (Item 10)
 
-- **Current state:** `core.Bank` has BankId, BankName, City, State, HQState, Notes, HoldLimit, PerDealLimit, Deposits. It does **not** yet have Address, ContactName, ContactEmail, or ContactPhone.
-- **To implement:** Add a schema migration (e.g. `schema/add_bank_address_contact.sql`) to add those columns to `core.Bank`, then update `coreController` createBank/updateBank and GET responses so the API accepts and returns them. Frontend Deal Pipeline Lenders form can then send and display these fields.
+- **Done:** `schema/add_bank_address_contact.sql` adds Address, ContactName, ContactEmail, ContactPhone to `core.Bank`. createBank and updateBank accept and return them; GET /api/core/banks returns them. Run the migration first, then the Deal Pipeline Lenders form can save and display these fields.
 
 ### Contact book: one entry per individual (synced with investor reps and guarantors)
 
@@ -203,3 +202,4 @@ An individual should appear in the contact book **once**, not once as an individ
 - **Data updates (Heights at Waterpointe, Crosspointe rename, West Village region):** Run `schema/boss_feedback_data_updates.sql` against the database.
 - **Loan modifications table:** Run `schema/add_loan_modification.sql` before using loan-modification endpoints.
 - **Construction completion source:** Run `schema/add_construction_completion_source_to_loan.sql` so the API can persist and return `ConstructionCompletionSource`.
+- **Banks/Lenders form (Item 10):** Run `schema/add_bank_address_contact.sql` so the API can persist and return Address, ContactName, ContactEmail, ContactPhone for lenders.

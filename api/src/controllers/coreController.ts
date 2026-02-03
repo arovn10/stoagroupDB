@@ -338,7 +338,8 @@ export const createBank = async (req: Request, res: Response, next: NextFunction
   try {
     const { 
       BankName, City, State, HQState, Notes, 
-      HoldLimit, PerDealLimit, Deposits 
+      HoldLimit, PerDealLimit, Deposits,
+      Address, ContactName, ContactEmail, ContactPhone
     } = req.body;
 
     if (!BankName) {
@@ -356,10 +357,14 @@ export const createBank = async (req: Request, res: Response, next: NextFunction
       .input('HoldLimit', sql.Decimal(18, 2), HoldLimit)
       .input('PerDealLimit', sql.Decimal(18, 2), PerDealLimit)
       .input('Deposits', sql.Decimal(18, 2), Deposits)
+      .input('Address', sql.NVarChar, Address)
+      .input('ContactName', sql.NVarChar, ContactName)
+      .input('ContactEmail', sql.NVarChar, ContactEmail)
+      .input('ContactPhone', sql.NVarChar, ContactPhone)
       .query(`
-        INSERT INTO core.Bank (BankName, City, State, HQState, Notes, HoldLimit, PerDealLimit, Deposits)
+        INSERT INTO core.Bank (BankName, City, State, HQState, Notes, HoldLimit, PerDealLimit, Deposits, Address, ContactName, ContactEmail, ContactPhone)
         OUTPUT INSERTED.*
-        VALUES (@BankName, @City, @State, @HQState, @Notes, @HoldLimit, @PerDealLimit, @Deposits)
+        VALUES (@BankName, @City, @State, @HQState, @Notes, @HoldLimit, @PerDealLimit, @Deposits, @Address, @ContactName, @ContactEmail, @ContactPhone)
       `);
 
     res.status(201).json({ success: true, data: result.recordset[0] });
