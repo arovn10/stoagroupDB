@@ -24,7 +24,8 @@ export const getAllLoans = async (req: Request, res: Response, next: NextFunctio
       SELECT 
         l.*, 
         p.ProjectName, 
-        b.BankName as LenderName,
+        b.BankName AS LenderName,
+        COALESCE(b.HQState, b.State) AS LenderState,
         CASE 
           WHEN l.IOMaturityDate IS NOT NULL AND l.LoanClosingDate IS NOT NULL 
           THEN DATEDIFF(MONTH, l.LoanClosingDate, l.IOMaturityDate)
@@ -52,6 +53,8 @@ export const getLoanById = async (req: Request, res: Response, next: NextFunctio
       .query(`
         SELECT 
           l.*,
+          b.BankName AS LenderName,
+          COALESCE(b.HQState, b.State) AS LenderState,
           CASE 
             WHEN l.IOMaturityDate IS NOT NULL AND l.LoanClosingDate IS NOT NULL 
             THEN DATEDIFF(MONTH, l.LoanClosingDate, l.IOMaturityDate)
@@ -60,6 +63,7 @@ export const getLoanById = async (req: Request, res: Response, next: NextFunctio
             ELSE NULL
           END AS ConstructionIOTermMonths
         FROM banking.Loan l
+        LEFT JOIN core.Bank b ON l.LenderId = b.BankId
         WHERE l.LoanId = @id
       `);
     
@@ -83,6 +87,8 @@ export const getLoansByProject = async (req: Request, res: Response, next: NextF
       .query(`
         SELECT 
           l.*,
+          b.BankName AS LenderName,
+          COALESCE(b.HQState, b.State) AS LenderState,
           CASE 
             WHEN l.IOMaturityDate IS NOT NULL AND l.LoanClosingDate IS NOT NULL 
             THEN DATEDIFF(MONTH, l.LoanClosingDate, l.IOMaturityDate)
@@ -91,6 +97,7 @@ export const getLoansByProject = async (req: Request, res: Response, next: NextF
             ELSE NULL
           END AS ConstructionIOTermMonths
         FROM banking.Loan l
+        LEFT JOIN core.Bank b ON l.LenderId = b.BankId
         WHERE l.ProjectId = @projectId 
         ORDER BY l.LoanId
       `);
@@ -108,7 +115,7 @@ export const createLoan = async (req: Request, res: Response, next: NextFunction
       LoanAmount, LoanClosingDate, MaturityDate, FixedOrFloating, IndexName,
       Spread, InterestRate, MiniPermMaturity, MiniPermInterestRate,
       PermPhaseMaturity, PermPhaseInterestRate, ConstructionCompletionDate,
-      LeaseUpCompletedDate, IOMaturityDate, PermanentCloseDate,
+      ConstructionCompletionSource, LeaseUpCompletedDate, IOMaturityDate, PermanentCloseDate,
       PermanentLoanAmount, Notes
     } = req.body;
 
@@ -156,6 +163,7 @@ export const createLoan = async (req: Request, res: Response, next: NextFunction
       .input('PermPhaseMaturity', sql.Date, PermPhaseMaturity)
       .input('PermPhaseInterestRate', sql.NVarChar, PermPhaseInterestRate)
       .input('ConstructionCompletionDate', sql.NVarChar, ConstructionCompletionDate)
+      .input('ConstructionCompletionSource', sql.NVarChar, ConstructionCompletionSource)
       .input('LeaseUpCompletedDate', sql.NVarChar, LeaseUpCompletedDate)
       .input('IOMaturityDate', sql.Date, IOMaturityDate)
       .input('PermanentCloseDate', sql.Date, PermanentCloseDate)
@@ -169,7 +177,7 @@ export const createLoan = async (req: Request, res: Response, next: NextFunction
         LoanAmount, LoanClosingDate, MaturityDate, FixedOrFloating, IndexName,
         Spread, InterestRate, MiniPermMaturity, MiniPermInterestRate,
         PermPhaseMaturity, PermPhaseInterestRate, ConstructionCompletionDate,
-        LeaseUpCompletedDate, IOMaturityDate, PermanentCloseDate,
+        ConstructionCompletionSource, LeaseUpCompletedDate, IOMaturityDate, PermanentCloseDate,
         PermanentLoanAmount, Notes
       )
       VALUES (
@@ -177,7 +185,7 @@ export const createLoan = async (req: Request, res: Response, next: NextFunction
         @LoanAmount, @LoanClosingDate, @MaturityDate, @FixedOrFloating, @IndexName,
         @Spread, @InterestRate, @MiniPermMaturity, @MiniPermInterestRate,
         @PermPhaseMaturity, @PermPhaseInterestRate, @ConstructionCompletionDate,
-        @LeaseUpCompletedDate, @IOMaturityDate, @PermanentCloseDate,
+        @ConstructionCompletionSource, @LeaseUpCompletedDate, @IOMaturityDate, @PermanentCloseDate,
         @PermanentLoanAmount, @Notes
       )
     `);
@@ -547,6 +555,171 @@ export const deleteLoan = async (req: Request, res: Response, next: NextFunction
 };
 
 // ============================================================
+// LOAN MODIFICATION CONTROLLER (Permanent debt, extensions, restructures)
+// ============================================================
+
+export const getAllLoanModifications = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request().query(`
+      SELECT m.*, p.ProjectName
+      FROM banking.LoanModification m
+      LEFT JOIN core.Project p ON m.ProjectId = p.ProjectId
+      ORDER BY m.ProjectId, m.EffectiveDate DESC, m.LoanModificationId
+    `);
+    res.json({ success: true, data: result.recordset });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getLoanModificationById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input('id', sql.Int, id)
+      .query(`
+        SELECT m.*, p.ProjectName
+        FROM banking.LoanModification m
+        LEFT JOIN core.Project p ON m.ProjectId = p.ProjectId
+        WHERE m.LoanModificationId = @id
+      `);
+    if (result.recordset.length === 0) {
+      res.status(404).json({ success: false, error: { message: 'Loan modification not found' } });
+      return;
+    }
+    res.json({ success: true, data: result.recordset[0] });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getLoanModificationsByProject = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { projectId } = req.params;
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input('projectId', sql.Int, projectId)
+      .query(`
+        SELECT m.*, p.ProjectName
+        FROM banking.LoanModification m
+        LEFT JOIN core.Project p ON m.ProjectId = p.ProjectId
+        WHERE m.ProjectId = @projectId
+        ORDER BY m.EffectiveDate DESC, m.LoanModificationId
+      `);
+    res.json({ success: true, data: result.recordset });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createLoanModification = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { ProjectId, LoanId, Type, Description, EffectiveDate, Notes } = req.body;
+    if (!ProjectId || !Type) {
+      res.status(400).json({ success: false, error: { message: 'ProjectId and Type are required' } });
+      return;
+    }
+    const pool = await getConnection();
+    await pool.request()
+      .input('ProjectId', sql.Int, ProjectId)
+      .input('LoanId', sql.Int, LoanId)
+      .input('Type', sql.NVarChar, Type)
+      .input('Description', sql.NVarChar, Description)
+      .input('EffectiveDate', sql.Date, EffectiveDate)
+      .input('Notes', sql.NVarChar(sql.MAX), Notes)
+      .query(`
+        INSERT INTO banking.LoanModification (ProjectId, LoanId, Type, Description, EffectiveDate, Notes)
+        VALUES (@ProjectId, @LoanId, @Type, @Description, @EffectiveDate, @Notes)
+      `);
+    const result = await pool.request()
+      .input('projectId', sql.Int, ProjectId)
+      .query(`
+        SELECT TOP 1 m.*, p.ProjectName
+        FROM banking.LoanModification m
+        LEFT JOIN core.Project p ON m.ProjectId = p.ProjectId
+        WHERE m.ProjectId = @projectId
+        ORDER BY m.LoanModificationId DESC
+      `);
+    res.status(201).json({ success: true, data: result.recordset[0] });
+  } catch (error: any) {
+    if (error.number === 547) {
+      res.status(400).json({ success: false, error: { message: 'Invalid ProjectId or LoanId' } });
+      return;
+    }
+    next(error);
+  }
+};
+
+export const updateLoanModification = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+    const pool = await getConnection();
+    const request = pool.request().input('id', sql.Int, id);
+    const fields: string[] = [];
+    Object.keys(updateData).forEach((key) => {
+      if (key !== 'LoanModificationId' && updateData[key] !== undefined) {
+        fields.push(`${key} = @${key}`);
+        if (key === 'ProjectId' || key === 'LoanId') {
+          request.input(key, sql.Int, updateData[key]);
+        } else if (key === 'EffectiveDate') {
+          request.input(key, sql.Date, updateData[key]);
+        } else if (key === 'Notes') {
+          request.input(key, sql.NVarChar(sql.MAX), updateData[key]);
+        } else {
+          request.input(key, sql.NVarChar, updateData[key]);
+        }
+      }
+    });
+    if (fields.length === 0) {
+      res.status(400).json({ success: false, error: { message: 'No fields to update' } });
+      return;
+    }
+    await request.query(`
+      UPDATE banking.LoanModification SET ${fields.join(', ')} WHERE LoanModificationId = @id
+    `);
+    const result = await pool.request()
+      .input('id', sql.Int, id)
+      .query(`
+        SELECT m.*, p.ProjectName
+        FROM banking.LoanModification m
+        LEFT JOIN core.Project p ON m.ProjectId = p.ProjectId
+        WHERE m.LoanModificationId = @id
+      `);
+    if (result.recordset.length === 0) {
+      res.status(404).json({ success: false, error: { message: 'Loan modification not found' } });
+      return;
+    }
+    res.json({ success: true, data: result.recordset[0] });
+  } catch (error: any) {
+    if (error.number === 547) {
+      res.status(400).json({ success: false, error: { message: 'Invalid ProjectId or LoanId' } });
+      return;
+    }
+    next(error);
+  }
+};
+
+export const deleteLoanModification = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input('id', sql.Int, id)
+      .query('DELETE FROM banking.LoanModification WHERE LoanModificationId = @id');
+    if (result.rowsAffected[0] === 0) {
+      res.status(404).json({ success: false, error: { message: 'Loan modification not found' } });
+      return;
+    }
+    res.json({ success: true, message: 'Loan modification deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ============================================================
 // DSCR TEST CONTROLLER
 // ============================================================
 
@@ -748,7 +921,7 @@ export const getAllParticipations = async (req: Request, res: Response, next: Ne
         p.*, 
         pr.ProjectName, 
         b.BankName,
-        -- Calculate active exposure (exposure - paid off amount, but we only have PaidOff flag)
+        COALESCE(b.HQState, b.State) AS BankState,
         CASE WHEN p.PaidOff = 1 THEN 0 ELSE p.ExposureAmount END AS ActiveExposure
       FROM banking.Participation p
       LEFT JOIN core.Project pr ON p.ProjectId = pr.ProjectId
@@ -826,8 +999,11 @@ export const getParticipationsByProject = async (req: Request, res: Response, ne
       .query(`
         SELECT 
           p.*,
+          b.BankName,
+          COALESCE(b.HQState, b.State) AS BankState,
           CASE WHEN p.PaidOff = 1 THEN 0 ELSE p.ExposureAmount END AS ActiveExposure
         FROM banking.Participation p
+        LEFT JOIN core.Bank b ON p.BankId = b.BankId
         WHERE p.ProjectId = @projectId 
         ORDER BY p.ParticipationId
       `);

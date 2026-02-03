@@ -60,6 +60,9 @@
     "db:merge-duplicate-deals": "npx ts-node --transpile-only scripts/merge-duplicate-deals.ts",
     "db:delete-ghost-attachments": "npx ts-node --transpile-only scripts/delete-ghost-attachments.ts",
     "db:sync-deal-lat-long-from-kmz": "npx ts-node --transpile-only scripts/sync-deal-lat-long-from-kmz.ts",
+    "db:parse-deal-notes": "npx ts-node --transpile-only scripts/parse-deal-notes-to-fields.ts",
+    "db:verify-parse-deal-notes": "npx ts-node --transpile-only scripts/verify-parse-deal-notes.ts",
+    "db:seed-second-ryan-nash": "npx ts-node -r tsconfig-paths/register scripts/seed-second-ryan-nash.ts",
     "extract-kmz-coordinates": "npx ts-node --transpile-only scripts/extract-kmz-coordinates.ts"
   },
   "keywords": [

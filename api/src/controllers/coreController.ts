@@ -482,7 +482,7 @@ export const getPersonById = async (req: Request, res: Response, next: NextFunct
 
 export const createPerson = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { FullName, Email, Phone } = req.body;
+    const { FullName, Email, Phone, Title, Notes } = req.body;
 
     if (!FullName) {
       res.status(400).json({ success: false, error: { message: 'FullName is required' } });
@@ -494,10 +494,12 @@ export const createPerson = async (req: Request, res: Response, next: NextFuncti
       .input('FullName', sql.NVarChar, FullName)
       .input('Email', sql.NVarChar, Email)
       .input('Phone', sql.NVarChar, Phone)
+      .input('Title', sql.NVarChar(100), Title)
+      .input('Notes', sql.NVarChar(sql.MAX), Notes)
       .query(`
-        INSERT INTO core.Person (FullName, Email, Phone)
+        INSERT INTO core.Person (FullName, Email, Phone, Title, Notes)
         OUTPUT INSERTED.*
-        VALUES (@FullName, @Email, @Phone)
+        VALUES (@FullName, @Email, @Phone, @Title, @Notes)
       `);
 
     res.status(201).json({ success: true, data: result.recordset[0] });
@@ -519,7 +521,11 @@ export const updatePerson = async (req: Request, res: Response, next: NextFuncti
     Object.keys(personData).forEach((key) => {
       if (key !== 'PersonId' && personData[key] !== undefined) {
         fields.push(`${key} = @${key}`);
-        request.input(key, sql.NVarChar, personData[key]);
+        if (key === 'Notes') {
+          request.input(key, sql.NVarChar(sql.MAX), personData[key]);
+        } else {
+          request.input(key, sql.NVarChar, personData[key]);
+        }
       }
     });
 

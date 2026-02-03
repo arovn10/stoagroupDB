@@ -2111,6 +2111,8 @@ export const updateDealPipeline = async (req: Request, res: Response, next: Next
       Zoning,
       Zoned,
       ListingStatus,
+      PriceRaw,
+      BrokerReferralContactId,
       BrokerReferralSource,
       RejectedReason,
       Latitude,
@@ -2285,6 +2287,14 @@ export const updateDealPipeline = async (req: Request, res: Response, next: Next
     if (ListingStatus !== undefined) {
       fields.push('ListingStatus = @ListingStatus');
       request.input('ListingStatus', sql.NVarChar(50), ListingStatus);
+    }
+    if (PriceRaw !== undefined) {
+      fields.push('PriceRaw = @PriceRaw');
+      request.input('PriceRaw', sql.NVarChar(100), PriceRaw);
+    }
+    if (BrokerReferralContactId !== undefined) {
+      fields.push('BrokerReferralContactId = @BrokerReferralContactId');
+      request.input('BrokerReferralContactId', sql.Int, BrokerReferralContactId);
     }
     if (BrokerReferralSource !== undefined) {
       fields.push('BrokerReferralSource = @BrokerReferralSource');

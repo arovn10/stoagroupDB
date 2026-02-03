@@ -76,7 +76,9 @@ CREATE TABLE core.Person (
     PersonId INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_Person PRIMARY KEY,
     FullName NVARCHAR(255) NOT NULL,
     Email    NVARCHAR(255) NULL,
-    Phone    NVARCHAR(50) NULL
+    Phone    NVARCHAR(50) NULL,
+    Title    NVARCHAR(100) NULL,   -- Optional; for disambiguation (e.g. "Ryan Nash (2)" or title)
+    Notes    NVARCHAR(MAX) NULL
 );
 
 -- Pre-Con Managers (Land Development)

@@ -528,6 +528,7 @@
  * @param {string} [data.FinancingStage] - Financing stage
  * @param {number} [data.BirthOrder] - Birth order from Banking Dashboard
  * @param {string} [data.ConstructionCompletionDate] - Target completion date (text: "May-23", "Dec-25")
+ * @param {string} [data.ConstructionCompletionSource] - Source of completion date (e.g. "Procore", "Manual") for UI label
  * @param {string} [data.LeaseUpCompletedDate] - Target lease-up date (text: "Apr-25")
  * @param {string} [data.IOMaturityDate] - I/O maturity date (YYYY-MM-DD)
  * @param {string} [data.MiniPermMaturity] - Mini-perm maturity date (YYYY-MM-DD)
@@ -573,6 +574,7 @@
  * @param {string} [data.FinancingStage] - Financing stage
  * @param {number} [data.BirthOrder] - Birth order
  * @param {string} [data.ConstructionCompletionDate] - Target completion date
+ * @param {string} [data.ConstructionCompletionSource] - Source of completion date (e.g. "Procore", "Manual")
  * @param {string} [data.LeaseUpCompletedDate] - Target lease-up date
  * @param {string} [data.IOMaturityDate] - I/O maturity date
  * @param {string} [data.MiniPermMaturity] - Mini-perm maturity date
@@ -632,6 +634,36 @@
  */
   async function deleteLoan(id) {
   return apiRequest(`/api/banking/loans/${id}`, 'DELETE');
+}
+
+// LOAN MODIFICATIONS (permanent debt, extensions, restructures)
+  async function getAllLoanModifications() {
+  return apiRequest('/api/banking/loan-modifications');
+}
+  async function getLoanModificationById(id) {
+  return apiRequest(`/api/banking/loan-modifications/${id}`);
+}
+  async function getLoanModificationsByProject(projectId) {
+  return apiRequest(`/api/banking/loan-modifications/project/${projectId}`);
+}
+/**
+ * Create a loan modification (REQUIRES AUTHENTICATION)
+ * @param {object} data - { ProjectId (required), LoanId (optional), Type (required, e.g. "Restructure", "Modification", "Extension"), Description, EffectiveDate (YYYY-MM-DD), Notes }
+ * @returns {Promise<object>} { success: true, data: { LoanModificationId, ... } }
+ */
+  async function createLoanModification(data) {
+  return apiRequest('/api/banking/loan-modifications', 'POST', data);
+}
+/**
+ * Update a loan modification (REQUIRES AUTHENTICATION)
+ * @param {number} id - LoanModificationId
+ * @param {object} data - Fields to update (ProjectId, LoanId, Type, Description, EffectiveDate, Notes)
+ */
+  async function updateLoanModification(id, data) {
+  return apiRequest(`/api/banking/loan-modifications/${id}`, 'PUT', data);
+}
+  async function deleteLoanModification(id) {
+  return apiRequest(`/api/banking/loan-modifications/${id}`, 'DELETE');
 }
 
 // DSCR TESTS
@@ -2256,6 +2288,12 @@
   API.updateLoan = updateLoan;
   API.updateLoanByProject = updateLoanByProject;
   API.deleteLoan = deleteLoan;
+  API.getAllLoanModifications = getAllLoanModifications;
+  API.getLoanModificationById = getLoanModificationById;
+  API.getLoanModificationsByProject = getLoanModificationsByProject;
+  API.createLoanModification = createLoanModification;
+  API.updateLoanModification = updateLoanModification;
+  API.deleteLoanModification = deleteLoanModification;
   
   // Banking - DSCR Tests
   API.getAllDSCRTests = getAllDSCRTests;

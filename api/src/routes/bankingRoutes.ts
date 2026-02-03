@@ -15,6 +15,14 @@ router.put('/loans/:id', authenticate, bankingController.updateLoan);
 router.put('/loans/project/:projectId', authenticate, bankingController.updateLoanByProject); // Convenience: update by ProjectId
 router.delete('/loans/:id', authenticate, bankingController.deleteLoan);
 
+// Loan Modification routes (permanent debt, extensions, restructures)
+router.get('/loan-modifications', bankingController.getAllLoanModifications);
+router.get('/loan-modifications/:id', bankingController.getLoanModificationById);
+router.get('/loan-modifications/project/:projectId', bankingController.getLoanModificationsByProject);
+router.post('/loan-modifications', authenticate, bankingController.createLoanModification);
+router.put('/loan-modifications/:id', authenticate, bankingController.updateLoanModification);
+router.delete('/loan-modifications/:id', authenticate, bankingController.deleteLoanModification);
+
 // DSCR Test routes
 router.get('/dscr-tests', bankingController.getAllDSCRTests);
 router.get('/dscr-tests/:id', bankingController.getDSCRTestById);
