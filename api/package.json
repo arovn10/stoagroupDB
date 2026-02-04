@@ -64,6 +64,8 @@
     "db:verify-parse-deal-notes": "npx ts-node --transpile-only scripts/verify-parse-deal-notes.ts",
     "db:seed-second-ryan-nash": "npx ts-node -r tsconfig-paths/register scripts/seed-second-ryan-nash.ts",
     "db:fix-duplicate-ryan-nash": "npx ts-node --transpile-only scripts/fix-duplicate-ryan-nash.ts",
+    "db:merge-duplicate-ryan-nash-equity": "npx ts-node --transpile-only scripts/merge-duplicate-ryan-nash-equity.ts",
+    "db:reseed-ryan-nash-investments": "npx ts-node --transpile-only scripts/reseed-ryan-nash-investments.ts",
     "db:sync-individual-investors-to-contacts": "npx ts-node --transpile-only scripts/sync-individual-investors-to-contacts.ts",
     "extract-kmz-coordinates": "npx ts-node --transpile-only scripts/extract-kmz-coordinates.ts"
   },

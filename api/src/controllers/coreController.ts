@@ -916,7 +916,29 @@ export const createEquityPartner = async (req: Request, res: Response, next: Nex
       if (PartnerType === 'Individual' && effectiveInvestorRepId == null) {
         effectiveInvestorRepId = await findOrCreatePersonByName(txRequest, PartnerName);
       }
-      
+
+      // One Individual equity partner per Person: prevent duplicate people
+      if (PartnerType === 'Individual' && effectiveInvestorRepId != null) {
+        const existing = await txRequest
+          .input('investorRepId', sql.Int, effectiveInvestorRepId)
+          .query(`
+            SELECT EquityPartnerId, PartnerName FROM core.EquityPartner
+            WHERE PartnerType = N'Individual' AND InvestorRepId = @investorRepId
+          `);
+        if (existing.recordset.length > 0) {
+          await transaction.rollback();
+          const existingPartner = existing.recordset[0];
+          res.status(409).json({
+            success: false,
+            error: {
+              message: `This person is already an equity partner (${existingPartner.PartnerName}). Use the existing partner or update it.`,
+              existingEquityPartnerId: existingPartner.EquityPartnerId,
+            },
+          });
+          return;
+        }
+      }
+
       // Insert the equity partner
       const result = await new sql.Request(transaction)
         .input('PartnerName', sql.NVarChar(255), PartnerName)
@@ -1010,6 +1032,27 @@ export const updateEquityPartner = async (req: Request, res: Response, next: Nex
     if (isIndividual && effectiveInvestorRepId == null && partnerName) {
       const personId = await findOrCreatePersonByName(pool.request(), partnerName);
       partnerData.InvestorRepId = personId;
+    }
+
+    // One Individual per Person: if setting InvestorRepId, ensure no other Individual has it
+    if (isIndividual && partnerData.InvestorRepId != null) {
+      const conflict = await pool.request()
+        .input('investorRepId', sql.Int, partnerData.InvestorRepId)
+        .input('excludeId', sql.Int, id)
+        .query(`
+          SELECT EquityPartnerId, PartnerName FROM core.EquityPartner
+          WHERE PartnerType = N'Individual' AND InvestorRepId = @investorRepId AND EquityPartnerId != @excludeId
+        `);
+      if (conflict.recordset.length > 0) {
+        res.status(409).json({
+          success: false,
+          error: {
+            message: `This person is already linked to another equity partner (${conflict.recordset[0].PartnerName}). One person = one Individual partner.`,
+            existingEquityPartnerId: conflict.recordset[0].EquityPartnerId,
+          },
+        });
+        return;
+      }
     }
 
     const request = pool.request().input('id', sql.Int, id);

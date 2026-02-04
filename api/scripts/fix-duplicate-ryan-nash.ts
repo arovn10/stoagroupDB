@@ -37,8 +37,36 @@ async function main(): Promise<void> {
 
   const keepId = rows[0].PersonId;
   const duplicateIds = rows.slice(1).map((r: { PersonId: number }) => r.PersonId);
+  const keepRow = rows[0] as { PersonId: number; Email?: string | null; Phone?: string | null };
 
   console.log(`Found ${rows.length} "Ryan Nash" persons. Will keep PersonId=${keepId}, remove PersonIds=[${duplicateIds.join(', ')}].`);
+
+  // Copy Email/Phone from a duplicate onto kept person if kept person is missing them
+  const dupWithInfo = (rows.slice(1) as Array<{ PersonId: number; Email?: string | null; Phone?: string | null }>).find(
+    (r) => (r.Email && r.Email.trim() !== '') || (r.Phone && r.Phone.trim() !== '')
+  );
+  if (dupWithInfo) {
+    const needEmail = (!keepRow.Email || keepRow.Email.trim() === '') && dupWithInfo.Email && dupWithInfo.Email.trim() !== '';
+    const needPhone = (!keepRow.Phone || keepRow.Phone.trim() === '') && dupWithInfo.Phone && dupWithInfo.Phone.trim() !== '';
+    if (needEmail || needPhone) {
+      if (APPLY) {
+        const updates: string[] = [];
+        const req = pool.request().input('keepId', sql.Int, keepId);
+        if (needEmail) {
+          updates.push('Email = @Email');
+          req.input('Email', sql.NVarChar, dupWithInfo.Email);
+        }
+        if (needPhone) {
+          updates.push('Phone = @Phone');
+          req.input('Phone', sql.NVarChar, dupWithInfo.Phone);
+        }
+        await req.query(`UPDATE core.Person SET ${updates.join(', ')} WHERE PersonId = @keepId`);
+        console.log(`  Copied ${needEmail ? 'Email' : ''} ${needEmail && needPhone ? 'and' : ''} ${needPhone ? 'Phone' : ''} from PersonId ${dupWithInfo.PersonId} to kept person.`);
+      } else {
+        console.log(`  Would copy Email/Phone from PersonId ${dupWithInfo.PersonId} to kept person.`);
+      }
+    }
+  }
 
   for (const dupId of duplicateIds) {
     const guarantees = await pool.request()

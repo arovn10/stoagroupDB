@@ -31,7 +31,7 @@ The front end sends a JSON body with the user's email (required) and optionally 
 | `name`  | string | No      | Display name from Domo profile, if available. |
 | `userId` | string | No     | Domo user ID (from `domo.env.userId`). Ignored for lookup; can be sent for logging. |
 
-**Recognized admin users (Deal Pipeline / Domo SSO):** `bbrinson@stoagroup.com`, `hspring@stoagroup.com`, `arovner@stoagroup.com`, `mmurray@stoagroup.com`. Ensure these exist in `auth.[User]` via `npm run db:seed-auth-users`.
+**Recognized admin users (Deal Pipeline / Domo SSO):** `bbrinson@stoagroup.com`, `hspring@stoagroup.com`, `arovner@stoagroup.com`, `mmurray@stoagroup.com`, `jsnodgrass@stoagroup.com`, `twharton@stoagroup.com`. Ensure these exist in `auth.[User]` via `npm run db:seed-auth-users`.
 
 ---
 
