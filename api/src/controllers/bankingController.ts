@@ -234,8 +234,8 @@ export const createLoan = async (req: Request, res: Response, next: NextFunction
       .input('PermanentLoanAmount', sql.Decimal(18, 2), PermanentLoanAmount)
       .input('Notes', sql.NVarChar(sql.MAX), toVarChar(Notes));
 
-    // Insert without OUTPUT clause (triggers prevent OUTPUT INSERTED.*)
-    await request.query(`
+    // Insert and select in same batch so SCOPE_IDENTITY() is visible (connection pooling)
+    const result = await request.query(`
       INSERT INTO banking.Loan (
         ProjectId, BirthOrder, LoanType, Borrower, LoanPhase, FinancingStage, LenderId,
         LoanAmount, LoanClosingDate, MaturityDate, FixedOrFloating, IndexName,
@@ -257,11 +257,7 @@ export const createLoan = async (req: Request, res: Response, next: NextFunction
         @PermPhaseMaturity, @PermPhaseInterestRate, @ConstructionCompletionDate,
         @ConstructionCompletionSource, @LeaseUpCompletedDate, @IOMaturityDate, @PermanentCloseDate,
         @PermanentLoanAmount, @Notes, @IsActive, @IsPrimary
-      )
-    `);
-
-    // Get the inserted LoanId using SCOPE_IDENTITY()
-    const result = await pool.request().query(`
+      );
       SELECT 
         l.*,
         CASE 
@@ -272,15 +268,17 @@ export const createLoan = async (req: Request, res: Response, next: NextFunction
           ELSE NULL
         END AS ConstructionIOTermMonths
       FROM banking.Loan l
-      WHERE l.LoanId = SCOPE_IDENTITY()
+      WHERE l.LoanId = SCOPE_IDENTITY();
     `);
 
-    if (result.recordset.length === 0) {
+    const secondSet = result.recordsets && Array.isArray(result.recordsets) ? result.recordsets[1] : undefined;
+    const created = (secondSet && secondSet[0]) ? secondSet[0] : (result.recordset && result.recordset[0]) ? result.recordset[0] : null;
+    if (!created || created.LoanId == null) {
       res.status(500).json({ success: false, error: { message: 'Failed to retrieve created loan' } });
       return;
     }
 
-    const loanId = result.recordset[0].LoanId;
+    const loanId = created.LoanId;
     
     // Auto-create maturity covenants for all maturity dates
     await syncAllMaturityCovenants(
@@ -294,7 +292,7 @@ export const createLoan = async (req: Request, res: Response, next: NextFunction
       PermPhaseMaturity
     );
 
-    res.status(201).json({ success: true, data: result.recordset[0] });
+    res.status(201).json({ success: true, data: created });
   } catch (error: any) {
     if (error.number === 547) {
       res.status(400).json({ success: false, error: { message: 'Invalid ProjectId or LenderId' } });
