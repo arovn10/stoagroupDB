@@ -1901,6 +1901,73 @@
 }
 
 // ============================================================
+// LAND DEVELOPMENT CONTACTS (contact book + follow-up reminders)
+// ============================================================
+
+/**
+ * Get all land development contacts
+ * @param {object} [params] - Optional: { type?, city?, state?, upcomingOnly?, q? } - type: 'Land Owner'|'Developer'|'Broker'; upcomingOnly: true for follow-up due in next 14 days; q: search Name, Email, Notes
+ * @returns {Promise<object>} { success: true, data: [{ LandDevelopmentContactId, Name, Email, PhoneNumber, OfficeAddress, Type, Notes, City, State, DateOfContact, FollowUpTimeframeDays, NextFollowUpDate, UpcomingFollowUp, CreatedAt, ModifiedAt }, ...] }
+ */
+  async function getAllLandDevelopmentContacts(params) {
+  const sp = params && typeof params === 'object' ? params : {};
+  const qs = new URLSearchParams();
+  if (sp.type) qs.set('type', sp.type);
+  if (sp.city) qs.set('city', sp.city);
+  if (sp.state) qs.set('state', sp.state);
+  if (sp.upcomingOnly) qs.set('upcomingOnly', sp.upcomingOnly === true || sp.upcomingOnly === 'true' ? 'true' : '');
+  if (sp.q) qs.set('q', sp.q);
+  const query = qs.toString() ? '?' + qs.toString() : '';
+  return apiRequest(`/api/land-development/contacts${query}`);
+}
+
+/**
+ * Get a land development contact by ID
+ * @param {number} id - LandDevelopmentContactId
+ * @returns {Promise<object>} { success: true, data: { ... NextFollowUpDate, UpcomingFollowUp } }
+ */
+  async function getLandDevelopmentContactById(id) {
+  return apiRequest(`/api/land-development/contacts/${id}`);
+}
+
+/**
+ * Create a land development contact (REQUIRES AUTHENTICATION)
+ * @param {object} data - { Name (required), Email?, PhoneNumber?, OfficeAddress?, Type? ('Land Owner'|'Developer'|'Broker'), Notes?, City?, State?, DateOfContact? (YYYY-MM-DD), FollowUpTimeframeDays? }
+ * @returns {Promise<object>} { success: true, data: { LandDevelopmentContactId, ... } }
+ */
+  async function createLandDevelopmentContact(data) {
+  return apiRequest('/api/land-development/contacts', 'POST', data);
+}
+
+/**
+ * Update a land development contact (REQUIRES AUTHENTICATION)
+ * @param {number} id - LandDevelopmentContactId
+ * @param {object} data - Fields to update (same as create)
+ * @returns {Promise<object>} { success: true, data: { ... } }
+ */
+  async function updateLandDevelopmentContact(id, data) {
+  return apiRequest(`/api/land-development/contacts/${id}`, 'PUT', data);
+}
+
+/**
+ * Delete a land development contact (REQUIRES AUTHENTICATION)
+ * @param {number} id - LandDevelopmentContactId
+ * @returns {Promise<object>} { success: true, message: 'Contact deleted' }
+ */
+  async function deleteLandDevelopmentContact(id) {
+  return apiRequest(`/api/land-development/contacts/${id}`, 'DELETE');
+}
+
+/**
+ * Send follow-up reminder email (REQUIRES AUTHENTICATION)
+ * @param {object} data - { contactId?: number, email?: string, message?: string } - provide contactId and/or email; optional custom message
+ * @returns {Promise<object>} { success: true, message: 'Reminder sent' } or 503 if email not configured (set SMTP_HOST, MAIL_FROM)
+ */
+  async function sendLandDevelopmentReminder(data) {
+  return apiRequest('/api/land-development/contacts/send-reminder', 'POST', data);
+}
+
+// ============================================================
 // PIPELINE: DEAL PIPELINE (Land Development Deal Tracker)
 // ============================================================
 
@@ -2496,6 +2563,14 @@
   API.createBrokerReferralContact = createBrokerReferralContact;
   API.updateBrokerReferralContact = updateBrokerReferralContact;
   API.deleteBrokerReferralContact = deleteBrokerReferralContact;
+  
+  // Land Development Contacts
+  API.getAllLandDevelopmentContacts = getAllLandDevelopmentContacts;
+  API.getLandDevelopmentContactById = getLandDevelopmentContactById;
+  API.createLandDevelopmentContact = createLandDevelopmentContact;
+  API.updateLandDevelopmentContact = updateLandDevelopmentContact;
+  API.deleteLandDevelopmentContact = deleteLandDevelopmentContact;
+  API.sendLandDevelopmentReminder = sendLandDevelopmentReminder;
   
   // Pipeline - Deal Pipeline
   API.getAllDealPipelines = getAllDealPipelines;

@@ -10,6 +10,7 @@ import coreRoutes from './routes/coreRoutes';
 import bankingRoutes from './routes/bankingRoutes';
 import pipelineRoutes from './routes/pipelineRoutes';
 import authRoutes from './routes/authRoutes';
+import landDevelopmentRoutes from './routes/landDevelopmentRoutes';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { getConnection } from './config/database';
 import { ensureContainerExists } from './config/azureBlob';
@@ -51,6 +52,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/core', coreRoutes);
 app.use('/api/banking', bankingRoutes);
 app.use('/api/pipeline', pipelineRoutes);
+app.use('/api/land-development', landDevelopmentRoutes);
 
 // API Documentation endpoint
 app.get('/api', (req: Request, res: Response) => {
@@ -228,6 +230,16 @@ app.get('/api', (req: Request, res: Response) => {
             update: 'PUT /api/pipeline/deal-pipeline/attachments/:attachmentId (body: { FileName?, ContentType? })',
             delete: 'DELETE /api/pipeline/deal-pipeline/attachments/:attachmentId',
           },
+        },
+      },
+      landDevelopment: {
+        contacts: {
+          getAll: 'GET /api/land-development/contacts (?type, city, state, upcomingOnly, q)',
+          getById: 'GET /api/land-development/contacts/:id',
+          create: 'POST /api/land-development/contacts (auth)',
+          update: 'PUT /api/land-development/contacts/:id (auth)',
+          delete: 'DELETE /api/land-development/contacts/:id (auth)',
+          sendReminder: 'POST /api/land-development/contacts/send-reminder (auth, body: contactId?, email?, message?)',
         },
       },
     },
