@@ -68,6 +68,17 @@ AZURE_STORAGE_CONTAINER=deal-pipeline-attachments
 ```
 Get the connection string from Azure Portal → your Storage Account → **Access keys** → “Connection string”. Without these, attachments use local disk (and are lost on redeploy).
 
+**Land Development reminder emails (SMTP / Office 365):**  
+To enable "Send reminder" for Land Development Contacts, set in Render Environment:
+```
+SMTP_HOST=outlook.office365.com
+SMTP_PORT=587
+MAIL_FROM=domo@stoagroup.com
+SMTP_USER=domo@stoagroup.com
+SMTP_PASS=your-app-password-here
+```
+Use the actual mailbox password or an app password for `SMTP_PASS`. Do not commit passwords to Git.
+
 **Important:** 
 - Replace `your_actual_password_here` with your real database password.
 - Replace `your-strong-random-secret-here` with a long random string (e.g. from `openssl rand -base64 32`). **Store the JWT secret only in Render’s Environment** — never in code or Git.

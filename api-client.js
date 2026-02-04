@@ -1905,9 +1905,9 @@
 // ============================================================
 
 /**
- * Get all land development contacts
+ * Get all land development contacts (core.Person left-joined with land-dev extension).
  * @param {object} [params] - Optional: { type?, city?, state?, upcomingOnly?, q? } - type: 'Land Owner'|'Developer'|'Broker'; upcomingOnly: true for follow-up due in next 14 days; q: search Name, Email, Notes
- * @returns {Promise<object>} { success: true, data: [{ LandDevelopmentContactId, Name, Email, PhoneNumber, OfficeAddress, Type, Notes, City, State, DateOfContact, FollowUpTimeframeDays, NextFollowUpDate, UpcomingFollowUp, CreatedAt, ModifiedAt }, ...] }
+ * @returns {Promise<object>} { success: true, data: [{ ContactId, Name, Email, PhoneNumber, OfficeAddress, Type, Notes, City, State, DateOfContact, FollowUpTimeframeDays, NextFollowUpDate, UpcomingFollowUp, CreatedAt, ModifiedAt }, ...] } — ContactId = core.Person.PersonId
  */
   async function getAllLandDevelopmentContacts(params) {
   const sp = params && typeof params === 'object' ? params : {};
@@ -1922,36 +1922,36 @@
 }
 
 /**
- * Get a land development contact by ID
- * @param {number} id - LandDevelopmentContactId
- * @returns {Promise<object>} { success: true, data: { ... NextFollowUpDate, UpcomingFollowUp } }
+ * Get a land development contact by ID (merged core.Person + extension).
+ * @param {number} id - ContactId (core.Person.PersonId)
+ * @returns {Promise<object>} { success: true, data: { ContactId, Name, Email, PhoneNumber, OfficeAddress, Type, Notes, City, State, DateOfContact, FollowUpTimeframeDays, NextFollowUpDate, UpcomingFollowUp, ... } }
  */
   async function getLandDevelopmentContactById(id) {
   return apiRequest(`/api/land-development/contacts/${id}`);
 }
 
 /**
- * Create a land development contact (REQUIRES AUTHENTICATION)
+ * Create a land development contact (REQUIRES AUTHENTICATION). Creates core.Person then pipeline.LandDevelopmentContactExtension.
  * @param {object} data - { Name (required), Email?, PhoneNumber?, OfficeAddress?, Type? ('Land Owner'|'Developer'|'Broker'), Notes?, City?, State?, DateOfContact? (YYYY-MM-DD), FollowUpTimeframeDays? }
- * @returns {Promise<object>} { success: true, data: { LandDevelopmentContactId, ... } }
+ * @returns {Promise<object>} { success: true, data: { ContactId, Name, Email, PhoneNumber, ... } } — ContactId = new PersonId
  */
   async function createLandDevelopmentContact(data) {
   return apiRequest('/api/land-development/contacts', 'POST', data);
 }
 
 /**
- * Update a land development contact (REQUIRES AUTHENTICATION)
- * @param {number} id - LandDevelopmentContactId
+ * Update a land development contact (REQUIRES AUTHENTICATION). Updates core.Person and upserts pipeline.LandDevelopmentContactExtension.
+ * @param {number} id - ContactId (core.Person.PersonId)
  * @param {object} data - Fields to update (same as create)
- * @returns {Promise<object>} { success: true, data: { ... } }
+ * @returns {Promise<object>} { success: true, data: { ContactId, Name, ... } }
  */
   async function updateLandDevelopmentContact(id, data) {
   return apiRequest(`/api/land-development/contacts/${id}`, 'PUT', data);
 }
 
 /**
- * Delete a land development contact (REQUIRES AUTHENTICATION)
- * @param {number} id - LandDevelopmentContactId
+ * Delete a land development contact (REQUIRES AUTHENTICATION). Removes only the land-dev extension row; core.Person is preserved.
+ * @param {number} id - ContactId (core.Person.PersonId)
  * @returns {Promise<object>} { success: true, message: 'Contact deleted' }
  */
   async function deleteLandDevelopmentContact(id) {
@@ -1960,7 +1960,7 @@
 
 /**
  * Send follow-up reminder email (REQUIRES AUTHENTICATION)
- * @param {object} data - { contactId?: number, email?: string, message?: string } - provide contactId and/or email; optional custom message
+ * @param {object} data - { contactId?: number, email?: string, message?: string } - contactId = PersonId; provide contactId and/or email; optional custom message
  * @returns {Promise<object>} { success: true, message: 'Reminder sent' } or 503 if email not configured (set SMTP_HOST, MAIL_FROM)
  */
   async function sendLandDevelopmentReminder(data) {
