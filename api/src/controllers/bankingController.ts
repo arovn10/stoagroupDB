@@ -1563,8 +1563,7 @@ async function syncMaturityCovenant(
         .query(`
           UPDATE banking.Covenant
           SET CovenantDate = @covenantDate,
-              Requirement = @requirement,
-              UpdatedAt = SYSDATETIME()
+              Requirement = @requirement
           WHERE CovenantId = @covenantId
         `);
     } else {
@@ -3138,8 +3137,6 @@ export const updateLoanProceeds = async (req: Request, res: Response, next: Next
       return;
     }
 
-    updates.push('UpdatedAt = SYSDATETIME()');
-
     const result = await request.query(`
       UPDATE banking.LoanProceeds
       SET ${updates.join(', ')}
@@ -3433,8 +3430,6 @@ export const updateGuaranteeBurndown = async (req: Request, res: Response, next:
       res.status(400).json({ success: false, error: { message: 'No fields to update' } });
       return;
     }
-
-    updates.push('UpdatedAt = SYSDATETIME()');
 
     const result = await request.query(`
       UPDATE banking.GuaranteeBurndown
