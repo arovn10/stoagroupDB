@@ -1910,8 +1910,8 @@
  * Returns all deals with CORE attributes joined:
  * - ProjectName, City, State, Region, Units, ProductType, Stage (from core.Project)
  * - All Deal Pipeline specific fields (Bank, StartDate, UnitCount, PreConManager, etc.)
- * - BrokerReferralContactId, PriceRaw, ListingStatus, Zoning, County
- * - Optional nested BrokerReferralContact: { BrokerReferralContactId, Name, Email, Phone }
+ * - BrokerReferralContactId, PriceRaw, ListingStatus, Zoning, County, CoordinateSource
+ * - BrokerReferralContactName, BrokerReferralContactEmail, BrokerReferralContactPhone (joined)
  * 
  * @returns {Promise<object>} { success: true, data: [...] }
  * @example
@@ -1980,6 +1980,7 @@
  * - RejectedReason: string (Site Tracking)
  * - Latitude: number (optional; also populated from KMZ attachments)
  * - Longitude: number (optional; also populated from KMZ attachments)
+ * - CoordinateSource: string | null - 'KMZ' | 'Manual' | 'Procore' (set 'KMZ' when coords from uploaded KMZ/KML so frontend does not overwrite with Procore)
  * 
  * Note: SqFtPrice is automatically calculated as LandPrice / (Acreage * 43560)
  * 
@@ -2018,9 +2019,9 @@
  * 
  * Can update:
  * - CORE attributes (ProjectName, City, State, Region, Units, ProductType, Stage, EstimatedConstructionStartDate)
- * - Any Deal Pipeline specific fields
+ * - Any Deal Pipeline specific fields (Bank, StartDate, County, Zoning, ListingStatus, PriceRaw, BrokerReferralContactId, Latitude, Longitude, CoordinateSource, etc.)
  * 
- * Note: SqFtPrice is automatically recalculated if LandPrice or Acreage changes
+ * Note: SqFtPrice is automatically recalculated if LandPrice or Acreage changes. Set CoordinateSource: 'KMZ' when updating with coords from KMZ/KML upload.
  * 
  * @param {number} id - Deal Pipeline ID
  * @param {object} data - Fields to update (same as createDealPipeline)

@@ -1602,6 +1602,7 @@ export const getAllDealPipelines = async (req: Request, res: Response, next: Nex
         dp.RejectedReason,
         dp.Latitude,
         dp.Longitude,
+        dp.CoordinateSource,
         dp.AsanaTaskGid,
         dp.AsanaProjectGid,
         dp.CreatedAt,
@@ -1632,7 +1633,6 @@ export const getDealPipelineById = async (req: Request, res: Response, next: Nex
         SELECT 
           dp.DealPipelineId,
           dp.ProjectId,
-          -- CORE attributes (from core.Project)
           p.ProjectName,
           p.City,
           p.State,
@@ -1641,13 +1641,10 @@ export const getDealPipelineById = async (req: Request, res: Response, next: Nex
           p.ProductType,
           p.Stage,
           p.EstimatedConstructionStartDate,
-          -- Region from core.Region table
           r.RegionName AS RegionName,
-          -- Pre-Con Manager
           pm.FullName AS PreConManagerName,
           pm.Email AS PreConManagerEmail,
           pm.Phone AS PreConManagerPhone,
-          -- Deal Pipeline specific attributes
           dp.Bank,
           dp.StartDate,
           dp.UnitCount,
@@ -1671,16 +1668,25 @@ export const getDealPipelineById = async (req: Request, res: Response, next: Nex
           dp.Zoning,
           dp.Zoned,
           dp.ListingStatus,
+          dp.PriceRaw,
+          dp.BrokerReferralContactId,
           dp.BrokerReferralSource,
           dp.RejectedReason,
+          dp.Latitude,
+          dp.Longitude,
+          dp.CoordinateSource,
           dp.AsanaTaskGid,
           dp.AsanaProjectGid,
           dp.CreatedAt,
-          dp.UpdatedAt
+          dp.UpdatedAt,
+          br.Name AS BrokerReferralContactName,
+          br.Email AS BrokerReferralContactEmail,
+          br.Phone AS BrokerReferralContactPhone
         FROM pipeline.DealPipeline dp
         LEFT JOIN core.Project p ON dp.ProjectId = p.ProjectId
         LEFT JOIN core.Region r ON p.Region = r.RegionName
         LEFT JOIN core.PreConManager pm ON dp.PreConManagerId = pm.PreConManagerId
+        LEFT JOIN pipeline.BrokerReferralContact br ON dp.BrokerReferralContactId = br.BrokerReferralContactId
         WHERE dp.DealPipelineId = @id
       `);
     
@@ -1748,6 +1754,9 @@ export const getDealPipelineByProjectId = async (req: Request, res: Response, ne
           dp.BrokerReferralContactId,
           dp.BrokerReferralSource,
           dp.RejectedReason,
+          dp.Latitude,
+          dp.Longitude,
+          dp.CoordinateSource,
           dp.AsanaTaskGid,
           dp.AsanaProjectGid,
           dp.CreatedAt,
@@ -1817,7 +1826,8 @@ export const createDealPipeline = async (req: Request, res: Response, next: Next
       BrokerReferralSource,
       RejectedReason,
       Latitude,
-      Longitude
+      Longitude,
+      CoordinateSource
     } = req.body;
 
     const pool = await getConnection();
@@ -1969,6 +1979,7 @@ export const createDealPipeline = async (req: Request, res: Response, next: Next
       .input('AsanaProjectGid', sql.NVarChar(100), AsanaProjectGid)
       .input('Latitude', sql.Decimal(18, 8), Latitude)
       .input('Longitude', sql.Decimal(18, 8), Longitude)
+      .input('CoordinateSource', sql.NVarChar(20), CoordinateSource ?? null)
       .query(`
         IF NOT EXISTS (SELECT 1 FROM pipeline.DealPipeline WHERE ProjectId = @ProjectId)
         BEGIN
@@ -1978,7 +1989,7 @@ export const createDealPipeline = async (req: Request, res: Response, next: Next
             SqFtPrice, ExecutionDate, DueDiligenceDate, ClosingDate,
             PurchasingEntity, Cash, OpportunityZone, ClosingNotes,
             County, ZipCode, MFAcreage, Zoning, Zoned, ListingStatus, PriceRaw, BrokerReferralContactId, BrokerReferralSource, RejectedReason,
-            AsanaTaskGid, AsanaProjectGid, Latitude, Longitude
+            AsanaTaskGid, AsanaProjectGid, Latitude, Longitude, CoordinateSource
           )
           VALUES (
             @ProjectId, @Bank, @StartDate, @UnitCount, @PreConManagerId,
@@ -1986,7 +1997,7 @@ export const createDealPipeline = async (req: Request, res: Response, next: Next
             @SqFtPrice, @ExecutionDate, @DueDiligenceDate, @ClosingDate,
             @PurchasingEntity, @Cash, @OpportunityZone, @ClosingNotes,
             @County, @ZipCode, @MFAcreage, @Zoning, @Zoned, @ListingStatus, @PriceRaw, @BrokerReferralContactId, @BrokerReferralSource, @RejectedReason,
-            @AsanaTaskGid, @AsanaProjectGid, @Latitude, @Longitude
+            @AsanaTaskGid, @AsanaProjectGid, @Latitude, @Longitude, @CoordinateSource
           );
         END
       `);
@@ -2041,6 +2052,7 @@ export const createDealPipeline = async (req: Request, res: Response, next: Next
           dp.AsanaProjectGid,
           dp.Latitude,
           dp.Longitude,
+          dp.CoordinateSource,
           dp.CreatedAt,
           dp.UpdatedAt,
           br.Name AS BrokerReferralContactName,
@@ -2116,7 +2128,8 @@ export const updateDealPipeline = async (req: Request, res: Response, next: Next
       BrokerReferralSource,
       RejectedReason,
       Latitude,
-      Longitude
+      Longitude,
+      CoordinateSource
     } = req.body;
 
     const pool = await getConnection();
@@ -2312,6 +2325,10 @@ export const updateDealPipeline = async (req: Request, res: Response, next: Next
       fields.push('Longitude = @Longitude');
       request.input('Longitude', sql.Decimal(18, 8), Longitude);
     }
+    if (CoordinateSource !== undefined) {
+      fields.push('CoordinateSource = @CoordinateSource');
+      request.input('CoordinateSource', sql.NVarChar(20), CoordinateSource);
+    }
 
     // Recalculate SqFtPrice if LandPrice or Acreage changed
     if (LandPrice !== undefined || Acreage !== undefined) {
@@ -2395,6 +2412,7 @@ export const updateDealPipeline = async (req: Request, res: Response, next: Next
           dp.RejectedReason,
           dp.Latitude,
           dp.Longitude,
+          dp.CoordinateSource,
           dp.AsanaTaskGid,
           dp.AsanaProjectGid,
           dp.CreatedAt,
