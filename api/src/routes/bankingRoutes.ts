@@ -7,8 +7,9 @@ const router = Router();
 
 // Loan routes
 router.get('/loans', bankingController.getAllLoans);
-router.get('/loans/:id', bankingController.getLoanById);
 router.get('/loans/project/:projectId', bankingController.getLoansByProject);
+router.get('/loans/:id/participation-summary', bankingController.getLoanParticipationSummary);
+router.get('/loans/:id', bankingController.getLoanById);
 // Write operations require authentication
 router.post('/loans', authenticate, bankingController.createLoan);
 router.put('/loans/:id', authenticate, bankingController.updateLoan);

@@ -108,13 +108,59 @@ export const getLoansByProject = async (req: Request, res: Response, next: NextF
   }
 };
 
+/**
+ * Optional (Boss Morning Feedback): participation total vs loan amount for a single loan.
+ * Returns loan amount, sum of participation amounts, and a mismatch flag for dashboard validation.
+ */
+export const getLoanParticipationSummary = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const pool = await getConnection();
+    const loan = await pool.request()
+      .input('id', sql.Int, id)
+      .query('SELECT LoanId, LoanAmount FROM banking.Loan WHERE LoanId = @id');
+    if (loan.recordset.length === 0) {
+      res.status(404).json({ success: false, error: { message: 'Loan not found' } });
+      return;
+    }
+    const loanAmount = loan.recordset[0].LoanAmount != null ? parseFloat(loan.recordset[0].LoanAmount) : null;
+    const sumResult = await pool.request()
+      .input('id', sql.Int, id)
+      .query(`
+        SELECT 
+          ISNULL(SUM(CAST(p.ExposureAmount AS FLOAT)), 0) AS ParticipationTotal,
+          ISNULL(SUM(CASE WHEN p.PaidOff = 0 THEN CAST(p.ExposureAmount AS FLOAT) ELSE 0 END), 0) AS ParticipationActiveTotal
+        FROM banking.Participation p
+        WHERE p.LoanId = @id
+      `);
+    const participationTotal = sumResult.recordset[0]?.ParticipationTotal ?? 0;
+    const participationActiveTotal = sumResult.recordset[0]?.ParticipationActiveTotal ?? 0;
+    const tolerance = 1; // allow $1 rounding difference
+    const mismatch = loanAmount != null && Math.abs(participationActiveTotal - loanAmount) > tolerance;
+    res.json({
+      success: true,
+      data: {
+        loanId: parseInt(id),
+        loanAmount,
+        participationTotal,
+        participationActiveTotal,
+        mismatch,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const createLoan = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const {
       ProjectId, BirthOrder, LoanType, Borrower, LoanPhase, FinancingStage, LenderId,
       LoanAmount, LoanClosingDate, MaturityDate, FixedOrFloating, IndexName,
       Spread, InterestRate, InterestRateFloor, InterestRateCeiling,
+      ConversionDate,
       MiniPermMaturity, MiniPermInterestRate,
+      MiniPermFixedOrFloating, MiniPermIndex, MiniPermSpread, MiniPermRateFloor, MiniPermRateCeiling,
       PermPhaseMaturity, PermPhaseInterestRate, ConstructionCompletionDate,
       ConstructionCompletionSource, LeaseUpCompletedDate, IOMaturityDate, PermanentCloseDate,
       PermanentLoanAmount, Notes,
@@ -162,10 +208,16 @@ export const createLoan = async (req: Request, res: Response, next: NextFunction
       .input('InterestRate', sql.NVarChar, InterestRate)
       .input('InterestRateFloor', sql.NVarChar, InterestRateFloor)
       .input('InterestRateCeiling', sql.NVarChar, InterestRateCeiling)
+      .input('ConversionDate', sql.Date, ConversionDate)
       .input('IsActive', sql.Bit, IsActive === true || IsActive === 1)
       .input('IsPrimary', sql.Bit, IsPrimary === true || IsPrimary === 1)
       .input('MiniPermMaturity', sql.Date, MiniPermMaturity)
       .input('MiniPermInterestRate', sql.NVarChar, MiniPermInterestRate)
+      .input('MiniPermFixedOrFloating', sql.NVarChar, MiniPermFixedOrFloating)
+      .input('MiniPermIndex', sql.NVarChar, MiniPermIndex)
+      .input('MiniPermSpread', sql.NVarChar, MiniPermSpread)
+      .input('MiniPermRateFloor', sql.NVarChar, MiniPermRateFloor)
+      .input('MiniPermRateCeiling', sql.NVarChar, MiniPermRateCeiling)
       .input('PermPhaseMaturity', sql.Date, PermPhaseMaturity)
       .input('PermPhaseInterestRate', sql.NVarChar, PermPhaseInterestRate)
       .input('ConstructionCompletionDate', sql.NVarChar, ConstructionCompletionDate)
@@ -182,7 +234,9 @@ export const createLoan = async (req: Request, res: Response, next: NextFunction
         ProjectId, BirthOrder, LoanType, Borrower, LoanPhase, FinancingStage, LenderId,
         LoanAmount, LoanClosingDate, MaturityDate, FixedOrFloating, IndexName,
         Spread, InterestRate, InterestRateFloor, InterestRateCeiling,
+        ConversionDate,
         MiniPermMaturity, MiniPermInterestRate,
+        MiniPermFixedOrFloating, MiniPermIndex, MiniPermSpread, MiniPermRateFloor, MiniPermRateCeiling,
         PermPhaseMaturity, PermPhaseInterestRate, ConstructionCompletionDate,
         ConstructionCompletionSource, LeaseUpCompletedDate, IOMaturityDate, PermanentCloseDate,
         PermanentLoanAmount, Notes, IsActive, IsPrimary
@@ -191,7 +245,9 @@ export const createLoan = async (req: Request, res: Response, next: NextFunction
         @ProjectId, @BirthOrder, @LoanType, @Borrower, @LoanPhase, @FinancingStage, @LenderId,
         @LoanAmount, @LoanClosingDate, @MaturityDate, @FixedOrFloating, @IndexName,
         @Spread, @InterestRate, @InterestRateFloor, @InterestRateCeiling,
+        @ConversionDate,
         @MiniPermMaturity, @MiniPermInterestRate,
+        @MiniPermFixedOrFloating, @MiniPermIndex, @MiniPermSpread, @MiniPermRateFloor, @MiniPermRateCeiling,
         @PermPhaseMaturity, @PermPhaseInterestRate, @ConstructionCompletionDate,
         @ConstructionCompletionSource, @LeaseUpCompletedDate, @IOMaturityDate, @PermanentCloseDate,
         @PermanentLoanAmount, @Notes, @IsActive, @IsPrimary
@@ -297,7 +353,9 @@ export const updateLoan = async (req: Request, res: Response, next: NextFunction
         fields.push(`${key} = @${key}`);
         if (key === 'IsActive' || key === 'IsPrimary') {
           request.input(key, sql.Bit, loanData[key] === true || loanData[key] === 1);
-        } else if (key === 'InterestRateFloor' || key === 'InterestRateCeiling') {
+        } else if (key === 'InterestRateFloor' || key === 'InterestRateCeiling' ||
+            key === 'MiniPermFixedOrFloating' || key === 'MiniPermIndex' || key === 'MiniPermSpread' ||
+            key === 'MiniPermRateFloor' || key === 'MiniPermRateCeiling') {
           request.input(key, sql.NVarChar, loanData[key]);
         } else if (typeof loanData[key] === 'number' && key.includes('Amount')) {
           request.input(key, sql.Decimal(18, 2), loanData[key]);
