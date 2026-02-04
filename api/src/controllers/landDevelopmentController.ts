@@ -166,16 +166,20 @@ export const createLandDevelopmentContact = async (req: Request, res: Response, 
       return;
     }
     const pool = await getConnection();
-    await pool.request()
+    const insertResult = await pool.request()
       .input('FullName', sql.NVarChar(255), Name.trim())
       .input('Email', sql.NVarChar(255), Email ?? null)
       .input('Phone', sql.NVarChar(50), PhoneNumber ?? null)
       .query(`
         INSERT INTO core.Person (FullName, Email, Phone)
+        OUTPUT INSERTED.PersonId
         VALUES (@FullName, @Email, @Phone)
       `);
-    const idResult = await pool.request().query('SELECT SCOPE_IDENTITY() AS ContactId');
-    const contactId = parseInt(String(idResult.recordset[0].ContactId), 10);
+    const contactId = parseInt(String(insertResult.recordset[0].PersonId), 10);
+    if (!Number.isFinite(contactId)) {
+      res.status(500).json({ success: false, error: { message: 'Failed to create contact' } });
+      return;
+    }
     await pool.request()
       .input('ContactId', sql.Int, contactId)
       .input('OfficeAddress', sql.NVarChar(500), OfficeAddress ?? null)
