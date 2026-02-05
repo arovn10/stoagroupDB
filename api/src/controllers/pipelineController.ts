@@ -1929,6 +1929,12 @@ export const createDealPipeline = async (req: Request, res: Response, next: Next
         SET ${updateFields.join(', ')}
         WHERE ProjectId = @ProjectId
       `);
+      // Liquidated = loan treated as paid off: auto-mark all participations as PaidOff and set ExposureAmount = 0
+      if (Stage != null && String(Stage).trim().toLowerCase() === 'liquidated') {
+        await pool.request()
+          .input('ProjectId', sql.Int, actualProjectId)
+          .query('UPDATE banking.Participation SET PaidOff = 1, ExposureAmount = 0 WHERE ProjectId = @ProjectId');
+      }
     }
 
     // Calculate SqFtPrice: LandPrice / (Acreage * 43560)
@@ -2191,6 +2197,12 @@ export const updateDealPipeline = async (req: Request, res: Response, next: Next
         SET ${updateFields.join(', ')}
         WHERE ProjectId = @ProjectId
       `);
+      // Liquidated = loan treated as paid off: auto-mark all participations as PaidOff and set ExposureAmount = 0
+      if (Stage != null && String(Stage).trim().toLowerCase() === 'liquidated') {
+        await pool.request()
+          .input('ProjectId', sql.Int, projectId)
+          .query('UPDATE banking.Participation SET PaidOff = 1, ExposureAmount = 0 WHERE ProjectId = @ProjectId');
+      }
     }
 
     // Use UnitCount to update Units in CORE if UnitCount is provided but Units is not

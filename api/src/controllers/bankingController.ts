@@ -135,8 +135,9 @@ export const getLoanParticipationSummary = async (req: Request, res: Response, n
       .query(`
         SELECT 
           ISNULL(SUM(CAST(p.ExposureAmount AS FLOAT)), 0) AS ParticipationTotal,
-          ISNULL(SUM(CASE WHEN p.PaidOff = 0 THEN CAST(p.ExposureAmount AS FLOAT) ELSE 0 END), 0) AS ParticipationActiveTotal
+          ISNULL(SUM(CASE WHEN COALESCE(pr.Stage, N'') = N'Liquidated' OR p.PaidOff = 1 THEN 0 ELSE CAST(p.ExposureAmount AS FLOAT) END), 0) AS ParticipationActiveTotal
         FROM banking.Participation p
+        LEFT JOIN core.Project pr ON p.ProjectId = pr.ProjectId
         WHERE p.LoanId = @id
       `);
     const participationTotal = sumResult.recordset[0]?.ParticipationTotal ?? 0;
@@ -1047,9 +1048,10 @@ export const getAllParticipations = async (req: Request, res: Response, next: Ne
       SELECT 
         p.*, 
         pr.ProjectName, 
+        pr.Stage AS ProjectStage,
         b.BankName,
         COALESCE(b.HQState, b.State) AS BankState,
-        CASE WHEN p.PaidOff = 1 THEN 0 ELSE p.ExposureAmount END AS ActiveExposure
+        CASE WHEN COALESCE(pr.Stage, N'') = N'Liquidated' OR p.PaidOff = 1 THEN 0 ELSE p.ExposureAmount END AS ActiveExposure
       FROM banking.Participation p
       LEFT JOIN core.Project pr ON p.ProjectId = pr.ProjectId
       LEFT JOIN core.Bank b ON p.BankId = b.BankId
@@ -1065,17 +1067,18 @@ export const getAllParticipations = async (req: Request, res: Response, next: Ne
       projectMap[row.ProjectId].push(row);
     });
     
-    // Calculate total active exposure per project and update percentages
+    // Calculate total active exposure per project and update percentages (Liquidated deals = 0 exposure)
     const enrichedData: any[] = [];
     for (const projectId in projectMap) {
       const participations = projectMap[projectId];
       const totalActiveExposure = participations.reduce((sum, p) => sum + (parseFloat(p.ActiveExposure) || 0), 0);
+      const isLiquidated = participations.some((p: any) => (p.ProjectStage || '').toString().trim() === 'Liquidated');
       
       participations.forEach((p: any) => {
         const activeExposure = parseFloat(p.ActiveExposure) || 0;
         let calculatedPercent: string;
         
-        if (p.PaidOff === true || p.PaidOff === 1) {
+        if (p.PaidOff === true || p.PaidOff === 1 || isLiquidated) {
           calculatedPercent = '0.0%';
         } else if (totalActiveExposure > 0) {
           const percentValue = (activeExposure / totalActiveExposure) * 100;
@@ -1084,11 +1087,12 @@ export const getAllParticipations = async (req: Request, res: Response, next: Ne
           calculatedPercent = '0.0%';
         }
         
-        enrichedData.push({
-          ...p,
-          ParticipationPercent: calculatedPercent,
-          CalculatedParticipationPercent: calculatedPercent
-        });
+        const out: any = { ...p, ParticipationPercent: calculatedPercent, CalculatedParticipationPercent: calculatedPercent };
+        if (isLiquidated) {
+          out.ExposureAmount = 0;
+          out.ActiveExposure = 0;
+        }
+        enrichedData.push(out);
       });
     }
     
@@ -1104,14 +1108,26 @@ export const getParticipationById = async (req: Request, res: Response, next: Ne
     const pool = await getConnection();
     const result = await pool.request()
       .input('id', sql.Int, id)
-      .query('SELECT * FROM banking.Participation WHERE ParticipationId = @id');
+      .query(`
+        SELECT p.*, pr.Stage AS ProjectStage
+        FROM banking.Participation p
+        LEFT JOIN core.Project pr ON p.ProjectId = pr.ProjectId
+        WHERE p.ParticipationId = @id
+      `);
     
     if (result.recordset.length === 0) {
       res.status(404).json({ success: false, error: { message: 'Participation not found' } });
       return;
     }
     
-    res.json({ success: true, data: result.recordset[0] });
+    const row = result.recordset[0];
+    const isLiquidated = (row.ProjectStage || '').toString().trim() === 'Liquidated';
+    const data = { ...row };
+    if (isLiquidated) {
+      data.ExposureAmount = 0;
+    }
+    delete data.ProjectStage;
+    res.json({ success: true, data });
   } catch (error) {
     next(error);
   }
@@ -1126,24 +1142,29 @@ export const getParticipationsByProject = async (req: Request, res: Response, ne
       .query(`
         SELECT 
           p.*,
+          pr.Stage AS ProjectStage,
           b.BankName,
           COALESCE(b.HQState, b.State) AS BankState,
-          CASE WHEN p.PaidOff = 1 THEN 0 ELSE p.ExposureAmount END AS ActiveExposure
+          CASE WHEN COALESCE(pr.Stage, N'') = N'Liquidated' OR p.PaidOff = 1 THEN 0 ELSE p.ExposureAmount END AS ActiveExposure
         FROM banking.Participation p
+        LEFT JOIN core.Project pr ON p.ProjectId = pr.ProjectId
         LEFT JOIN core.Bank b ON p.BankId = b.BankId
         WHERE p.ProjectId = @projectId 
         ORDER BY p.ParticipationId
       `);
     
-    // Calculate total active exposure for this project
-    const totalActiveExposure = result.recordset.reduce((sum, p) => sum + (parseFloat(p.ActiveExposure) || 0), 0);
+    const projectStage = (result.recordset[0]?.ProjectStage || '').toString().trim();
+    const isLiquidated = projectStage === 'Liquidated';
     
-    // Calculate percentages based on active exposure
+    // Calculate total active exposure for this project (0 when Liquidated)
+    const totalActiveExposure = isLiquidated ? 0 : result.recordset.reduce((sum, p) => sum + (parseFloat(p.ActiveExposure) || 0), 0);
+    
+    // Calculate percentages based on active exposure; Liquidated => exposure 0
     const enrichedData = result.recordset.map((p: any) => {
-      const activeExposure = parseFloat(p.ActiveExposure) || 0;
+      const activeExposure = isLiquidated ? 0 : (parseFloat(p.ActiveExposure) || 0);
       let calculatedPercent: string;
       
-      if (p.PaidOff === true || p.PaidOff === 1) {
+      if (p.PaidOff === true || p.PaidOff === 1 || isLiquidated) {
         calculatedPercent = '0.0%';
       } else if (totalActiveExposure > 0) {
         const percentValue = (activeExposure / totalActiveExposure) * 100;
@@ -1152,11 +1173,12 @@ export const getParticipationsByProject = async (req: Request, res: Response, ne
         calculatedPercent = '0.0%';
       }
       
-      return {
-        ...p,
-        ParticipationPercent: calculatedPercent,
-        CalculatedParticipationPercent: calculatedPercent
-      };
+      const out: any = { ...p, ParticipationPercent: calculatedPercent, CalculatedParticipationPercent: calculatedPercent };
+      if (isLiquidated) {
+        out.ExposureAmount = 0;
+        out.ActiveExposure = 0;
+      }
+      return out;
     });
     
     res.json({ success: true, data: enrichedData });

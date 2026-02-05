@@ -147,6 +147,13 @@ export const updateProject = async (req: Request, res: Response, next: NextFunct
       return;
     }
 
+    // Liquidated = loan treated as paid off: auto-mark all participations as PaidOff and set ExposureAmount = 0
+    if (projectData.Stage != null && String(projectData.Stage).trim().toLowerCase() === 'liquidated') {
+      await pool.request()
+        .input('id', sql.Int, id)
+        .query('UPDATE banking.Participation SET PaidOff = 1, ExposureAmount = 0 WHERE ProjectId = @id');
+    }
+
     // Get the updated record - explicitly list columns to avoid Location column issues
     const updated = await pool.request()
       .input('id', sql.Int, id)
