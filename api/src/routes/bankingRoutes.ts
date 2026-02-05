@@ -136,5 +136,9 @@ router.post('/projects/:projectId/files', authenticate, bankingFileUpload.single
 router.get('/files/:attachmentId/download', authenticate, bankingController.downloadBankingFile);
 router.delete('/files/:attachmentId', authenticate, bankingController.deleteBankingFile);
 
+// Presence (who's viewing the dashboard – heartbeat + list)
+router.post('/presence', authenticate, bankingController.reportPresence);
+router.get('/presence', authenticate, bankingController.getPresence);
+
 export default router;
 

@@ -23,6 +23,64 @@ function toVarChar(val: unknown): string | null {
   return String(val);
 }
 
+// ============================================================
+// PRESENCE (who's viewing the banking dashboard – in-memory, TTL 2 min)
+// ============================================================
+const PRESENCE_TTL_MS = 2 * 60 * 1000; // 2 minutes
+const presenceStore = new Map<string, { userId: number; userName: string; email: string; lastSeen: Date }>();
+
+function prunePresence(): void {
+  const now = Date.now();
+  for (const [key, entry] of presenceStore.entries()) {
+    if (now - entry.lastSeen.getTime() > PRESENCE_TTL_MS) presenceStore.delete(key);
+  }
+}
+
+export const reportPresence = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const user = req.user;
+    if (!user) {
+      res.status(401).json({ success: false, error: { message: 'Not authenticated' } });
+      return;
+    }
+    const body = req.body || {};
+    const key = String(user.userId);
+    const userName = body.userName != null ? String(body.userName) : (user.username || '');
+    const email = body.email != null ? String(body.email) : (user.email || '');
+    presenceStore.set(key, {
+      userId: user.userId,
+      userName: userName || String(user.userId),
+      email,
+      lastSeen: new Date()
+    });
+    res.status(200).json({ success: true });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getPresence = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    prunePresence();
+    const now = Date.now();
+    const users = Array.from(presenceStore.values())
+      .filter((e) => now - e.lastSeen.getTime() <= PRESENCE_TTL_MS)
+      .map((e) => ({
+        userId: e.userId,
+        userName: e.userName,
+        email: e.email,
+        lastSeen: e.lastSeen.toISOString()
+      }));
+    res.json({ success: true, data: { users } });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ============================================================
+// LOAN CONTROLLER
+// ============================================================
+
 export const getAllLoans = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const pool = await getConnection();

@@ -2406,6 +2406,24 @@
   return apiRequest(`/api/banking/files/${attachmentId}`, 'DELETE');
 }
 
+/**
+ * Report presence (heartbeat) – "I'm viewing the banking dashboard." REQUIRES AUTHENTICATION.
+ * Call periodically (e.g. every 45s) while the dashboard is open. Used for "Also viewing: Michael, Jane."
+ * @param {object} [payload] - Optional: { userId, userName, email, timestamp }. Server uses JWT user if omitted.
+ * @returns {Promise<object>} { success: true }
+ */
+  async function reportPresence(payload) {
+  return apiRequest('/api/banking/presence', 'POST', payload || {});
+}
+
+/**
+ * Get list of users who have reported presence recently (within ~2 min). REQUIRES AUTHENTICATION.
+ * @returns {Promise<object>} { success: true, data: { users: [{ userId, userName, email, lastSeen }, ...] } }
+ */
+  async function getPresence() {
+  return apiRequest('/api/banking/presence');
+}
+
 // ============================================================
 // IMS INVESTOR HELPER FUNCTIONS (Legacy - kept for compatibility)
 // ============================================================
@@ -2737,6 +2755,8 @@
   API.getBankingFileDownloadUrl = getBankingFileDownloadUrl;
   API.downloadBankingFile = downloadBankingFile;
   API.deleteBankingFile = deleteBankingFile;
+  API.reportPresence = reportPresence;
+  API.getPresence = getPresence;
 
   // IMS Investor Resolution
   API.getInvestorNameFromIMSId = getInvestorNameFromIMSId;
