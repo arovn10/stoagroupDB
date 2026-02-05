@@ -1636,6 +1636,13 @@ export const deleteGuarantee = async (req: Request, res: Response, next: NextFun
 // HELPER FUNCTION: Sync Maturity Covenants
 // ============================================================
 
+function sameDate(a: Date | string | null, b: Date | string | null): boolean {
+  if (!a || !b) return false;
+  const d1 = typeof a === 'string' ? new Date(a) : a;
+  const d2 = typeof b === 'string' ? new Date(b) : b;
+  return d1.getTime() === d2.getTime();
+}
+
 /**
  * Auto-creates or updates maturity covenants based on loan's maturity dates
  * IsCompleted remains manual - users must check it off themselves
@@ -1717,18 +1724,31 @@ async function syncAllMaturityCovenants(
   miniPermMaturity: Date | string | null,
   permPhaseMaturity: Date | string | null
 ): Promise<void> {
-  // I/O Maturity - for Construction loans
-  if (ioMaturityDate && loanPhase === 'Construction') {
-    await syncMaturityCovenant(pool, projectId, loanId, ioMaturityDate, 'I/O Maturity', 'Construction I/O Maturity');
+  // LLC projects do not get covenants – skip sync
+  const projectRow = await pool.request()
+    .input('projectId', sql.Int, projectId)
+    .query('SELECT ProjectName FROM core.Project WHERE ProjectId = @projectId');
+  const projectName = projectRow.recordset[0]?.ProjectName;
+  if (projectName != null && String(projectName).toUpperCase().includes('LLC')) return;
+
+  // I/O Maturity - create when loan has an I/O date (Construction or Permanent)
+  if (ioMaturityDate) {
+    const ioLabel = loanPhase === 'Construction' ? 'Construction I/O Maturity' : 'I/O Maturity';
+    await syncMaturityCovenant(pool, projectId, loanId, ioMaturityDate, 'I/O Maturity', ioLabel);
   }
 
-  // General Maturity Date
+  // General Maturity Date (skip for Permanent when Perm Phase exists – same thing, avoid duplicate)
   if (maturityDate) {
-    const maturityType = loanPhase === 'Construction' ? 'Loan Maturity' : 
-                         loanPhase === 'Permanent' ? 'Permanent Loan Maturity' :
-                         loanPhase === 'MiniPerm' ? 'Mini-Perm Maturity' :
-                         'Loan Maturity';
-    await syncMaturityCovenant(pool, projectId, loanId, maturityDate, maturityType, `${loanPhase} Loan Maturity`);
+    const isSameAsPermPhase = permPhaseMaturity && sameDate(maturityDate, permPhaseMaturity);
+    if (loanPhase === 'Permanent' && isSameAsPermPhase) {
+      // Only sync Perm Phase Maturity below; do not create redundant Permanent Loan Maturity
+    } else {
+      const maturityType = loanPhase === 'Construction' ? 'Loan Maturity' :
+                           loanPhase === 'Permanent' ? 'Permanent Loan Maturity' :
+                           loanPhase === 'MiniPerm' ? 'Mini-Perm Maturity' :
+                           'Loan Maturity';
+      await syncMaturityCovenant(pool, projectId, loanId, maturityDate, maturityType, `${loanPhase} Loan Maturity`);
+    }
   }
 
   // Mini-Perm Maturity
@@ -1736,7 +1756,7 @@ async function syncAllMaturityCovenants(
     await syncMaturityCovenant(pool, projectId, loanId, miniPermMaturity, 'Mini-Perm Maturity', 'Mini-Perm Loan Maturity');
   }
 
-  // Perm Phase Maturity
+  // Perm Phase Maturity (canonical for permanent-phase date; same as Permanent Loan Maturity when date matches)
   if (permPhaseMaturity) {
     await syncMaturityCovenant(pool, projectId, loanId, permPhaseMaturity, 'Perm Phase Maturity', 'Permanent Phase Maturity');
   }
@@ -1773,7 +1793,13 @@ function reminderDaysBeforeToDb(val: number[] | undefined): string | null {
 export const getAllCovenants = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const pool = await getConnection();
-    const result = await pool.request().query('SELECT * FROM banking.Covenant ORDER BY ProjectId, CovenantDate');
+    // Exclude covenants for LLC projects (LLCs do not get covenants)
+    const result = await pool.request().query(`
+      SELECT c.* FROM banking.Covenant c
+      INNER JOIN core.Project p ON c.ProjectId = p.ProjectId
+      WHERE (p.ProjectName IS NULL OR p.ProjectName NOT LIKE N'%LLC%')
+      ORDER BY c.ProjectId, c.CovenantDate
+    `);
     res.json({ success: true, data: (result.recordset as any[]).map(mapCovenantForResponse) });
   } catch (error) {
     next(error);
@@ -1786,7 +1812,11 @@ export const getCovenantById = async (req: Request, res: Response, next: NextFun
     const pool = await getConnection();
     const result = await pool.request()
       .input('id', sql.Int, id)
-      .query('SELECT * FROM banking.Covenant WHERE CovenantId = @id');
+      .query(`
+        SELECT c.* FROM banking.Covenant c
+        INNER JOIN core.Project p ON c.ProjectId = p.ProjectId
+        WHERE c.CovenantId = @id AND (p.ProjectName IS NULL OR p.ProjectName NOT LIKE N'%LLC%')
+      `);
     
     if (result.recordset.length === 0) {
       res.status(404).json({ success: false, error: { message: 'Covenant not found' } });
@@ -1803,6 +1833,18 @@ export const getCovenantsByProject = async (req: Request, res: Response, next: N
   try {
     const { projectId } = req.params;
     const pool = await getConnection();
+    const projectCheck = await pool.request()
+      .input('projectId', sql.Int, projectId)
+      .query('SELECT ProjectName FROM core.Project WHERE ProjectId = @projectId');
+    if (projectCheck.recordset.length === 0) {
+      res.status(404).json({ success: false, error: { message: 'Project not found' } });
+      return;
+    }
+    const projectName = (projectCheck.recordset[0] as any).ProjectName;
+    if (projectName != null && String(projectName).toUpperCase().includes('LLC')) {
+      res.json({ success: true, data: [] });
+      return;
+    }
     const result = await pool.request()
       .input('projectId', sql.Int, projectId)
       .query('SELECT * FROM banking.Covenant WHERE ProjectId = @projectId ORDER BY CovenantId');
@@ -1833,6 +1875,20 @@ export const createCovenant = async (req: Request, res: Response, next: NextFunc
       return;
     }
 
+    const pool = await getConnection();
+    const projectCheck = await pool.request()
+      .input('ProjectId', sql.Int, ProjectId)
+      .query('SELECT ProjectName FROM core.Project WHERE ProjectId = @ProjectId');
+    if (projectCheck.recordset.length === 0) {
+      res.status(400).json({ success: false, error: { message: 'Invalid ProjectId' } });
+      return;
+    }
+    const projName = (projectCheck.recordset[0] as any).ProjectName;
+    if (projName != null && String(projName).toUpperCase().includes('LLC')) {
+      res.status(400).json({ success: false, error: { message: 'Covenants cannot be created for LLC projects' } });
+      return;
+    }
+
     // Validate CovenantType
     const validTypes = ['DSCR', 'Occupancy', 'Liquidity Requirement', 'I/O Maturity', 'Loan Maturity', 'Permanent Loan Maturity', 'Mini-Perm Maturity', 'Perm Phase Maturity', 'Other'];
     if (!validTypes.includes(CovenantType)) {
@@ -1852,7 +1908,6 @@ export const createCovenant = async (req: Request, res: Response, next: NextFunc
     // Default to Construction if not provided
     const finalFinancingType = FinancingType || 'Construction';
 
-    const pool = await getConnection();
     const request = pool.request()
       .input('ProjectId', sql.Int, ProjectId)
       .input('LoanId', sql.Int, LoanId)
