@@ -1,0 +1,233 @@
+# Banking Dashboard – Email Service & Covenant Reminders
+
+This guide describes how to connect the **Banking Dashboard** to an email service (like the Deal Pipeline) with **templates** and **covenant date reminders**: set reminder emails and “days until” when adding/editing a covenant, and offer “Send reminder now” in the Key Dates / Covenants table.
+
+---
+
+## 1. Overview
+
+- **Email service**: Same pattern as Deal Pipeline – templates for banking context, send via API.
+- **Covenant reminders**:
+  - On **Add/Edit Covenant**: allow setting one or more **reminder email addresses** and **days before** the covenant date to send a reminder (e.g. 7, 14, 30 days).
+  - In **Key Dates / Covenants** (and anywhere covenants are listed): add a **“Send reminder now”** action that sends the reminder email immediately using the same template.
+
+---
+
+## 2. Backend API Contract (for backend team)
+
+### 2.1 Email templates (banking)
+
+- **GET** `/api/banking/email-templates`  
+  Returns list of templates available for the banking dashboard, e.g.:
+  - `CovenantReminder` – used for covenant date reminders (scheduled and “send now”).
+- Response shape (example):  
+  `{ success: true, data: [{ TemplateId, Name, Description, SubjectTemplate, BodyTemplateHtml }] }`  
+  Placeholders in subject/body: e.g. `{{ProjectName}}`, `{{CovenantType}}`, `{{CovenantDate}}`, `{{DaysUntil}}`, `{{PropertyName}}`.
+
+### 2.2 Send covenant reminder (immediate)
+
+- **POST** `/api/banking/covenants/{covenantId}/send-reminder`  
+  Body: `{ ToEmails: string[], TemplateId?: string }`  
+  - Sends the covenant reminder email **now** to the given addresses using the CovenantReminder template (or specified template).  
+  - Response: `{ success: true, message: "..." }` or error.
+
+### 2.3 Covenant reminder settings (stored on covenant)
+
+Covenants should support optional reminder configuration:
+
+- **ReminderEmails** – array of email addresses (e.g. `string[]` or comma-separated string stored in DB).
+- **ReminderDaysBefore** – array of integers (e.g. `[7, 30]`) meaning “send reminder 7 days before and 30 days before” the relevant covenant date.
+
+Expose these on:
+
+- **GET** `/api/banking/covenants`, `/api/banking/covenants/{id}`, `/api/banking/covenants/project/{projectId}`  
+  Include in each covenant: `ReminderEmails`, `ReminderDaysBefore` (or equivalent).
+- **POST** `/api/banking/covenants` and **PUT** `/api/banking/covenants/{id}`  
+  Accept optional `ReminderEmails` and `ReminderDaysBefore` in the body; persist and return them.
+
+Backend can then run a scheduled job (e.g. daily) that finds covenants whose “reminder date” (covenant date minus N days) is today and sends the reminder to `ReminderEmails` using the same template.
+
+---
+
+## 3. Covenant reminder email template (example)
+
+Use this (or similar) as the **CovenantReminder** template. Placeholders should be replaced by the backend when sending.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Covenant Reminder – {{ProjectName}}</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1f2937; margin: 0; padding: 24px; background: #f5f5f5; }
+    .container { max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden; }
+    .header { background: #7e8a6b; color: #ffffff; padding: 20px 24px; }
+    .header h1 { margin: 0; font-size: 20px; font-weight: 600; }
+    .header p { margin: 8px 0 0; opacity: 0.95; font-size: 14px; }
+    .content { padding: 24px; }
+    .content h2 { margin: 0 0 16px; font-size: 16px; color: #1f2937; }
+    .content p { margin: 0 0 12px; font-size: 14px; color: #4b5563; }
+    .highlight { background: #f0f4eb; border-left: 4px solid #7e8a6b; padding: 12px 16px; margin: 16px 0; border-radius: 0 6px 6px 0; font-size: 14px; }
+    .meta { margin-top: 20px; padding-top: 16px; border-top: 1px solid #e5e7eb; font-size: 13px; color: #6b7280; }
+    .footer { padding: 16px 24px; background: #f9fafb; font-size: 12px; color: #6b7280; text-align: center; }
+    .footer a { color: #7e8a6b; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Banking Dashboard – Covenant Reminder</h1>
+      <p>{{ProjectName}}</p>
+    </div>
+    <div class="content">
+      <h2>Upcoming covenant date</h2>
+      <p>This is a reminder for the following covenant.</p>
+      <div class="highlight">
+        <strong>Type:</strong> {{CovenantType}}<br />
+        <strong>Date:</strong> {{CovenantDate}}<br />
+        {{#if DaysUntil}}<strong>Days until due:</strong> {{DaysUntil}}<br />{{/if}}
+        {{#if Requirement}}<strong>Requirement:</strong> {{Requirement}}{{/if}}
+      </div>
+      <p>Please ensure required reporting or compliance is prepared by the date above.</p>
+      <div class="meta">
+        Property: {{ProjectName}} · Covenant ID: {{CovenantId}}
+      </div>
+    </div>
+    <div class="footer">
+      Stoa Group – Banking Dashboard. This reminder was sent by the system based on your reminder settings.
+    </div>
+  </div>
+</body>
+</html>
+```
+
+**Subject line example:**  
+`Covenant reminder: {{CovenantType}} – {{ProjectName}} – {{CovenantDate}}`
+
+Backend can use Handlebars, Mustache, or simple `{{key}}` replacement; adjust syntax in the template to match.
+
+---
+
+## 4. Frontend implementation guide
+
+### 4.1 API client (api-client.js)
+
+Add (or ensure) these functions:
+
+- **getBankingEmailTemplates()**  
+  `GET /api/banking/email-templates`  
+  Returns `{ success: true, data: templates[] }`.
+
+- **sendCovenantReminderNow(covenantId, { ToEmails, TemplateId? })**  
+  `POST /api/banking/covenants/{covenantId}/send-reminder`  
+  Sends the reminder email immediately to the given addresses.
+
+- **createCovenant(data)** / **updateCovenant(id, data)**  
+  Include optional `ReminderEmails` (array of strings) and `ReminderDaysBefore` (array of numbers) in `data` when the user has set them.
+
+See **Section 5** for exact function signatures and usage.
+
+### 4.2 Add/Edit Covenant modal
+
+**Location:** Same modal used today for Add Covenant and Edit Covenant (e.g. `#addCovenantModal`, `#covenantForm`).
+
+Add a **“Reminder settings”** section (below Notes, above the Save/Cancel buttons):
+
+1. **Reminder emails**
+   - Input: multi-email (e.g. text area or tag-style input).  
+   - Placeholder: “e.g. name@company.com, other@company.com”
+   - Store as array of strings; send as `ReminderEmails` on create/update.
+
+2. **Days before covenant date to send reminder**
+   - Multi-value input: e.g. checkboxes “7 days”, “14 days”, “30 days” and/or a comma-separated list or chips (e.g. “7, 14, 30”).
+   - Store as array of numbers; send as `ReminderDaysBefore` on create/update.
+
+3. **Behavior**
+   - **Add:** Default ReminderEmails and ReminderDaysBefore to empty; user can set one or both.
+   - **Edit:** Pre-fill from covenant `ReminderEmails` and `ReminderDaysBefore`; user can change and save.
+   - On submit, include `ReminderEmails` and `ReminderDaysBefore` in the payload only when the user has entered at least one value (or always send arrays, empty if none).
+
+Validation (optional): if “Reminder days” is non-empty but “Reminder emails” is empty, show a short message: “Reminder emails are required if you set reminder days.”
+
+### 4.3 Key Dates view / Covenants table
+
+**Location:** Wherever covenants (or “key dates” derived from covenants) are listed – e.g. **Upcoming Dates** tab and/or the **Covenants** section in the property detail.
+
+For each row that represents a covenant (or a covenant date):
+
+1. Add an action: **“Send reminder now”** (or icon + tooltip).
+2. **Click behavior:**
+   - If the covenant has **ReminderEmails** stored, optionally pre-fill a small modal or confirm dialog with those addresses (editable).
+   - If no ReminderEmails, show a simple form: “Send reminder to:” with an email input (or multi-email). Optionally “Remember these emails for future reminders” (update covenant with ReminderEmails).
+   - On confirm, call `sendCovenantReminderNow(covenantId, { ToEmails: [...] })`.
+   - Show success toast: “Reminder sent to …” or error message.
+
+No need to choose “days” for “Send reminder now” – it’s an immediate send; the template can use “Due soon” or the actual covenant date in the body.
+
+### 4.4 Optional: Templates UI
+
+If you want to mirror the Deal Pipeline “templates” experience:
+
+- Add a small **“Email templates”** area (e.g. in a settings or admin section, or a modal reachable from the covenant reminder UI).
+- **GET** templates with `getBankingEmailTemplates()` and list them (name, description).
+- For “Send reminder now”, optionally let the user pick a template (default: CovenantReminder) and pass `TemplateId` to `sendCovenantReminderNow`.
+
+If the backend only supports one covenant template for now, you can skip template selection and always use the default.
+
+### 4.5 Data flow summary
+
+| Action | API | Payload / behavior |
+|--------|-----|--------------------|
+| Load templates | GET /api/banking/email-templates | List for UI / “Send reminder now” |
+| Add covenant | POST /api/banking/covenants | Include ReminderEmails, ReminderDaysBefore |
+| Update covenant | PUT /api/banking/covenants/:id | Include ReminderEmails, ReminderDaysBefore |
+| Send reminder now | POST /api/banking/covenants/:id/send-reminder | { ToEmails: string[], TemplateId? } |
+
+Scheduled reminders are handled entirely by the backend (job that uses covenant date, ReminderDaysBefore, and ReminderEmails).
+
+---
+
+## 5. API client function signatures (reference)
+
+```javascript
+// GET /api/banking/email-templates
+async function getBankingEmailTemplates() {
+  return apiRequest('/api/banking/email-templates');
+}
+
+// POST /api/banking/covenants/:id/send-reminder
+async function sendCovenantReminderNow(covenantId, payload) {
+  return apiRequest(`/api/banking/covenants/${covenantId}/send-reminder`, 'POST', payload);
+}
+// payload: { ToEmails: string[], TemplateId?: string }
+```
+
+Create/update covenant payloads can include:
+
+- `ReminderEmails: string[]`
+- `ReminderDaysBefore: number[]`
+
+---
+
+## 6. Backend implementation notes
+
+- **Templates:** Store CovenantReminder (and any others) with subject/body and placeholder docs; replace `{{...}}` (or Handlebars) when sending.
+- **Scheduled job:** For each covenant with ReminderEmails and ReminderDaysBefore, compute “reminder date” = covenant date − N days; if reminder date is today, send one email per N (or one email per covenant with “N days until” in the body).
+- **Send reminder now:** Reuse the same template; “Days until” can be omitted or set from current date to covenant date.
+- **Security:** Restrict send-reminder and template listing to authenticated (and optionally admin) users.
+
+---
+
+## 7. Backend implementation notes (this repo)
+
+- **Schema:** `banking.Covenant` has `ReminderEmails` (NVARCHAR(MAX), comma-separated) and `ReminderDaysBefore` (NVARCHAR(100), e.g. `"7,14,30"`). Migration: `schema/add_covenant_reminder_columns.sql`.
+- **API:** GET covenants (all, by id, by project) return `ReminderEmails` and `ReminderDaysBefore` as arrays. POST/PUT accept arrays; stored as comma-separated strings.
+- **GET** `/api/banking/email-templates`: returns list with CovenantReminder template (hardcoded).
+- **POST** `/api/banking/covenants/:id/send-reminder`: body `{ ToEmails: string[], TemplateId? }`; loads covenant + project name; fills STOA-styled HTML template; sends via nodemailer (same SMTP as land-dev). Requires auth.
+- **Scheduled job** for “reminder date = covenant date − N days” is not implemented yet; can be added as a cron or serverless job that queries covenants with ReminderEmails/ReminderDaysBefore and sends when reminder date is today.
+
+---
+
+*Document for frontend and backend; implement API and UI per this guide.*

@@ -1000,9 +1000,10 @@
  *   LiquidityRequirementLendingBank?,
  *   // Other fields:
  *   CovenantDate?, Requirement?, ProjectedValue?,
- *   Notes?
+ *   Notes?,
+ *   ReminderEmails? (string[]), ReminderDaysBefore? (number[], e.g. [7, 14, 30])
  * }
- * @returns {Promise<object>} { success: true, data: {...} }
+ * @returns {Promise<object>} { success: true, data: {...} } — data includes ReminderEmails, ReminderDaysBefore arrays
  * @note FinancingType separates Construction vs Permanent financing data
  * 
  * @example
@@ -1061,7 +1062,8 @@
  *   LiquidityRequirementLendingBank?,
  *   // Other fields:
  *   CovenantDate?, Requirement?, ProjectedValue?,
- *   Notes?
+ *   Notes?,
+ *   ReminderEmails? (string[]), ReminderDaysBefore? (number[])
  * }
  * @returns {Promise<object>} { success: true, data: {...} }
  * 
@@ -1080,7 +1082,7 @@
 }
 
 /**
- * Update a covenant (REQUIRES AUTHENTICATION)
+ * Update a covenant (REQUIRES AUTHENTICATION). Can include ReminderEmails (string[]), ReminderDaysBefore (number[]).
  * @param {number} id - Covenant ID
  * @param {object} data - Updated covenant data
  * @returns {Promise<object>} { success: true, data: {...} }
@@ -1096,6 +1098,24 @@
  */
   async function deleteCovenant(id) {
   return apiRequest(`/api/banking/covenants/${id}`, 'DELETE');
+}
+
+/**
+ * Get banking email templates (e.g. CovenantReminder). GET /api/banking/email-templates
+ * @returns {Promise<object>} { success: true, data: [{ TemplateId, Name, Description, SubjectTemplate, BodyTemplateHtml }] }
+ */
+  async function getBankingEmailTemplates() {
+  return apiRequest('/api/banking/email-templates');
+}
+
+/**
+ * Send covenant reminder email now. POST /api/banking/covenants/:id/send-reminder (REQUIRES AUTHENTICATION)
+ * @param {number} covenantId - Covenant ID
+ * @param {object} payload - { ToEmails: string[], TemplateId?: string }
+ * @returns {Promise<object>} { success: true, message: 'Reminder sent' } or 400/404/503
+ */
+  async function sendCovenantReminderNow(covenantId, payload) {
+  return apiRequest(`/api/banking/covenants/${covenantId}/send-reminder`, 'POST', payload);
 }
 
 // LIQUIDITY REQUIREMENTS
@@ -1962,8 +1982,10 @@
 
 /**
  * Send follow-up reminder email. POST /api/land-development/contacts/send-reminder (REQUIRES AUTHENTICATION)
- * @param {object} payload - contactId (number, optional), email (string, optional), message (string, optional). At least one of contactId or email required.
- * @returns {Promise<{ success: boolean, message?: string, error?: { message: string } }>}
+ * Single: { contactId?, email?, message? } → { success: true, message: 'Reminder sent' }
+ * Batch:  { contactIds: number[], email?, message? } → { success: true, sent: number, failed: Array<{ contactId?, email?, error }> }
+ * @param {object} payload - contactId (number), or email (string), or contactIds (number[]); optional message (string). At least one recipient required.
+ * @returns {Promise<{ success: boolean, message?: string, sent?: number, failed?: array, error?: { message: string } }>}
  */
   async function sendLandDevelopmentContactReminder(payload) {
   return apiRequest('/api/land-development/contacts/send-reminder', 'POST', payload);
@@ -2483,6 +2505,8 @@
   API.createCovenantByProject = createCovenantByProject;
   API.updateCovenant = updateCovenant;
   API.deleteCovenant = deleteCovenant;
+  API.getBankingEmailTemplates = getBankingEmailTemplates;
+  API.sendCovenantReminderNow = sendCovenantReminderNow;
   
   // Banking - Liquidity Requirements
   API.getAllLiquidityRequirements = getAllLiquidityRequirements;

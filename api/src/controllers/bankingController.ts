@@ -1692,14 +1692,38 @@ async function syncAllMaturityCovenants(
 }
 
 // ============================================================
-// COVENANT CONTROLLER
+// COVENANT CONTROLLER (incl. reminder settings & email)
 // ============================================================
+
+/** Map covenant row from DB: ReminderEmails/ReminderDaysBefore comma strings -> arrays for API. */
+function mapCovenantForResponse(row: any): any {
+  const out = { ...row };
+  out.ReminderEmails = (row.ReminderEmails != null && typeof row.ReminderEmails === 'string')
+    ? row.ReminderEmails.split(',').map((s: string) => s.trim()).filter(Boolean)
+    : [];
+  out.ReminderDaysBefore = (row.ReminderDaysBefore != null && typeof row.ReminderDaysBefore === 'string')
+    ? row.ReminderDaysBefore.split(',').map((s: string) => parseInt(s.trim(), 10)).filter((n: number) => !isNaN(n))
+    : [];
+  return out;
+}
+
+function reminderEmailsToDb(val: string[] | undefined): string | null {
+  if (!val || !Array.isArray(val)) return null;
+  const trimmed = val.map(s => String(s).trim()).filter(Boolean);
+  return trimmed.length ? trimmed.join(',') : null;
+}
+
+function reminderDaysBeforeToDb(val: number[] | undefined): string | null {
+  if (!val || !Array.isArray(val)) return null;
+  const nums = val.map(n => parseInt(String(n), 10)).filter(n => !isNaN(n) && n > 0);
+  return nums.length ? nums.join(',') : null;
+}
 
 export const getAllCovenants = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const pool = await getConnection();
     const result = await pool.request().query('SELECT * FROM banking.Covenant ORDER BY ProjectId, CovenantDate');
-    res.json({ success: true, data: result.recordset });
+    res.json({ success: true, data: (result.recordset as any[]).map(mapCovenantForResponse) });
   } catch (error) {
     next(error);
   }
@@ -1718,7 +1742,7 @@ export const getCovenantById = async (req: Request, res: Response, next: NextFun
       return;
     }
     
-    res.json({ success: true, data: result.recordset[0] });
+    res.json({ success: true, data: mapCovenantForResponse(result.recordset[0]) });
   } catch (error) {
     next(error);
   }
@@ -1731,7 +1755,7 @@ export const getCovenantsByProject = async (req: Request, res: Response, next: N
     const result = await pool.request()
       .input('projectId', sql.Int, projectId)
       .query('SELECT * FROM banking.Covenant WHERE ProjectId = @projectId ORDER BY CovenantId');
-    res.json({ success: true, data: result.recordset });
+    res.json({ success: true, data: (result.recordset as any[]).map(mapCovenantForResponse) });
   } catch (error) {
     next(error);
   }
@@ -1750,7 +1774,9 @@ export const createCovenant = async (req: Request, res: Response, next: NextFunc
       // Other fields (legacy)
       CovenantDate, Requirement, ProjectedValue,
       Notes,
-      IsCompleted
+      IsCompleted,
+      ReminderEmails,
+      ReminderDaysBefore
     } = req.body;
 
     if (!ProjectId || !CovenantType) {
@@ -1799,7 +1825,9 @@ export const createCovenant = async (req: Request, res: Response, next: NextFunc
       .input('Requirement', sql.NVarChar, Requirement)
       .input('ProjectedValue', sql.NVarChar, ProjectedValue)
       .input('Notes', sql.NVarChar(sql.MAX), Notes)
-      .input('IsCompleted', sql.Bit, IsCompleted !== undefined ? IsCompleted : false);
+      .input('IsCompleted', sql.Bit, IsCompleted !== undefined ? IsCompleted : false)
+      .input('ReminderEmails', sql.NVarChar(sql.MAX), reminderEmailsToDb(ReminderEmails))
+      .input('ReminderDaysBefore', sql.NVarChar(100), reminderDaysBeforeToDb(ReminderDaysBefore));
 
     // Insert without OUTPUT clause (triggers prevent OUTPUT INSERTED.*)
     await request.query(`
@@ -1809,7 +1837,7 @@ export const createCovenant = async (req: Request, res: Response, next: NextFunc
         OccupancyCovenantDate, OccupancyRequirement, ProjectedOccupancy,
         LiquidityRequirementLendingBank,
         CovenantDate, Requirement, ProjectedValue,
-        Notes, IsCompleted
+        Notes, IsCompleted, ReminderEmails, ReminderDaysBefore
       )
       VALUES (
         @ProjectId, @LoanId, @FinancingType, @CovenantType,
@@ -1817,7 +1845,7 @@ export const createCovenant = async (req: Request, res: Response, next: NextFunc
         @OccupancyCovenantDate, @OccupancyRequirement, @ProjectedOccupancy,
         @LiquidityRequirementLendingBank,
         @CovenantDate, @Requirement, @ProjectedValue,
-        @Notes, @IsCompleted
+        @Notes, @IsCompleted, @ReminderEmails, @ReminderDaysBefore
       )
     `);
 
@@ -1831,7 +1859,7 @@ export const createCovenant = async (req: Request, res: Response, next: NextFunc
         ORDER BY CovenantId DESC
       `);
 
-    res.status(201).json({ success: true, data: result.recordset[0] });
+    res.status(201).json({ success: true, data: mapCovenantForResponse(result.recordset[0]) });
   } catch (error: any) {
     if (error.number === 547) {
       res.status(400).json({ success: false, error: { message: 'Invalid ProjectId or LoanId' } });
@@ -1859,7 +1887,9 @@ export const createCovenantByProject = async (req: Request, res: Response, next:
       // Other fields (legacy)
       CovenantDate, Requirement, ProjectedValue,
       Notes,
-      IsCompleted
+      IsCompleted,
+      ReminderEmails,
+      ReminderDaysBefore
     } = req.body;
 
     if (!CovenantType) {
@@ -1918,6 +1948,8 @@ export const createCovenantByProject = async (req: Request, res: Response, next:
       .input('ProjectedValue', sql.NVarChar, ProjectedValue)
       .input('Notes', sql.NVarChar(sql.MAX), Notes)
       .input('IsCompleted', sql.Bit, IsCompleted !== undefined ? IsCompleted : false)
+      .input('ReminderEmails', sql.NVarChar(sql.MAX), reminderEmailsToDb(ReminderEmails))
+      .input('ReminderDaysBefore', sql.NVarChar(100), reminderDaysBeforeToDb(ReminderDaysBefore))
       .query(`
         INSERT INTO banking.Covenant (
           ProjectId, LoanId, CovenantType,
@@ -1925,7 +1957,7 @@ export const createCovenantByProject = async (req: Request, res: Response, next:
           OccupancyCovenantDate, OccupancyRequirement, ProjectedOccupancy,
           LiquidityRequirementLendingBank,
           CovenantDate, Requirement, ProjectedValue,
-          Notes, IsCompleted
+          Notes, IsCompleted, ReminderEmails, ReminderDaysBefore
         )
         OUTPUT INSERTED.*
         VALUES (
@@ -1934,11 +1966,11 @@ export const createCovenantByProject = async (req: Request, res: Response, next:
           @OccupancyCovenantDate, @OccupancyRequirement, @ProjectedOccupancy,
           @LiquidityRequirementLendingBank,
           @CovenantDate, @Requirement, @ProjectedValue,
-          @Notes, @IsCompleted
+          @Notes, @IsCompleted, @ReminderEmails, @ReminderDaysBefore
         )
       `);
 
-    res.status(201).json({ success: true, data: result.recordset[0] });
+    res.status(201).json({ success: true, data: mapCovenantForResponse(result.recordset[0]) });
   } catch (error: any) {
     if (error.number === 547) {
       res.status(400).json({ success: false, error: { message: 'Invalid ProjectId' } });
@@ -1981,6 +2013,10 @@ export const updateCovenant = async (req: Request, res: Response, next: NextFunc
           request.input(key, sql.Decimal(18, 2), covenantData[key]);
         } else if (key === 'IsCompleted') {
           request.input(key, sql.Bit, covenantData[key]);
+        } else if (key === 'ReminderEmails') {
+          request.input(key, sql.NVarChar(sql.MAX), reminderEmailsToDb(covenantData[key]));
+        } else if (key === 'ReminderDaysBefore') {
+          request.input(key, sql.NVarChar(100), reminderDaysBeforeToDb(covenantData[key]));
         } else if (key === 'Notes') {
           request.input(key, sql.NVarChar(sql.MAX), covenantData[key]);
         } else {
@@ -2006,12 +2042,131 @@ export const updateCovenant = async (req: Request, res: Response, next: NextFunc
       return;
     }
 
-    res.json({ success: true, data: result.recordset[0] });
+    res.json({ success: true, data: mapCovenantForResponse(result.recordset[0]) });
   } catch (error: any) {
     if (error.number === 547) {
       res.status(400).json({ success: false, error: { message: 'Invalid foreign key reference' } });
       return;
     }
+    next(error);
+  }
+};
+
+export const getBankingEmailTemplates = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const templates = [
+      {
+        TemplateId: 'CovenantReminder',
+        Name: 'Covenant Reminder',
+        Description: 'Used for covenant date reminders (scheduled and send now).',
+        SubjectTemplate: 'Covenant reminder: {{CovenantType}} – {{ProjectName}} – {{CovenantDate}}',
+        BodyTemplateHtml: null,
+      },
+    ];
+    res.json({ success: true, data: templates });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const COVENANT_REMINDER_HTML = `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Covenant Reminder</title></head>
+<body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.6;color:#1f2937;margin:0;padding:24px;background:#f5f5f5;">
+  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.08);overflow:hidden;">
+    <div style="background:#7e8a6b;color:#fff;padding:20px 24px;"><h1 style="margin:0;font-size:20px;font-weight:600;">Banking Dashboard – Covenant Reminder</h1><p style="margin:8px 0 0;opacity:0.95;font-size:14px;">{{ProjectName}}</p></div>
+    <div style="padding:24px;">
+      <h2 style="margin:0 0 16px;font-size:16px;color:#1f2937;">Upcoming covenant date</h2>
+      <p style="margin:0 0 12px;font-size:14px;color:#4b5563;">This is a reminder for the following covenant.</p>
+      <div style="background:#f0f4eb;border-left:4px solid #7e8a6b;padding:12px 16px;margin:16px 0;border-radius:0 6px 6px 0;font-size:14px;">
+        <strong>Type:</strong> {{CovenantType}}<br/><strong>Date:</strong> {{CovenantDate}}<br/>{{DaysUntilBlock}}<strong>Requirement:</strong> {{Requirement}}
+      </div>
+      <p style="margin:0 0 12px;font-size:14px;color:#4b5563;">Please ensure required reporting or compliance is prepared by the date above.</p>
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;">Property: {{ProjectName}} · Covenant ID: {{CovenantId}}</div>
+    </div>
+    <div style="padding:16px 24px;background:#f9fafb;font-size:12px;color:#6b7280;text-align:center;">Stoa Group – Banking Dashboard. This reminder was sent by the system based on your reminder settings.</div>
+  </div>
+</body>
+</html>`;
+
+function replaceTemplateVars(html: string, vars: Record<string, string>): string {
+  let out = html;
+  for (const [key, value] of Object.entries(vars)) {
+    out = out.split(`{{${key}}}`).join(value);
+  }
+  return out;
+}
+
+export const sendCovenantReminder = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const covenantId = parseInt(req.params.id, 10);
+    const { ToEmails } = req.body as { ToEmails?: string[]; TemplateId?: string };
+    if (isNaN(covenantId)) {
+      res.status(400).json({ success: false, error: { message: 'Invalid covenant id' } });
+      return;
+    }
+    if (!ToEmails || !Array.isArray(ToEmails) || ToEmails.length === 0) {
+      res.status(400).json({ success: false, error: { message: 'ToEmails (array of email addresses) is required' } });
+      return;
+    }
+    const pool = await getConnection();
+    const covenantResult = await pool.request()
+      .input('id', sql.Int, covenantId)
+      .query(`
+        SELECT c.CovenantId, c.CovenantType, c.CovenantDate, c.DSCRTestDate, c.OccupancyCovenantDate, c.Requirement,
+               p.ProjectName
+        FROM banking.Covenant c
+        LEFT JOIN core.Project p ON c.ProjectId = p.ProjectId
+        WHERE c.CovenantId = @id
+      `);
+    if (covenantResult.recordset.length === 0) {
+      res.status(404).json({ success: false, error: { message: 'Covenant not found' } });
+      return;
+    }
+    const row = covenantResult.recordset[0] as any;
+    const covenantDate = row.CovenantDate ?? row.DSCRTestDate ?? row.OccupancyCovenantDate;
+    const dateStr = covenantDate ? (typeof covenantDate === 'string' ? covenantDate.slice(0, 10) : (covenantDate as Date).toISOString?.()?.slice(0, 10) ?? '') : '';
+    let daysUntil = '';
+    if (dateStr) {
+      const due = new Date(dateStr);
+      const diff = Math.ceil((due.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+      daysUntil = diff > 0 ? `<strong>Days until due:</strong> ${diff}<br/>` : '';
+    }
+    const requirement = (row.Requirement != null && String(row.Requirement).trim()) ? String(row.Requirement).trim() : '—';
+    const projectName = (row.ProjectName != null && String(row.ProjectName).trim()) ? String(row.ProjectName).trim() : 'Unknown';
+    const covenantType = (row.CovenantType != null && String(row.CovenantType).trim()) ? String(row.CovenantType).trim() : 'Covenant';
+    const escape = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    const html = replaceTemplateVars(COVENANT_REMINDER_HTML, {
+      ProjectName: escape(projectName),
+      CovenantType: escape(covenantType),
+      CovenantDate: dateStr || '—',
+      DaysUntilBlock: daysUntil,
+      Requirement: escape(requirement),
+      CovenantId: String(covenantId),
+    });
+    const subject = `Covenant reminder: ${covenantType} – ${projectName} – ${dateStr || '—'}`;
+    const mailFrom = process.env.MAIL_FROM || process.env.SMTP_FROM;
+    const smtpHost = process.env.SMTP_HOST;
+    if (!smtpHost || !mailFrom) {
+      res.status(503).json({ success: false, error: { message: 'Email not configured. Set SMTP_HOST, MAIL_FROM.' } });
+      return;
+    }
+    const nodemailer = await import('nodemailer');
+    const port = parseInt(process.env.SMTP_PORT || '587', 10);
+    const transporter = nodemailer.default.createTransport({
+      host: smtpHost,
+      port,
+      secure: process.env.SMTP_SECURE === 'true',
+      requireTLS: port === 587,
+      auth: process.env.SMTP_USER ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS || process.env.SMTP_PASSWORD || '' } : undefined,
+    });
+    for (const to of ToEmails) {
+      const email = String(to).trim();
+      if (!email) continue;
+      await transporter.sendMail({ from: mailFrom, to: email, subject, html });
+    }
+    res.json({ success: true, message: 'Reminder sent' });
+  } catch (error: any) {
     next(error);
   }
 };

@@ -296,10 +296,99 @@ export const deleteLandDevelopmentContact = async (req: Request, res: Response, 
 
 export const sendLandDevelopmentReminder = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { contactId, email, message } = req.body;
+    const { contactId, contactIds, email, message } = req.body as {
+      contactId?: number;
+      contactIds?: number[];
+      email?: string;
+      message?: string;
+    };
+
+    const isBatch = Array.isArray(contactIds) && contactIds.length > 0;
+    const hasSingle = contactId != null || (typeof email === 'string' && email.trim());
+    if (!isBatch && !hasSingle) {
+      res.status(400).json({
+        success: false,
+        error: { message: 'Provide contactId, email, or contactIds (array) for at least one recipient.' },
+      });
+      return;
+    }
+
+    const mailFrom = process.env.MAIL_FROM || process.env.SMTP_FROM;
+    const smtpHost = process.env.SMTP_HOST;
+    if (!smtpHost || !mailFrom) {
+      res.status(503).json({
+        success: false,
+        error: { message: 'Email not configured. Set SMTP_HOST, MAIL_FROM (and optionally SMTP_USER, SMTP_PASS or SMTP_PASSWORD) to send reminders.' },
+      });
+      return;
+    }
+
+    const nodemailer = await import('nodemailer');
+    const port = parseInt(process.env.SMTP_PORT || '587', 10);
+    const transporter = nodemailer.default.createTransport({
+      host: smtpHost,
+      port,
+      secure: process.env.SMTP_SECURE === 'true',
+      requireTLS: port === 587,
+      auth: process.env.SMTP_USER ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS || process.env.SMTP_PASSWORD || '' } : undefined,
+    });
+    const customMessage = message && String(message).trim() ? String(message).trim() : null;
+
+    if (isBatch) {
+      const pool = await getConnection();
+      let sent = 0;
+      const failed: { contactId?: number; email?: string; error: string }[] = [];
+      for (const cid of contactIds!) {
+        const id = typeof cid === 'number' ? cid : parseInt(String(cid), 10);
+        if (isNaN(id)) {
+          failed.push({ contactId: cid as number, error: 'Invalid contact id' });
+          continue;
+        }
+        const contact = await pool.request()
+          .input('contactId', sql.Int, id)
+          .query('SELECT PersonId, FullName, Email FROM core.Person WHERE PersonId = @contactId');
+        if (contact.recordset.length === 0) {
+          failed.push({ contactId: id, error: 'Contact not found' });
+          continue;
+        }
+        const c = contact.recordset[0] as { FullName?: string; Email?: string };
+        const toEmail = c.Email && String(c.Email).trim() ? String(c.Email).trim() : null;
+        if (!toEmail) {
+          failed.push({ contactId: id, error: 'No email on file' });
+          continue;
+        }
+        const contactName = (c.FullName && String(c.FullName).trim()) ? String(c.FullName).trim() : toEmail;
+        const subject = `Follow-up reminder: ${contactName}`;
+        const htmlBody = buildReminderHtml(contactName, customMessage);
+        const textBody = customMessage || `You asked to follow up with ${contactName}.`;
+        try {
+          await transporter.sendMail({ from: mailFrom, to: toEmail, subject, text: textBody, html: htmlBody });
+          sent++;
+        } catch (err: any) {
+          failed.push({ contactId: id, error: err?.message || 'Failed to send' });
+        }
+      }
+      const adHocEmail = typeof email === 'string' && email.trim() ? email.trim() : null;
+      if (adHocEmail) {
+        try {
+          await transporter.sendMail({
+            from: mailFrom,
+            to: adHocEmail,
+            subject: 'Follow-up reminder',
+            text: customMessage || `You asked to follow up with ${adHocEmail}.`,
+            html: buildReminderHtml(adHocEmail, customMessage),
+          });
+          sent++;
+        } catch (err: any) {
+          failed.push({ email: adHocEmail, error: err?.message || 'Failed to send' });
+        }
+      }
+      res.json({ success: true, sent, failed });
+      return;
+    }
+
     let toEmail: string | null = null;
     let contactName: string | null = null;
-
     if (contactId != null) {
       const pool = await getConnection();
       const contact = await pool.request()
@@ -309,11 +398,11 @@ export const sendLandDevelopmentReminder = async (req: Request, res: Response, n
         res.status(400).json({ success: false, error: { message: 'Contact not found' } });
         return;
       }
-      const c = contact.recordset[0];
-      contactName = c.FullName;
+      const c = contact.recordset[0] as { FullName?: string; Email?: string };
+      contactName = (c.FullName && String(c.FullName).trim()) ? String(c.FullName).trim() : null;
       if (c.Email && String(c.Email).trim()) toEmail = String(c.Email).trim();
     }
-    if (email && typeof email === 'string' && email.trim()) {
+    if (typeof email === 'string' && email.trim()) {
       toEmail = email.trim();
       if (!contactName) contactName = email.trim();
     }
@@ -322,33 +411,13 @@ export const sendLandDevelopmentReminder = async (req: Request, res: Response, n
       return;
     }
 
-    const mailFrom = process.env.MAIL_FROM || process.env.SMTP_FROM;
-    const smtpHost = process.env.SMTP_HOST;
-    if (!smtpHost || !mailFrom) {
-      res.status(503).json({
-        success: false,
-        error: { message: 'Email not configured. Set SMTP_HOST, MAIL_FROM (and optionally SMTP_USER, SMTP_PASS or SMTP_PASSWORD) to send reminders.' }
-      });
-      return;
-    }
-
+    const subject = contactName ? `Follow-up reminder: ${contactName}` : 'Follow-up reminder';
+    const textBody = customMessage
+      ? customMessage
+      : (contactName ? `You asked to follow up with ${contactName}.` : `You asked to follow up with ${toEmail}.`);
+    const displayName = contactName || toEmail;
+    const htmlBody = buildReminderHtml(displayName, customMessage);
     try {
-      const nodemailer = await import('nodemailer');
-      const port = parseInt(process.env.SMTP_PORT || '587', 10);
-      const transporter = nodemailer.default.createTransport({
-        host: smtpHost,
-        port,
-        secure: process.env.SMTP_SECURE === 'true',
-        requireTLS: port === 587,
-        auth: process.env.SMTP_USER ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS || process.env.SMTP_PASSWORD || '' } : undefined,
-      });
-      const subject = contactName ? `Follow-up reminder: ${contactName}` : 'Follow-up reminder';
-      const customMessage = message && String(message).trim() ? String(message).trim() : null;
-      const textBody = customMessage
-        ? customMessage
-        : (contactName ? `You asked to follow up with ${contactName}.` : `You asked to follow up with ${toEmail}.`);
-      const displayName = contactName || toEmail;
-      const htmlBody = buildReminderHtml(displayName, customMessage);
       await transporter.sendMail({
         from: mailFrom,
         to: toEmail,
@@ -361,7 +430,6 @@ export const sendLandDevelopmentReminder = async (req: Request, res: Response, n
       res.status(500).json({ success: false, error: { message: 'Failed to send reminder email' } });
       return;
     }
-
     res.json({ success: true, message: 'Reminder sent' });
   } catch (error) {
     next(error);

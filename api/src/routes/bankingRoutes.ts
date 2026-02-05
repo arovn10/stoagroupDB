@@ -53,10 +53,14 @@ router.post('/guarantees/project/:projectId', authenticate, bankingController.cr
 router.put('/guarantees/:id', authenticate, bankingController.updateGuarantee);
 router.delete('/guarantees/:id', authenticate, bankingController.deleteGuarantee);
 
+// Banking email templates (bankingnotificationguide)
+router.get('/email-templates', bankingController.getBankingEmailTemplates);
+
 // Covenant routes
 router.get('/covenants', bankingController.getAllCovenants);
-router.get('/covenants/:id', bankingController.getCovenantById);
 router.get('/covenants/project/:projectId', bankingController.getCovenantsByProject);
+router.post('/covenants/:id/send-reminder', authenticate, bankingController.sendCovenantReminder);
+router.get('/covenants/:id', bankingController.getCovenantById);
 // Write operations require authentication
 router.post('/covenants', authenticate, bankingController.createCovenant);
 router.post('/covenants/project/:projectId', authenticate, bankingController.createCovenantByProject); // Convenience: create by ProjectId
