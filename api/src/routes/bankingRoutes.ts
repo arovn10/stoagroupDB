@@ -9,12 +9,20 @@ const router = Router();
 router.get('/loans', bankingController.getAllLoans);
 router.get('/loans/project/:projectId', bankingController.getLoansByProject);
 router.get('/loans/:id/participation-summary', bankingController.getLoanParticipationSummary);
+router.post('/loans/:targetLoanId/copy-from/:sourceLoanId', authenticate, bankingController.copyFromLoan); // Must be before /loans/:id
 router.get('/loans/:id', bankingController.getLoanById);
 // Write operations require authentication
 router.post('/loans', authenticate, bankingController.createLoan);
 router.put('/loans/:id', authenticate, bankingController.updateLoan);
 router.put('/loans/project/:projectId', authenticate, bankingController.updateLoanByProject); // Convenience: update by ProjectId
 router.delete('/loans/:id', authenticate, bankingController.deleteLoan);
+
+// Loan types (Loan Creation Wizard)
+router.get('/loan-types', bankingController.getAllLoanTypes);
+router.get('/loan-types/:id', bankingController.getLoanTypeById);
+router.post('/loan-types', authenticate, bankingController.createLoanType);
+router.put('/loan-types/:id', authenticate, bankingController.updateLoanType);
+router.delete('/loan-types/:id', authenticate, bankingController.deleteLoanType);
 
 // Loan Modification routes (permanent debt, extensions, restructures)
 router.get('/loan-modifications', bankingController.getAllLoanModifications);

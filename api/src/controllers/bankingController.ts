@@ -40,10 +40,12 @@ export const getAllLoans = async (req: Request, res: Response, next: NextFunctio
           THEN DATEDIFF(MONTH, l.LoanClosingDate, l.MaturityDate)
           ELSE NULL
         END AS ConstructionIOTermMonths,
-        CASE WHEN LTRIM(RTRIM(ISNULL(p.Stage, N''))) = N'Liquidated' THEN 0 ELSE l.LoanAmount END AS ExposureDisplay
+        CASE WHEN LTRIM(RTRIM(ISNULL(p.Stage, N''))) = N'Liquidated' THEN 0 ELSE l.LoanAmount END AS ExposureDisplay,
+        lt.LoanTypeName
       FROM banking.Loan l
       LEFT JOIN core.Project p ON l.ProjectId = p.ProjectId
       LEFT JOIN core.Bank b ON l.LenderId = b.BankId
+      LEFT JOIN banking.LoanType lt ON l.LoanTypeId = lt.LoanTypeId
       ORDER BY l.IsActive DESC, COALESCE(l.BirthOrder, 999), l.LoanId
     `);
     res.json({ success: true, data: result.recordset });
@@ -72,10 +74,12 @@ export const getLoanById = async (req: Request, res: Response, next: NextFunctio
             THEN DATEDIFF(MONTH, l.LoanClosingDate, l.MaturityDate)
             ELSE NULL
           END AS ConstructionIOTermMonths,
-          CASE WHEN LTRIM(RTRIM(ISNULL(p.Stage, N''))) = N'Liquidated' THEN 0 ELSE l.LoanAmount END AS ExposureDisplay
+          CASE WHEN LTRIM(RTRIM(ISNULL(p.Stage, N''))) = N'Liquidated' THEN 0 ELSE l.LoanAmount END AS ExposureDisplay,
+          lt.LoanTypeName
         FROM banking.Loan l
         LEFT JOIN core.Project p ON l.ProjectId = p.ProjectId
         LEFT JOIN core.Bank b ON l.LenderId = b.BankId
+        LEFT JOIN banking.LoanType lt ON l.LoanTypeId = lt.LoanTypeId
         WHERE l.LoanId = @id
       `);
     
@@ -110,10 +114,12 @@ export const getLoansByProject = async (req: Request, res: Response, next: NextF
             THEN DATEDIFF(MONTH, l.LoanClosingDate, l.MaturityDate)
             ELSE NULL
           END AS ConstructionIOTermMonths,
-          CASE WHEN LTRIM(RTRIM(ISNULL(p.Stage, N''))) = N'Liquidated' THEN 0 ELSE l.LoanAmount END AS ExposureDisplay
+          CASE WHEN LTRIM(RTRIM(ISNULL(p.Stage, N''))) = N'Liquidated' THEN 0 ELSE l.LoanAmount END AS ExposureDisplay,
+          lt.LoanTypeName
         FROM banking.Loan l
         LEFT JOIN core.Project p ON l.ProjectId = p.ProjectId
         LEFT JOIN core.Bank b ON l.LenderId = b.BankId
+        LEFT JOIN banking.LoanType lt ON l.LoanTypeId = lt.LoanTypeId
         WHERE l.ProjectId = @projectId 
         ORDER BY l.IsActive DESC, COALESCE(l.BirthOrder, 999), l.LoanId
       `);
@@ -181,7 +187,8 @@ export const createLoan = async (req: Request, res: Response, next: NextFunction
       PermPhaseMaturity, PermPhaseInterestRate, ConstructionCompletionDate,
       ConstructionCompletionSource, LeaseUpCompletedDate, IOMaturityDate, PermanentCloseDate,
       PermanentLoanAmount, Notes,
-      IsActive = true, IsPrimary = false
+      IsActive = true, IsPrimary = false,
+      LoanTypeId, LoanCategory
     } = req.body;
 
     if (!ProjectId || !LoanPhase) {
@@ -244,7 +251,9 @@ export const createLoan = async (req: Request, res: Response, next: NextFunction
       .input('IOMaturityDate', sql.Date, IOMaturityDate)
       .input('PermanentCloseDate', sql.Date, PermanentCloseDate)
       .input('PermanentLoanAmount', sql.Decimal(18, 2), PermanentLoanAmount)
-      .input('Notes', sql.NVarChar(sql.MAX), toVarChar(Notes));
+      .input('Notes', sql.NVarChar(sql.MAX), toVarChar(Notes))
+      .input('LoanTypeId', sql.Int, LoanTypeId != null ? parseInt(String(LoanTypeId), 10) : null)
+      .input('LoanCategory', sql.NVarChar(50), LoanCategory != null ? String(LoanCategory).trim() : null);
 
     // Insert and get new LoanId via OUTPUT, then fetch full row (avoids multi-recordset ordering issues)
     const insertResult = await request.query(`
@@ -257,7 +266,7 @@ export const createLoan = async (req: Request, res: Response, next: NextFunction
         MiniPermFixedOrFloating, MiniPermIndex, MiniPermSpread, MiniPermRateFloor, MiniPermRateCeiling,
         PermPhaseMaturity, PermPhaseInterestRate, ConstructionCompletionDate,
         ConstructionCompletionSource, LeaseUpCompletedDate, IOMaturityDate, PermanentCloseDate,
-        PermanentLoanAmount, Notes, IsActive, IsPrimary
+        PermanentLoanAmount, Notes, IsActive, IsPrimary, LoanTypeId, LoanCategory
       )
       OUTPUT INSERTED.LoanId
       VALUES (
@@ -269,7 +278,7 @@ export const createLoan = async (req: Request, res: Response, next: NextFunction
         @MiniPermFixedOrFloating, @MiniPermIndex, @MiniPermSpread, @MiniPermRateFloor, @MiniPermRateCeiling,
         @PermPhaseMaturity, @PermPhaseInterestRate, @ConstructionCompletionDate,
         @ConstructionCompletionSource, @LeaseUpCompletedDate, @IOMaturityDate, @PermanentCloseDate,
-        @PermanentLoanAmount, @Notes, @IsActive, @IsPrimary
+        @PermanentLoanAmount, @Notes, @IsActive, @IsPrimary, @LoanTypeId, @LoanCategory
       );
     `);
     const newLoanId = insertResult.recordset?.[0]?.LoanId;
@@ -278,11 +287,19 @@ export const createLoan = async (req: Request, res: Response, next: NextFunction
       return;
     }
 
+    if (IsActive === true || IsActive === 1) {
+      await pool.request()
+        .input('projectId', sql.Int, ProjectId)
+        .input('loanId', sql.Int, newLoanId)
+        .query('UPDATE banking.Loan SET IsActive = 0 WHERE ProjectId = @projectId AND LoanId <> @loanId');
+    }
+
     const fetchResult = await pool.request()
       .input('loanId', sql.Int, newLoanId)
       .query(`
         SELECT 
           l.*,
+          lt.LoanTypeName,
           CASE 
             WHEN l.IOMaturityDate IS NOT NULL AND l.LoanClosingDate IS NOT NULL 
             THEN DATEDIFF(MONTH, l.LoanClosingDate, l.IOMaturityDate)
@@ -291,6 +308,7 @@ export const createLoan = async (req: Request, res: Response, next: NextFunction
             ELSE NULL
           END AS ConstructionIOTermMonths
         FROM banking.Loan l
+        LEFT JOIN banking.LoanType lt ON l.LoanTypeId = lt.LoanTypeId
         WHERE l.LoanId = @loanId
       `);
     const created = fetchResult.recordset?.[0] ?? null;
@@ -378,6 +396,10 @@ export const updateLoan = async (req: Request, res: Response, next: NextFunction
         fields.push(`${key} = @${key}`);
         if (key === 'IsActive' || key === 'IsPrimary') {
           request.input(key, sql.Bit, loanData[key] === true || loanData[key] === 1);
+        } else if (key === 'LoanTypeId') {
+          request.input(key, sql.Int, loanData[key] == null ? null : parseInt(String(loanData[key]), 10));
+        } else if (key === 'LoanCategory') {
+          request.input(key, sql.NVarChar(50), loanData[key] != null ? String(loanData[key]).trim() : null);
         } else if (key === 'InterestRateFloor' || key === 'InterestRateCeiling' ||
             key === 'MiniPermFixedOrFloating' || key === 'MiniPermIndex' || key === 'MiniPermSpread' ||
             key === 'MiniPermRateFloor' || key === 'MiniPermRateCeiling') {
@@ -404,6 +426,15 @@ export const updateLoan = async (req: Request, res: Response, next: NextFunction
       SET ${fields.join(', ')}
       WHERE LoanId = @id
     `);
+
+    if (loanData.IsActive === true || loanData.IsActive === 1) {
+      await pool.request()
+        .input('id', sql.Int, id)
+        .query(`
+          UPDATE banking.Loan SET IsActive = 0
+          WHERE ProjectId = (SELECT ProjectId FROM banking.Loan WHERE LoanId = @id) AND LoanId <> @id
+        `);
+    }
 
     // Get updated loan to sync maturity covenants
     const loanCheck = await pool.request()
@@ -434,6 +465,7 @@ export const updateLoan = async (req: Request, res: Response, next: NextFunction
       .query(`
         SELECT 
           l.*,
+          lt.LoanTypeName,
           CASE 
             WHEN l.IOMaturityDate IS NOT NULL AND l.LoanClosingDate IS NOT NULL 
             THEN DATEDIFF(MONTH, l.LoanClosingDate, l.IOMaturityDate)
@@ -442,6 +474,7 @@ export const updateLoan = async (req: Request, res: Response, next: NextFunction
             ELSE NULL
           END AS ConstructionIOTermMonths
         FROM banking.Loan l
+        LEFT JOIN banking.LoanType lt ON l.LoanTypeId = lt.LoanTypeId
         WHERE l.LoanId = @id
       `);
 
@@ -688,6 +721,255 @@ export const deleteLoan = async (req: Request, res: Response, next: NextFunction
 
     res.json({ success: true, message: 'Loan deleted successfully' });
   } catch (error: any) {
+    next(error);
+  }
+};
+
+// ============================================================
+// LOAN TYPES (Loan Creation Wizard – reference table CRUD)
+// ============================================================
+
+export const getAllLoanTypes = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const q = (req.query.q as string)?.trim() || '';
+    const pool = await getConnection();
+    let result: sql.IResult<any>;
+    if (q) {
+      result = await pool.request()
+        .input('q', sql.NVarChar(200), `%${q}%`)
+        .query(`
+          SELECT LoanTypeId, LoanTypeName, Notes, DisplayOrder, IsActive
+          FROM banking.LoanType
+          WHERE IsActive = 1 AND LoanTypeName LIKE @q
+          ORDER BY DisplayOrder ASC, LoanTypeName
+        `);
+    } else {
+      result = await pool.request().query(`
+        SELECT LoanTypeId, LoanTypeName, Notes, DisplayOrder, IsActive
+        FROM banking.LoanType
+        WHERE IsActive = 1
+        ORDER BY DisplayOrder ASC, LoanTypeName
+      `);
+    }
+    res.json({ success: true, data: result.recordset });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getLoanTypeById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input('id', sql.Int, id)
+      .query('SELECT LoanTypeId, LoanTypeName, Notes, DisplayOrder, IsActive FROM banking.LoanType WHERE LoanTypeId = @id');
+    if (result.recordset.length === 0) {
+      res.status(404).json({ success: false, error: { message: 'Loan type not found' } });
+      return;
+    }
+    res.json({ success: true, data: result.recordset[0] });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createLoanType = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { LoanTypeName, Notes, DisplayOrder } = req.body;
+    if (!LoanTypeName || typeof LoanTypeName !== 'string' || !LoanTypeName.trim()) {
+      res.status(400).json({ success: false, error: { message: 'LoanTypeName is required' } });
+      return;
+    }
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input('LoanTypeName', sql.NVarChar(200), LoanTypeName.trim())
+      .input('Notes', sql.NVarChar(sql.MAX), Notes != null ? String(Notes) : null)
+      .input('DisplayOrder', sql.Int, DisplayOrder != null ? parseInt(String(DisplayOrder), 10) : null)
+      .query(`
+        INSERT INTO banking.LoanType (LoanTypeName, Notes, DisplayOrder, IsActive)
+        OUTPUT INSERTED.LoanTypeId, INSERTED.LoanTypeName, INSERTED.Notes, INSERTED.DisplayOrder, INSERTED.IsActive
+        VALUES (@LoanTypeName, @Notes, @DisplayOrder, 1)
+      `);
+    const row = result.recordset?.[0];
+    if (!row) {
+      res.status(500).json({ success: false, error: { message: 'Failed to create loan type' } });
+      return;
+    }
+    res.status(201).json({ success: true, data: row });
+  } catch (error: any) {
+    if (error.number === 2627) {
+      res.status(409).json({ success: false, error: { message: 'A loan type with this name already exists' } });
+      return;
+    }
+    next(error);
+  }
+};
+
+export const updateLoanType = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { LoanTypeName, Notes, DisplayOrder, IsActive } = req.body;
+    const pool = await getConnection();
+    const updates: string[] = [];
+    const request = pool.request().input('id', sql.Int, id);
+    if (LoanTypeName !== undefined) {
+      updates.push('LoanTypeName = @LoanTypeName');
+      request.input('LoanTypeName', sql.NVarChar(200), String(LoanTypeName).trim());
+    }
+    if (Notes !== undefined) {
+      updates.push('Notes = @Notes');
+      request.input('Notes', sql.NVarChar(sql.MAX), Notes != null ? String(Notes) : null);
+    }
+    if (DisplayOrder !== undefined) {
+      updates.push('DisplayOrder = @DisplayOrder');
+      request.input('DisplayOrder', sql.Int, DisplayOrder == null ? null : parseInt(String(DisplayOrder), 10));
+    }
+    if (IsActive !== undefined) {
+      updates.push('IsActive = @IsActive');
+      request.input('IsActive', sql.Bit, IsActive === true || IsActive === 1);
+    }
+    if (updates.length === 0) {
+      res.status(400).json({ success: false, error: { message: 'No fields to update' } });
+      return;
+    }
+    await request.query(`
+      UPDATE banking.LoanType SET ${updates.join(', ')} WHERE LoanTypeId = @id
+    `);
+    const getResult = await pool.request().input('id', sql.Int, id)
+      .query('SELECT LoanTypeId, LoanTypeName, Notes, DisplayOrder, IsActive FROM banking.LoanType WHERE LoanTypeId = @id');
+    if (getResult.recordset.length === 0) {
+      res.status(404).json({ success: false, error: { message: 'Loan type not found' } });
+      return;
+    }
+    res.json({ success: true, data: getResult.recordset[0] });
+  } catch (error: any) {
+    if (error.number === 2627) {
+      res.status(409).json({ success: false, error: { message: 'A loan type with this name already exists' } });
+      return;
+    }
+    next(error);
+  }
+};
+
+export const deleteLoanType = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input('id', sql.Int, id)
+      .query('UPDATE banking.LoanType SET IsActive = 0 WHERE LoanTypeId = @id');
+    if (result.rowsAffected[0] === 0) {
+      res.status(404).json({ success: false, error: { message: 'Loan type not found' } });
+      return;
+    }
+    res.json({ success: true, message: 'Loan type deactivated (soft delete)' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ============================================================
+// COPY FROM LOAN (Loan Creation Wizard – copy covenants/guarantees to new loan)
+// ============================================================
+
+export const copyFromLoan = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { targetLoanId, sourceLoanId } = req.params;
+    const { copyCovenants, copyGuarantees, copyEquityCommitments } = req.body || {};
+    const targetId = parseInt(targetLoanId, 10);
+    const sourceId = parseInt(sourceLoanId, 10);
+    if (isNaN(targetId) || isNaN(sourceId)) {
+      res.status(400).json({ success: false, error: { message: 'Invalid targetLoanId or sourceLoanId' } });
+      return;
+    }
+    if (targetId === sourceId) {
+      res.status(400).json({ success: false, error: { message: 'Target and source loan must be different' } });
+      return;
+    }
+
+    const pool = await getConnection();
+
+    const loans = await pool.request()
+      .input('targetId', sql.Int, targetId)
+      .input('sourceId', sql.Int, sourceId)
+      .query(`
+        SELECT LoanId, ProjectId FROM banking.Loan WHERE LoanId IN (@targetId, @sourceId)
+      `);
+    const loanMap = new Map(loans.recordset.map((r: any) => [r.LoanId, r]));
+    if (!loanMap.has(targetId) || !loanMap.has(sourceId)) {
+      res.status(404).json({ success: false, error: { message: 'Target or source loan not found' } });
+      return;
+    }
+    const sourceProjectId = loanMap.get(sourceId).ProjectId;
+    const targetProjectId = loanMap.get(targetId).ProjectId;
+    if (sourceProjectId !== targetProjectId) {
+      res.status(400).json({ success: false, error: { message: 'Source and target loan must belong to the same project' } });
+      return;
+    }
+
+    const summary: { copyCovenants: number; copyGuarantees: number; copyEquityCommitments: number } = {
+      copyCovenants: 0,
+      copyGuarantees: 0,
+      copyEquityCommitments: 0,
+    };
+
+    if (copyCovenants === true) {
+      const cov = await pool.request()
+        .input('sourceId', sql.Int, sourceId)
+        .input('targetId', sql.Int, targetId)
+        .query(`
+          INSERT INTO banking.Covenant (
+            ProjectId, LoanId, FinancingType, CovenantType,
+            DSCRTestDate, ProjectedInterestRate, DSCRRequirement, ProjectedDSCR,
+            OccupancyCovenantDate, OccupancyRequirement, ProjectedOccupancy,
+            LiquidityRequirementLendingBank, CovenantDate, Requirement, ProjectedValue,
+            Notes, IsCompleted
+          )
+          SELECT
+            ProjectId, @targetId, FinancingType, CovenantType,
+            DSCRTestDate, ProjectedInterestRate, DSCRRequirement, ProjectedDSCR,
+            OccupancyCovenantDate, OccupancyRequirement, ProjectedOccupancy,
+            LiquidityRequirementLendingBank, CovenantDate, Requirement, ProjectedValue,
+            Notes, IsCompleted
+          FROM banking.Covenant
+          WHERE LoanId = @sourceId
+        `);
+      summary.copyCovenants = cov.rowsAffected[0] ?? 0;
+    }
+
+    if (copyGuarantees === true) {
+      const guar = await pool.request()
+        .input('sourceId', sql.Int, sourceId)
+        .input('targetId', sql.Int, targetId)
+        .query(`
+          INSERT INTO banking.Guarantee (ProjectId, LoanId, PersonId, FinancingType, GuaranteePercent, GuaranteeAmount, Notes)
+          SELECT ProjectId, @targetId, PersonId, FinancingType, GuaranteePercent, GuaranteeAmount, Notes
+          FROM banking.Guarantee
+          WHERE LoanId = @sourceId
+        `);
+      summary.copyGuarantees = guar.rowsAffected[0] ?? 0;
+    }
+
+    if (copyEquityCommitments === true) {
+      if (await pool.request().query(`
+        SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('banking.EquityCommitment') AND name = 'LoanId'
+      `).then(r => r.recordset.length > 0)) {
+        const eq = await pool.request()
+          .input('sourceId', sql.Int, sourceId)
+          .input('targetId', sql.Int, targetId)
+          .query(`
+            INSERT INTO banking.EquityCommitment (ProjectId, LoanId, EquityPartnerId, EquityType, LeadPrefGroup, FundingDate, Amount, InterestRate, AnnualMonthly, BackEndKicker, LastDollar, Notes)
+            SELECT ProjectId, @targetId, EquityPartnerId, EquityType, LeadPrefGroup, FundingDate, Amount, InterestRate, AnnualMonthly, BackEndKicker, LastDollar, Notes
+            FROM banking.EquityCommitment
+            WHERE LoanId = @sourceId
+          `);
+        summary.copyEquityCommitments = eq.rowsAffected[0] ?? 0;
+      }
+    }
+
+    res.json({ success: true, data: summary });
+  } catch (error) {
     next(error);
   }
 };
