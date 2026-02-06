@@ -336,7 +336,8 @@ export const createLoan = async (req: Request, res: Response, next: NextFunction
       .input('LoanTypeId', sql.Int, LoanTypeId != null ? parseInt(String(LoanTypeId), 10) : null)
       .input('LoanCategory', sql.NVarChar(50), LoanCategory != null ? String(LoanCategory).trim() : null);
 
-    // Insert and get new LoanId via OUTPUT, then fetch full row (avoids multi-recordset ordering issues)
+    // Insert without OUTPUT (banking.Loan has triggers; SQL Server disallows OUTPUT on tables with triggers unless INTO).
+    // Get new LoanId via SCOPE_IDENTITY() in the same batch.
     const insertResult = await request.query(`
       INSERT INTO banking.Loan (
         ProjectId, BirthOrder, LoanType, Borrower, LoanPhase, FinancingStage, LenderId,
@@ -349,7 +350,6 @@ export const createLoan = async (req: Request, res: Response, next: NextFunction
         ConstructionCompletionSource, LeaseUpCompletedDate, IOMaturityDate, PermanentCloseDate,
         PermanentLoanAmount, Notes, IsActive, IsPrimary, LoanTypeId, LoanCategory
       )
-      OUTPUT INSERTED.LoanId
       VALUES (
         @ProjectId, @BirthOrder, @LoanType, @Borrower, @LoanPhase, @FinancingStage, @LenderId,
         @LoanAmount, @CurrentBalance, @LoanClosingDate, @MaturityDate, @FixedOrFloating, @IndexName,
@@ -361,6 +361,7 @@ export const createLoan = async (req: Request, res: Response, next: NextFunction
         @ConstructionCompletionSource, @LeaseUpCompletedDate, @IOMaturityDate, @PermanentCloseDate,
         @PermanentLoanAmount, @Notes, @IsActive, @IsPrimary, @LoanTypeId, @LoanCategory
       );
+      SELECT CAST(SCOPE_IDENTITY() AS INT) AS LoanId;
     `);
     const newLoanId = insertResult.recordset?.[0]?.LoanId;
     if (newLoanId == null) {

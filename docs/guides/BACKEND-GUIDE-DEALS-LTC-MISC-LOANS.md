@@ -89,7 +89,24 @@ If maturity type is stored (e.g. “IOMaturity” vs “LoanMaturity”), expose
 
 ---
 
-## 6. Summary for API client (when you implement)
+## 6. Create loan (POST) – SQL Server OUTPUT and triggers
+
+**Error:** `The target table 'banking.Loan' of the DML statement cannot have any enabled triggers if the statement contains an OUTPUT clause without INTO clause.`
+
+**Cause:** SQL Server does not allow `OUTPUT INSERTED.*` (or `OUTPUT INSERTED.LoanId`) on a table that has enabled triggers, unless the output is into a table variable (e.g. `OUTPUT INSERTED.LoanId INTO @Output(LoanId)`).
+
+**Fix applied (Option B):** Remove the `OUTPUT` clause from the Loan INSERT and use `SCOPE_IDENTITY()` in the same batch to get the new `LoanId`:
+
+- `INSERT INTO banking.Loan (...) VALUES (...);`
+- `SELECT CAST(SCOPE_IDENTITY() AS INT) AS LoanId;`
+
+The API then uses that `LoanId` to fetch the full row and return it. No trigger changes required.
+
+**Alternative (Option A):** Use a table variable: `DECLARE @Output TABLE (LoanId INT); INSERT INTO banking.Loan (...) OUTPUT INSERTED.LoanId INTO @Output(LoanId) VALUES (...); SELECT LoanId FROM @Output;`
+
+---
+
+## 7. Summary for API client (when you implement)
 
 After implementation, the **api-client** (or API contract) should support:
 
@@ -99,14 +116,3 @@ After implementation, the **api-client** (or API contract) should support:
 - **Entities:** Endpoint(s) to list entities and to list (and create/update) loans per entity, as in section 4.
 
 The frontend will **not** change the api-client; it will consume the above once the backend (and updated api-client) are provided.
-
----
-
-## Implementation status
-
-- **§1 LTC (Original):** `core.Project.LTCOriginal` added (migration `schema/add_ltc_original_to_project.sql`). GET/POST/PUT project include and accept `LTCOriginal`.
-- **§2 Maturity/Index:** Loan GETs already return `FixedOrFloating`, `IndexName`, `InterestRate`, and maturity date fields; no change.
-- **§3 Lead vs Participant:** `IsLead` on `banking.Participation`; GET participations return it. Create/update participation accept `IsLead`; when setting a participation to lead, all other participations for the same project are set to non-lead (one lead per deal).
-- **§4 Misc Loans (Option B):** `GET /api/banking/entities` returns projects where `ProductType = 'Entity'`. Entity loans: `GET /api/banking/loans/project/:projectId` with the entity’s project ID; create/update loan already support `ProjectId`.
-- **§5 Loan creation maturity:** No new fields; existing maturity date fields used.
-- **§6 API client:** Project get/create/update support `LTCOriginal`; `getBankingEntities()` added; participations expose `IsLead` and accept it on create/update.
