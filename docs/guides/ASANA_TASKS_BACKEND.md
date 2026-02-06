@@ -61,7 +61,13 @@ The backend must call Asana with a **Personal Access Token (PAT)** or OAuth toke
           "name": "Submit permits",
           "due_on": "2025-03-15",
           "start_date": "2025-03-01",
-          "permalink_url": "https://app.asana.com/0/123/9876543210"
+          "permalink_url": "https://app.asana.com/0/123/9876543210",
+          "unit_count": 232,
+          "stage": "Prospective",
+          "bank": "First Bank",
+          "product_type": "MF",
+          "location": "Birmingham, AL",
+          "precon_manager": "Jane Smith"
         }
       ]
     }
@@ -73,6 +79,7 @@ The backend must call Asana with a **Personal Access Token (PAT)** or OAuth toke
 - **due_on:** YYYY-MM-DD string (Asana format), or **null** when the task has no due date. Used for display/filtering only; **not** used as "Asana start date" in the deal-detail comparison.
 - **start_date:** YYYY-MM-DD string from the task’s **Asana custom field "Start Date"**, or **null** when that field is empty. The frontend uses **only** this for "Asana start date" (match vs discrepancy and "Override database date with Asana date"). If `start_date` is null, the app shows "Asana has no start date" and offers to fill from the database, regardless of `due_on`.
 - **permalink_url:** So the frontend can show "Open in Asana" / "View deal in Asana" and open the task in a new tab.
+- **Optional (for "Other fields" sync UI):** When the corresponding Asana custom field GIDs are set in env, each task may include **unit_count** (number or string), **stage**, **bank**, **product_type**, **location**, **precon_manager** (strings). The frontend can compare these to the database and show match/difference plus "Override Asana with database value" per field (via `API.updateAsanaTaskCustomField(taskGid, fieldKey, value)`).
 
 If the backend cannot reach Asana (token missing, network error, rate limit), return:
 
@@ -92,6 +99,7 @@ The frontend will then show only deal-based upcoming dates and will not break.
 - **ASANA_ACCESS_TOKEN** or **ASANA_PAT:** Required for Asana API calls (or OAuth: CLIENT_ID, CLIENT_SECRET, REFRESH_TOKEN).
 - **ASANA_WORKSPACE_GID** (optional): Default workspace when the client does not send `workspace`.
 - **ASANA_START_DATE_CUSTOM_FIELD_GID** or **ASANA_CUSTOM_FIELD_GID_START_DATE** (required for remedy): The GID of the Asana custom field "Start Date". The remedy endpoint **only** updates this custom field; it **never** updates the task’s Due Date (`due_on`). If neither env var is set, the remedy returns 503 with instructions to set one.
+- **ASANA_CUSTOM_FIELD_GID_UNIT_COUNT**, **ASANA_CUSTOM_FIELD_GID_BANK**, **ASANA_CUSTOM_FIELD_GID_LOCATION**, **ASANA_CUSTOM_FIELD_GID_PRIORITY** (stage), **ASANA_CUSTOM_FIELD_GID_PRIORITY_2** (product_type), **ASANA_CUSTOM_FIELD_GID_STOA_EMPLOYEE** (precon_manager): Optional. When set, upcoming-tasks includes these fields on each task so the frontend can show DB vs Asana comparison and "Override Asana with database value" per field.
 
 ---
 

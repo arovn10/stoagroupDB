@@ -1257,9 +1257,9 @@
   const ASANA_START_DATE_CUSTOM_FIELD_GID = ASANA_CUSTOM_FIELD_GIDS.START_DATE;
 
 /**
- * Get Asana tasks (with due_on and start_date from custom "Start Date" field). GET /api/asana/upcoming-tasks (view-only; no auth required)
+ * Get Asana tasks (with due_on, start_date, and optional other fields for DB vs Asana compare). GET /api/asana/upcoming-tasks (view-only; no auth required)
  * @param {object} [opts] - Optional: { workspace?: string (workspace GID), project?: string (project GID; when no workspace), daysAhead?: number (default 90) }
- * @returns {Promise<object>} { success: true, data: [ { projectGid, projectName, tasks: [ { gid, name, due_on, start_date, permalink_url } ] } ] } or { success: false, error: { message } }
+ * @returns {Promise<object>} { success: true, data: [ { projectGid, projectName, tasks: [ { gid, name, due_on, start_date, permalink_url, unit_count?, stage?, bank?, product_type?, location?, precon_manager? } ] } ] } or { success: false, error: { message } }
  */
   async function getAsanaUpcomingTasks(opts) {
   const params = new URLSearchParams();

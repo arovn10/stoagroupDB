@@ -97,6 +97,10 @@ interface AsanaCustomFieldValue {
   display_value?: string;
   date_value?: { date?: string };
   text_value?: string;
+  number_value?: number;
+  enum_value?: { gid: string; name: string };
+  multi_enum_values?: Array<{ gid: string; name: string }>;
+  people_value?: { gid: string; name: string };
 }
 
 interface AsanaTaskRaw {
@@ -107,12 +111,19 @@ interface AsanaTaskRaw {
   custom_fields?: AsanaCustomFieldValue[];
 }
 
+/** Task shape for GET /api/asana/upcoming-tasks. Optional fields used for DB vs Asana compare in deal popup. */
 interface UpcomingTask {
   gid: string;
   name: string;
   due_on: string | null;
   start_date: string | null;
   permalink_url: string;
+  unit_count?: string | number | null;
+  stage?: string | null;
+  bank?: string | null;
+  product_type?: string | null;
+  location?: string | null;
+  precon_manager?: string | null;
 }
 
 /** Extract "Start Date" custom field value (YYYY-MM-DD) or null. */
@@ -126,6 +137,52 @@ function getStartDateFromCustomFields(customFields: AsanaCustomFieldValue[] | un
     return null;
   }
   return null;
+}
+
+/** Build map Asana custom field GID → logical key (unit_count, stage, bank, etc.) from env. */
+function getGidToFieldKeyMap(): Record<string, string> {
+  const keyToEnv: Record<string, string> = {
+    unit_count: 'ASANA_CUSTOM_FIELD_GID_UNIT_COUNT',
+    stage: 'ASANA_CUSTOM_FIELD_GID_PRIORITY',
+    bank: 'ASANA_CUSTOM_FIELD_GID_BANK',
+    product_type: 'ASANA_CUSTOM_FIELD_GID_PRIORITY_2',
+    location: 'ASANA_CUSTOM_FIELD_GID_LOCATION',
+    precon_manager: 'ASANA_CUSTOM_FIELD_GID_STOA_EMPLOYEE',
+  };
+  const out: Record<string, string> = {};
+  for (const [key, envKey] of Object.entries(keyToEnv)) {
+    const gid = process.env[envKey]?.replace(/['"]/g, '').trim();
+    if (gid) out[gid] = key;
+  }
+  return out;
+}
+
+/** Extract display/comparable values for "other fields" (unit_count, stage, bank, etc.) from task custom_fields. */
+function getOtherFieldsFromCustomFields(
+  customFields: AsanaCustomFieldValue[] | undefined,
+  gidToKey: Record<string, string>
+): Partial<Record<string, string | number | null>> {
+  if (!customFields || !Array.isArray(customFields)) return {};
+  const result: Record<string, string | number | null> = {};
+  for (const f of customFields) {
+    const gid = f.gid?.trim();
+    if (!gid || !gidToKey[gid]) continue;
+    const key = gidToKey[gid];
+    if (f.type === 'number' && f.number_value !== undefined && f.number_value !== null) {
+      result[key] = f.number_value;
+    } else if (f.type === 'text' && f.text_value != null) {
+      result[key] = String(f.text_value).trim() || null;
+    } else if (f.type === 'enum' && f.enum_value?.name) {
+      result[key] = f.enum_value.name.trim();
+    } else if (f.type === 'multi_enum' && f.multi_enum_values?.length) {
+      result[key] = f.multi_enum_values.map((v) => v.name).join(', ').trim() || null;
+    } else if (f.type === 'people' && f.people_value?.name) {
+      result[key] = f.people_value.name.trim();
+    } else if (f.display_value != null && f.display_value !== '') {
+      result[key] = String(f.display_value).trim();
+    }
+  }
+  return result;
 }
 
 interface ProjectWithTasks {
@@ -216,17 +273,20 @@ async function fetchTasksForProject(
     const json = await asanaFetch(token, path);
     const batch = (json.data || []) as AsanaTaskRaw[];
 
+    const gidToKey = getGidToFieldKeyMap();
     for (const t of batch) {
       const startDate = getStartDateFromCustomFields(t.custom_fields);
       const dueInRange = t.due_on != null && t.due_on >= today && t.due_on <= endDate;
       const include = dueInRange || t.due_on == null || startDate != null;
       if (!include) continue;
+      const otherFields = getOtherFieldsFromCustomFields(t.custom_fields, gidToKey);
       tasks.push({
         gid: t.gid,
         name: t.name,
         due_on: t.due_on ?? null,
         start_date: startDate,
         permalink_url: t.permalink_url || `https://app.asana.com/0/0/${t.gid}`,
+        ...otherFields,
       });
     }
     offset = json.next_page?.offset ?? null;
