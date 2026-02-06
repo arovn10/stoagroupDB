@@ -139,19 +139,29 @@ function getStartDateFromCustomFields(customFields: AsanaCustomFieldValue[] | un
   return null;
 }
 
+/** Env var names to try per logical key (first found wins). Matches RENDER_ASANA_ENV_EXAMPLE. */
+const FIELD_KEY_TO_ENV_NAMES: Record<string, string[]> = {
+  unit_count: ['ASANA_CUSTOM_FIELD_GID_UNIT_COUNT'],
+  stage: ['ASANA_CUSTOM_FIELD_GID_STAGE', 'ASANA_CUSTOM_FIELD_GID_PRIORITY'],
+  bank: ['ASANA_CUSTOM_FIELD_GID_BANK'],
+  product_type: ['ASANA_CUSTOM_FIELD_GID_PRODUCT_TYPE', 'ASANA_CUSTOM_FIELD_GID_PRIORITY_2'],
+  location: ['ASANA_CUSTOM_FIELD_GID_LOCATION'],
+  precon_manager: ['ASANA_CUSTOM_FIELD_GID_PRECON_MANAGER', 'ASANA_CUSTOM_FIELD_GID_STOA_EMPLOYEE'],
+};
+
+function getGidFromEnv(envNames: string[]): string | undefined {
+  for (const name of envNames) {
+    const gid = process.env[name]?.replace(/['"]/g, '').trim();
+    if (gid) return gid;
+  }
+  return undefined;
+}
+
 /** Build map Asana custom field GID → logical key (unit_count, stage, bank, etc.) from env. */
 function getGidToFieldKeyMap(): Record<string, string> {
-  const keyToEnv: Record<string, string> = {
-    unit_count: 'ASANA_CUSTOM_FIELD_GID_UNIT_COUNT',
-    stage: 'ASANA_CUSTOM_FIELD_GID_PRIORITY',
-    bank: 'ASANA_CUSTOM_FIELD_GID_BANK',
-    product_type: 'ASANA_CUSTOM_FIELD_GID_PRIORITY_2',
-    location: 'ASANA_CUSTOM_FIELD_GID_LOCATION',
-    precon_manager: 'ASANA_CUSTOM_FIELD_GID_STOA_EMPLOYEE',
-  };
   const out: Record<string, string> = {};
-  for (const [key, envKey] of Object.entries(keyToEnv)) {
-    const gid = process.env[envKey]?.replace(/['"]/g, '').trim();
+  for (const [key, envNames] of Object.entries(FIELD_KEY_TO_ENV_NAMES)) {
+    const gid = getGidFromEnv(envNames);
     if (gid) out[gid] = key;
   }
   return out;
@@ -450,15 +460,15 @@ export async function updateTaskDueOn(req: Request, res: Response): Promise<void
   }
 }
 
-/** Map api-client field keys to env var names (ASANA_CUSTOM_FIELD_GID_*). */
-const CUSTOM_FIELD_KEY_TO_ENV: Record<string, string> = {
-  unit_count: 'ASANA_CUSTOM_FIELD_GID_UNIT_COUNT',
-  bank: 'ASANA_CUSTOM_FIELD_GID_BANK',
-  location: 'ASANA_CUSTOM_FIELD_GID_LOCATION',
-  priority: 'ASANA_CUSTOM_FIELD_GID_PRIORITY',
-  stage: 'ASANA_CUSTOM_FIELD_GID_PRIORITY', // often same as priority in Deal Pipeline
-  product_type: 'ASANA_CUSTOM_FIELD_GID_PRIORITY_2', // adjust if you have a dedicated env
-  precon_manager: 'ASANA_CUSTOM_FIELD_GID_STOA_EMPLOYEE', // adjust if different
+/** Map api-client field keys to env var names (same as getGidToFieldKeyMap; supports multiple names per key). */
+const CUSTOM_FIELD_KEY_TO_ENV: Record<string, string[]> = {
+  unit_count: ['ASANA_CUSTOM_FIELD_GID_UNIT_COUNT'],
+  bank: ['ASANA_CUSTOM_FIELD_GID_BANK'],
+  location: ['ASANA_CUSTOM_FIELD_GID_LOCATION'],
+  priority: ['ASANA_CUSTOM_FIELD_GID_PRIORITY', 'ASANA_CUSTOM_FIELD_GID_STAGE'],
+  stage: ['ASANA_CUSTOM_FIELD_GID_STAGE', 'ASANA_CUSTOM_FIELD_GID_PRIORITY'],
+  product_type: ['ASANA_CUSTOM_FIELD_GID_PRODUCT_TYPE', 'ASANA_CUSTOM_FIELD_GID_PRIORITY_2'],
+  precon_manager: ['ASANA_CUSTOM_FIELD_GID_PRECON_MANAGER', 'ASANA_CUSTOM_FIELD_GID_STOA_EMPLOYEE'],
 };
 
 /**
@@ -480,8 +490,8 @@ export async function updateTaskCustomField(req: Request, res: Response): Promis
       return;
     }
 
-    const envKey = CUSTOM_FIELD_KEY_TO_ENV[fieldKey];
-    if (!envKey) {
+    const envNames = CUSTOM_FIELD_KEY_TO_ENV[fieldKey];
+    if (!envNames?.length) {
       res.status(400).json({
         success: false,
         error: { message: `Unsupported field "${fieldKey}". Supported: ${Object.keys(CUSTOM_FIELD_KEY_TO_ENV).join(', ')}` },
@@ -489,11 +499,11 @@ export async function updateTaskCustomField(req: Request, res: Response): Promis
       return;
     }
 
-    const customFieldGid = process.env[envKey]?.replace(/['"]/g, '').trim();
+    const customFieldGid = getGidFromEnv(envNames);
     if (!customFieldGid) {
       res.status(503).json({
         success: false,
-        error: { message: `Custom field "${fieldKey}" not configured. Set ${envKey} in environment.` },
+        error: { message: `Custom field "${fieldKey}" not configured. Set one of ${envNames.join(' or ')} in environment.` },
       });
       return;
     }
