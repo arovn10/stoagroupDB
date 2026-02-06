@@ -541,8 +541,9 @@
 /**
  * Create a new loan (REQUIRES AUTHENTICATION)
  * @param {object} data - Loan data
- * @param {number} data.ProjectId - Required: Project ID
- * @param {string} data.LoanPhase - Required: 'Construction', 'Permanent', 'MiniPerm', 'Land', or 'Other'
+ * @param {number} [data.ProjectId] - Project ID (required for deal loans). Omit when using EntityId for misc loans.
+ * @param {number} [data.EntityId] - For misc loans: EquityPartnerId of an Entity-type equity partner. Backend finds or creates an entity-project and uses its ProjectId.
+ * @param {string} [data.LoanPhase] - 'Construction', 'Permanent', 'MiniPerm', 'Land', or 'Other'. Defaults to 'Other' when omitted (e.g. misc loans).
  * @param {string} [data.FixedOrFloating] - Selection: 'Fixed' or 'Floating' (NULL allowed)
  * @param {string} [data.IndexName] - For Construction loans: 'Prime' or 'SOFR' (NULL allowed for Fixed rates)
  * @param {string} [data.Spread] - Spread value (e.g., "2.75%", "0.50%")
@@ -1231,6 +1232,20 @@
  */
   async function saveUpcomingDatesReminderSettings(settings) {
   return apiRequest('/api/banking/settings/upcoming-dates-reminders', 'PUT', settings);
+}
+
+/**
+ * Get Asana tasks with due dates from the Deal Pipeline project. GET /api/asana/upcoming-tasks (view-only; no auth required)
+ * @param {object} [opts] - Optional: { project?: string (Asana project GID; default Deal Pipeline), daysAhead?: number (default 90) }
+ * @returns {Promise<object>} { success: true, data: [ { projectGid, projectName, tasks: [ { gid, name, due_on, permalink_url } ] } ] } or { success: false, error: { message } }
+ */
+  async function getAsanaUpcomingTasks(opts) {
+  const params = new URLSearchParams();
+  if (opts?.project) params.set('project', opts.project);
+  if (opts?.daysAhead != null) params.set('daysAhead', String(opts.daysAhead));
+  const qs = params.toString();
+  const endpoint = '/api/asana/upcoming-tasks' + (qs ? '?' + qs : '');
+  return apiRequest(endpoint);
 }
 
 // LIQUIDITY REQUIREMENTS
@@ -2654,6 +2669,7 @@
   API.sendCovenantReminderNow = sendCovenantReminderNow;
   API.getUpcomingDatesReminderSettings = getUpcomingDatesReminderSettings;
   API.saveUpcomingDatesReminderSettings = saveUpcomingDatesReminderSettings;
+  API.getAsanaUpcomingTasks = getAsanaUpcomingTasks;
   
   // Banking - Liquidity Requirements
   API.getAllLiquidityRequirements = getAllLiquidityRequirements;

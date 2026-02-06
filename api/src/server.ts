@@ -11,6 +11,7 @@ import bankingRoutes from './routes/bankingRoutes';
 import pipelineRoutes from './routes/pipelineRoutes';
 import authRoutes from './routes/authRoutes';
 import landDevelopmentRoutes from './routes/landDevelopmentRoutes';
+import asanaRoutes from './routes/asanaRoutes';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { getConnection } from './config/database';
 import { ensureContainerExists } from './config/azureBlob';
@@ -53,6 +54,7 @@ app.use('/api/core', coreRoutes);
 app.use('/api/banking', bankingRoutes);
 app.use('/api/pipeline', pipelineRoutes);
 app.use('/api/land-development', landDevelopmentRoutes);
+app.use('/api/asana', asanaRoutes);
 
 // API Documentation endpoint
 app.get('/api', (req: Request, res: Response) => {
@@ -241,6 +243,9 @@ app.get('/api', (req: Request, res: Response) => {
           delete: 'DELETE /api/land-development/contacts/:id (auth)',
           sendReminder: 'POST /api/land-development/contacts/send-reminder (auth, body: contactId?, email?, message?)',
         },
+      },
+      asana: {
+        upcomingTasks: 'GET /api/asana/upcoming-tasks (Deal Pipeline project; ?project, daysAhead)',
       },
     },
   });

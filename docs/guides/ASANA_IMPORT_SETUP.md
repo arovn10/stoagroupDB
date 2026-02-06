@@ -55,9 +55,10 @@ The import script looks for these variables (in order):
 
 **Optional:**
 - `ASANA_API_BASE` - API base URL (default: `https://app.asana.com/api/1.0`)
-- `ASANA_PROJECT_GID` - Deal Pipeline project GID (default: `1207455912614114`)
-- `CLIENT_ID` - OAuth Client ID (for future OAuth support)
-- `CLIENT_SECRET` - OAuth Client Secret (for future OAuth support)
+- `ASANA_PROJECT_GID` - Deal Pipeline project GID (default: `1207455912614114`). Used by **Upcoming Tasks API** and import scripts.
+- `CLIENT_ID` - OAuth Client ID (used with CLIENT_SECRET + REFRESH_TOKEN for **Upcoming Tasks API** and precon-managers import)
+- `CLIENT_SECRET` - OAuth Client Secret
+- `REFRESH_TOKEN` or `ASANA_REFRESH_TOKEN` - OAuth refresh token (required for server-side OAuth; obtain once via authorization flow, then set in env)
 
 ## Note on OAuth
 
