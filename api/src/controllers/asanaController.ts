@@ -298,9 +298,9 @@ const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 
 /**
  * PUT /api/asana/tasks/:taskGid/due-on
- * Body: { due_on: "YYYY-MM-DD" } (or dateStr for Start Date custom field)
- * Admin remedy: set Asana task's custom field "Start Date" when ASANA_START_DATE_CUSTOM_FIELD_GID is set;
- * otherwise updates the task's due_on (legacy).
+ * Body: { due_on: "YYYY-MM-DD" } (value is used for Start Date custom field only; Due Date is not changed).
+ * Admin remedy: updates the Asana task's custom field "Start Date" only. Due Date (due_on) is never updated.
+ * Requires ASANA_START_DATE_CUSTOM_FIELD_GID to be set; otherwise returns 503 with instructions.
  */
 export async function updateTaskDueOn(req: Request, res: Response): Promise<void> {
   try {
@@ -323,18 +323,23 @@ export async function updateTaskDueOn(req: Request, res: Response): Promise<void
     }
 
     const startDateFieldGid = process.env.ASANA_START_DATE_CUSTOM_FIELD_GID?.replace(/['"]/g, '').trim();
-    let body: Record<string, unknown>;
-
-    if (startDateFieldGid) {
-      body = { custom_fields: { [startDateFieldGid]: dateStr } };
-    } else {
-      body = { due_on: dateStr };
+    if (!startDateFieldGid) {
+      res.status(503).json({
+        success: false,
+        error: {
+          message: 'Start Date custom field not configured. Set ASANA_START_DATE_CUSTOM_FIELD_GID so the remedy updates Start Date only (not Due Date).',
+        },
+      });
+      return;
     }
+
+    // Asana date-type custom fields require { date: "YYYY-MM-DD" }, not a plain string.
+    const body = { custom_fields: { [startDateFieldGid]: { date: dateStr } } };
 
     const json = await asanaPut(token, `/tasks/${taskGid}`, body);
     res.json({
       success: true,
-      data: json.data || { gid: taskGid, due_on: dateStr, start_date: startDateFieldGid ? dateStr : undefined },
+      data: json.data || { gid: taskGid, start_date: dateStr },
     });
   } catch (e) {
     console.error('[Asana] updateTaskDueOn failed:', e instanceof Error ? e.message : e);

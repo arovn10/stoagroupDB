@@ -1235,6 +1235,28 @@
 }
 
 /**
+ * Asana custom field GIDs (deduped). Backend uses ASANA_START_DATE_CUSTOM_FIELD_GID env for Start Date sync.
+ * Keys are canonical names; same field name in different projects may have different GIDs (e.g. Priority).
+ */
+  const ASANA_CUSTOM_FIELD_GIDS = {
+    START_DATE: '1207906700131717',
+    BANK: '1207745312612907',
+    UNIT_COUNT: '1207745312612947',
+    PRIORITY: '1189291356291648',
+    PRIORITY_2: '1207315596495120',
+    ESTIMATED_TIME: '1209015704812437',
+    PERCENT_ALLOCATION: '1209062131631938',
+    STOA_EMPLOYEE: '1209680985667249',
+    DEPARTMENT: '1210930785704424',
+    LOCATION: '1210932884510617',
+    LEASING_STATS: '1210987263432188',
+    TRADE_PARTNER_ATTENDEES: '1211002395736712',
+  };
+
+  /** @deprecated Use ASANA_CUSTOM_FIELD_GIDS.START_DATE */
+  const ASANA_START_DATE_CUSTOM_FIELD_GID = ASANA_CUSTOM_FIELD_GIDS.START_DATE;
+
+/**
  * Get Asana tasks (with due_on and start_date from custom "Start Date" field). GET /api/asana/upcoming-tasks (view-only; no auth required)
  * @param {object} [opts] - Optional: { workspace?: string (workspace GID), project?: string (project GID; when no workspace), daysAhead?: number (default 90) }
  * @returns {Promise<object>} { success: true, data: [ { projectGid, projectName, tasks: [ { gid, name, due_on, start_date, permalink_url } ] } ] } or { success: false, error: { message } }
@@ -1250,14 +1272,22 @@
 }
 
 /**
- * Set Asana task start date (admin remedy: override Asana with database date or fill when empty). PUT /api/asana/tasks/:taskGid/due-on
- * Backend sets custom field "Start Date" when ASANA_START_DATE_CUSTOM_FIELD_GID is set; otherwise updates due_on.
+ * Update the Asana task's Start Date custom field only (admin remedy: override Asana with database date or fill when empty).
+ * Backend updates only the "Start Date" custom field; Due Date (due_on) is never changed. Requires ASANA_START_DATE_CUSTOM_FIELD_GID (returns 503 if missing).
+ * PUT /api/asana/tasks/:taskGid/due-on
  * @param {string} taskGid - Asana task GID
  * @param {string} dateStr - Date string YYYY-MM-DD (e.g. database start date)
  * @returns {Promise<object>} { success: true, data } or { success: false, error: { message } }
  */
-  async function updateAsanaTaskDueDate(taskGid, dateStr) {
+  async function updateAsanaTaskStartDate(taskGid, dateStr) {
   return apiRequest(`/api/asana/tasks/${encodeURIComponent(taskGid)}/due-on`, 'PUT', { due_on: dateStr });
+}
+
+/**
+ * @deprecated Use updateAsanaTaskStartDate for setting Start Date in Asana. This alias remains for backward compatibility.
+ */
+  async function updateAsanaTaskDueDate(taskGid, dateStr) {
+  return updateAsanaTaskStartDate(taskGid, dateStr);
 }
 
 // LIQUIDITY REQUIREMENTS
@@ -2682,6 +2712,7 @@
   API.getUpcomingDatesReminderSettings = getUpcomingDatesReminderSettings;
   API.saveUpcomingDatesReminderSettings = saveUpcomingDatesReminderSettings;
   API.getAsanaUpcomingTasks = getAsanaUpcomingTasks;
+  API.updateAsanaTaskStartDate = updateAsanaTaskStartDate;
   API.updateAsanaTaskDueDate = updateAsanaTaskDueDate;
   
   // Banking - Liquidity Requirements

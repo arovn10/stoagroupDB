@@ -91,7 +91,7 @@ The frontend will then show only deal-based upcoming dates and will not break.
 
 - **ASANA_ACCESS_TOKEN** or **ASANA_PAT:** Required for Asana API calls (or OAuth: CLIENT_ID, CLIENT_SECRET, REFRESH_TOKEN).
 - **ASANA_WORKSPACE_GID** (optional): Default workspace when the client does not send `workspace`.
-- **ASANA_START_DATE_CUSTOM_FIELD_GID** (optional): When set, the remedy endpoint updates the task’s custom field "Start Date" to the given date instead of `due_on`. Required for "Asana start date" to reflect the custom field.
+- **ASANA_START_DATE_CUSTOM_FIELD_GID** (required for remedy): The GID of the Asana custom field "Start Date". The remedy endpoint **only** updates this custom field; it **never** updates the task’s Due Date (`due_on`). If this env var is not set, the remedy returns 503 with instructions to set it.
 
 ---
 
@@ -111,7 +111,7 @@ When the deal detail shows a start-date discrepancy, admins can correct it. The 
 
 1. **Override Asana date with database date** (and **Fill start date in Asana with database date** when Asana has no start date)  
    - The frontend calls: `API.updateAsanaTaskDueDate(taskGid, dateStr)` where `dateStr` is `YYYY-MM-DD` (the database start date).  
-   - Backend: Set the Asana task’s **custom field "Start Date"** to that date. Do **not** use this to set `due_on`; the app intent is to sync the **Start Date** custom field. (Use Asana API to update the task’s custom field for "Start Date".) If the backend currently only updates `due_on`, it should be extended to update the custom Start Date field instead (or in addition), so that "Asana start date" in the app reflects the custom field.
+   - Backend: Updates **only** the Asana task’s **custom field "Start Date"** to that date. The task’s **Due Date** (`due_on`) is never changed. Requires **ASANA_START_DATE_CUSTOM_FIELD_GID** to be set; if missing, the API returns 503 with a message to configure it.
 
 2. **Override database date with Asana date**  
    - The frontend uses the existing `API.updateDealPipeline(dealPipelineId, { StartDate: asanaDate })` where `asanaDate` is the task’s **start_date** (custom field) string (`YYYY-MM-DD`), not the task’s due date.  
