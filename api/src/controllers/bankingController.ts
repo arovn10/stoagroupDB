@@ -273,7 +273,7 @@ export const getLoanParticipationSummary = async (req: Request, res: Response, n
 export const createLoan = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const {
-      ProjectId, BirthOrder, LoanType, Borrower, LoanPhase, FinancingStage, LenderId,
+      ProjectId: bodyProjectId, EntityId: bodyEntityId, BirthOrder, LoanType, Borrower, LoanPhase: bodyLoanPhase, FinancingStage, LenderId,
       LoanAmount, CurrentBalance, LoanClosingDate, MaturityDate, FixedOrFloating, IndexName,
       Spread, InterestRate, InterestRateFloor, InterestRateCeiling,
       ConversionDate,
@@ -286,10 +286,54 @@ export const createLoan = async (req: Request, res: Response, next: NextFunction
       LoanTypeId, LoanCategory
     } = req.body;
 
-    if (!ProjectId || !LoanPhase) {
-      res.status(400).json({ success: false, error: { message: 'ProjectId and LoanPhase are required' } });
+    // Misc loans: accept EntityId when ProjectId is missing; resolve to a project (find or create entity-project).
+    let ProjectId = bodyProjectId != null ? parseInt(String(bodyProjectId), 10) : null;
+    const EntityId = bodyEntityId != null ? parseInt(String(bodyEntityId), 10) : null;
+    if ((ProjectId == null || isNaN(ProjectId)) && EntityId != null && !isNaN(EntityId)) {
+      const poolForEntity = await getConnection();
+      const partner = await poolForEntity.request()
+        .input('entityId', sql.Int, EntityId)
+        .query(`
+          SELECT EquityPartnerId, PartnerName FROM core.EquityPartner
+          WHERE EquityPartnerId = @entityId AND LTRIM(RTRIM(ISNULL(PartnerType, N''))) = N'Entity'
+        `);
+      if (partner.recordset.length === 0) {
+        res.status(400).json({ success: false, error: { message: 'EntityId does not refer to an Entity-type equity partner' } });
+        return;
+      }
+      const partnerName = partner.recordset[0].PartnerName;
+      let existing = await poolForEntity.request()
+        .input('name', sql.NVarChar(255), partnerName)
+        .query(`
+          SELECT ProjectId FROM core.Project
+          WHERE ProjectName = @name AND LTRIM(RTRIM(ISNULL(ProductType, N''))) = N'Entity'
+        `);
+      if (existing.recordset.length > 0) {
+        ProjectId = existing.recordset[0].ProjectId;
+      } else {
+        const insertProject = await poolForEntity.request()
+          .input('ProjectName', sql.NVarChar(255), partnerName)
+          .input('ProductType', sql.NVarChar(50), 'Entity')
+          .query(`
+            INSERT INTO core.Project (ProjectName, ProductType, Stage)
+            VALUES (@ProjectName, @ProductType, N'Other');
+            SELECT SCOPE_IDENTITY() AS ProjectId;
+          `);
+        ProjectId = insertProject.recordset?.[0]?.ProjectId;
+        if (ProjectId == null) {
+          res.status(500).json({ success: false, error: { message: 'Failed to create entity project' } });
+          return;
+        }
+      }
+    }
+
+    if (ProjectId == null || isNaN(ProjectId)) {
+      res.status(400).json({ success: false, error: { message: 'ProjectId or EntityId is required' } });
       return;
     }
+
+    // Default LoanPhase to 'Other' for misc/entity loans when omitted.
+    const LoanPhase = bodyLoanPhase != null && String(bodyLoanPhase).trim() !== '' ? String(bodyLoanPhase).trim() : 'Other';
 
     // Validate FixedOrFloating: must be NULL, 'Fixed', or 'Floating'
     if (FixedOrFloating && FixedOrFloating !== 'Fixed' && FixedOrFloating !== 'Floating') {
