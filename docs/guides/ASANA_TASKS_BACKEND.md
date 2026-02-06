@@ -1,49 +1,50 @@
 # Asana Upcoming Tasks – Backend Guide
 
-**This guide is the source of truth.** The backend (`api/src/controllers/asanaController.ts`, `api/src/routes/asanaRoutes.ts`) and `api-client.js` (`getAsanaUpcomingTasks`, `updateAsanaTaskDueDate`) are implemented to match it; follow any edits to this guide in the code.
-
-This guide describes the API for **Asana tasks with due dates** from the **Deal Pipeline** project. The frontend uses this in **deal detail** to show start-date discrepancies and offer admin remedies; the **Upcoming Dates** table shows only internal (database) deal start dates.
+This guide describes the API for **Asana tasks with due dates**, matched to deals by **project name**. The frontend uses this in the **Upcoming Dates** view so users can see both deal dates and Asana task due dates in one list (view-only; links open Asana).
 
 ---
 
 ## 1. Overview
 
-- **Upcoming Dates table:** Shows only internal deal start dates from the database. A **Date Type** column is shown (e.g. "Start date"); there is no Source column and no Asana rows in this table. Copy under the title: internal deal start dates from the database; Date Type describes the date; click a row to open the deal; the detail view will flag Asana start date discrepancies when the API is available.
-- **Deal detail:** When a deal is opened, the app calls `API.getAsanaUpcomingTasks({ daysAhead: 365 })`, finds a task whose name matches the deal name (normalize: lowercase, trim; match if equal or one contains the other), and compares:
-  - **Database start date:** deal Start Date  
-  - **Asana start date:** task `due_on`  
-  If they differ, an **"Asana start date"** section appears with:
-  - Message: "Database start date is X; Asana start date for this project is Y."
-  - If not admin: only that message + "Only admins can correct dates."
-  - If admin: two buttons:
-    1. **Override Asana date with database date** → calls `API.updateAsanaTaskDueDate(taskGid, dbDate)` (backend implements this).
-    2. **Override database date with Asana date** → calls existing `API.updateDealPipeline(dealPipelineId, { StartDate: asanaDate })`.
-- **Scope:** Backend uses the Deal Pipeline project (`ASANA_PROJECT_GID`); optional query param `project` can override for upcoming-tasks.
+- **Purpose:** Return Asana tasks grouped by project so the frontend can:
+  - Match Asana **project name** to deal **name** (e.g. "Settlers Trace" ↔ "The Waters at Settlers Trace").
+  - Merge these tasks with deal-based upcoming dates and show them in Upcoming Dates.
+  - Show an "Open in Asana" link (task permalink) for each task row.
+  - In deal detail, compare **database start date** to the task’s **Asana custom field "Start Date"** (not the task’s due date).
+- **View-only (read):** Read-only Asana API for listing; remedy endpoints may update the task’s custom Start Date or the database.
+- **Matching:** Backend returns project name with each task; frontend does name matching to deals (normalize, trim, optional contains logic).
+- **Start date vs due date:** The app treats "Asana start date" as the task’s **custom field "Start Date"** only. The task’s **due date** (`due_on`) must not be used as the start date. If the custom Start Date is empty, the app shows "Asana has no start date" and offers to fill it, even when the task has a due date.
 
 ---
 
 ## 2. Asana API Usage (Backend)
 
-- **Read:** PAT or OAuth (refresh token); server-side only.
-- **Write (remedy):** Same token; `PUT https://app.asana.com/api/1.0/tasks/{task_gid}` with body `{ "data": { "due_on": "YYYY-MM-DD" } }` to update a task’s due date.
-- **Project:** Deal Pipeline project GID from env `ASANA_PROJECT_GID` (default `1207455912614114`).
-- **Project details:** `GET .../projects/{project_gid}?opt_fields=name,gid`
-- **Tasks:** `GET .../projects/{project_gid}/tasks` with `opt_fields=name,due_on,permalink_url,gid`, `completed_since=now`, and filter by `due_on` in range.
-- **OAuth token refresh:** `POST https://app.asana.com/-/oauth_token` with `grant_type=refresh_token`, `client_id`, `client_secret`, `refresh_token`.
-- **Rate limits:** 150 requests/minute; backend caches OAuth access token until near expiry.
+The backend must call Asana with a **Personal Access Token (PAT)** or OAuth token (server-side only; never expose in frontend).
+
+1. **Workspace:** Use a configured workspace GID (e.g. from env `ASANA_WORKSPACE_GID`), or allow the client to pass `workspace` as a query param.
+2. **List projects in workspace:**  
+   `GET https://app.asana.com/api/1.0/workspaces/{workspace_gid}/projects`  
+   Optional: `opt_fields=name,gid` to limit response size.
+3. **Tasks per project:** For each project (or a subset to avoid rate limits), call:  
+   `GET https://app.asana.com/api/1.0/projects/{project_gid}/tasks`  
+   Query params:
+   - `opt_fields=name,due_on,permalink_url,gid,custom_fields` (and fetch the custom field for "Start Date" — see Asana custom fields API).
+   - **Include tasks with and without a custom Start Date.** The frontend uses only the **custom field "Start Date"** for "Asana start date"; it never uses `due_on` as start date. If that custom field is empty, the app shows "Asana has no start date" and offers to fill it (even when the task has a due date).
+   - Optional: filter by `completed_since=now` to exclude completed. For "upcoming" filtering, filter in code by due or start as needed; still return all tasks so the deal-detail discrepancy flow can see them.
+4. **Rate limits:** Asana allows 150 requests/minute; consider caching project list and task list for 1–5 minutes.
 
 ---
 
-## 3. API Endpoints
+## 3. API Endpoint
 
-### 3.1 GET /api/asana/upcoming-tasks
+**Suggested path:** `GET /api/asana/upcoming-tasks`
 
 **Query parameters (all optional):**
 
-| Param     | Type   | Description |
-|----------|--------|-------------|
-| project  | string | Asana project GID. If omitted, backend uses `ASANA_PROJECT_GID` (Deal Pipeline). |
-| daysAhead| number | Include tasks with `due_on` in the next N days (default 90; clamped 1–365). |
+| Param       | Type   | Description |
+|------------|--------|-------------|
+| workspace  | string | Asana workspace GID. If omitted, backend uses default from env. |
+| daysAhead  | number | Include tasks with due_on in the next N days (default e.g. 90). |
 
 **Response shape:**
 
@@ -52,14 +53,15 @@ This guide describes the API for **Asana tasks with due dates** from the **Deal 
   "success": true,
   "data": [
     {
-      "projectGid": "1207455912614114",
-      "projectName": "Deal Pipeline",
+      "projectGid": "1234567890",
+      "projectName": "Settlers Trace",
       "tasks": [
         {
-          "gid": "1207757865676027",
-          "name": "Start 2 Carolinas",
-          "due_on": "2026-03-18",
-          "permalink_url": "https://app.asana.com/..."
+          "gid": "9876543210",
+          "name": "Submit permits",
+          "due_on": "2025-03-15",
+          "start_date": "2025-03-01",
+          "permalink_url": "https://app.asana.com/0/123/9876543210"
         }
       ]
     }
@@ -67,51 +69,50 @@ This guide describes the API for **Asana tasks with due dates** from the **Deal 
 }
 ```
 
-If the backend cannot reach Asana: `{ "success": false, "error": { "message": "Asana unavailable" } }`. The frontend then does not show Asana discrepancy in deal detail.
+- **projectName** is used by the frontend to match to deal name (e.g. deal "The Waters at Settlers Trace" ↔ project "Settlers Trace").
+- **due_on:** YYYY-MM-DD string (Asana format), or **null** when the task has no due date. Used for display/filtering only; **not** used as "Asana start date" in the deal-detail comparison.
+- **start_date:** YYYY-MM-DD string from the task’s **Asana custom field "Start Date"**, or **null** when that field is empty. The frontend uses **only** this for "Asana start date" (match vs discrepancy and "Override database date with Asana date"). If `start_date` is null, the app shows "Asana has no start date" and offers to fill from the database, regardless of `due_on`.
+- **permalink_url:** So the frontend can show "Open in Asana" / "View deal in Asana" and open the task in a new tab.
 
-**Ping:** `GET /api/asana` → `{"ok":true,"message":"Asana API"}`.
+If the backend cannot reach Asana (token missing, network error, rate limit), return:
 
-### 3.2 PUT /api/asana/tasks/:taskGid/due-on (admin remedy)
+```json
+{
+  "success": false,
+  "error": { "message": "Asana unavailable" }
+}
+```
 
-Updates an Asana task’s due date. Used when admin clicks **Override Asana date with database date** in deal detail.
-
-**URL:** `PUT /api/asana/tasks/:taskGid` (or `PUT /api/asana/tasks/:taskGid/due-on`).
-
-**Body:** `{ "due_on": "YYYY-MM-DD" }`
-
-**Response:**  
-- Success: `{ "success": true, "data": { "gid": "...", "due_on": "YYYY-MM-DD" } }` (or minimal ok).  
-- Failure: `{ "success": false, "error": { "message": "..." } }` (e.g. Asana unavailable or invalid task).
-
-**Auth:** Should be restricted to admin (same as other write operations); frontend only shows the button to admins.
+The frontend will then show only deal-based upcoming dates and will not break.
 
 ---
 
 ## 4. Environment (Backend)
 
-**Option A – Personal Access Token**  
-- **ASANA_ACCESS_TOKEN** or **ASANA_PAT:** Required. Create at https://app.asana.com/0/my-apps.
-
-**Option B – OAuth**  
-- **CLIENT_ID**, **CLIENT_SECRET**, **REFRESH_TOKEN** (or **ASANA_REFRESH_TOKEN**).
-
-**Optional:** **ASANA_PROJECT_GID**, **ASANA_API_BASE**.
+- **ASANA_ACCESS_TOKEN** or **ASANA_PAT:** Required for Asana API calls (or OAuth: CLIENT_ID, CLIENT_SECRET, REFRESH_TOKEN).
+- **ASANA_WORKSPACE_GID** (optional): Default workspace when the client does not send `workspace`.
+- **ASANA_START_DATE_CUSTOM_FIELD_GID** (optional): When set, the remedy endpoint updates the task’s custom field "Start Date" to the given date instead of `due_on`. Required for "Asana start date" to reflect the custom field.
 
 ---
 
 ## 5. Frontend Usage
 
-- **Upcoming Dates:** Table is database-only (Date Type column; no Asana merge). Copy: internal deal start dates; deal detail flags Asana discrepancies when API is available.
-- **Deal detail:** Call `API.getAsanaUpcomingTasks({ daysAhead: 365 })`, match task by deal name (normalize, trim; equal or contains). Compare deal Start Date vs task `due_on`. If different, show Asana discrepancy section; if admin, show **Override Asana date** (calls `API.updateAsanaTaskDueDate(taskGid, dbDate)`) and **Override database date** (calls `API.updateDealPipeline(dealPipelineId, { StartDate: asanaDate })`).
+- **Upcoming Dates table:** Shows only internal (database) deal start dates. No Asana rows in the table.
+- **Deal detail:** When a deal is opened, the frontend calls `API.getAsanaUpcomingTasks({ daysAhead: 365 })`, finds a task whose name matches the deal name (same matching logic as above), then uses **only** the task's **start_date** (custom field) for "Asana start date" — never `due_on`:
+  - **If the task has no `start_date` (custom field empty):** Shows “Asana has no start date for this project” and offers “Fill start date in Asana with database date” (admin only), plus "View deal in Asana". This applies even when the task has a due date (e.g. “The Flats at Cahaba Valley”).
+  - **If the task has `start_date` and it matches the database:** Shows “Database and Asana start dates match” and “View deal in Asana”.
+  - **If the task has `start_date` and it differs from the database:** Shows the discrepancy and (admin only) override buttons plus “View deal in Asana”.
 
 ---
 
 ## 6. Remedy Endpoints (Admin Only)
 
-1. **Override Asana date with database date**  
-   - Frontend: `API.updateAsanaTaskDueDate(taskGid, dueOn)` with `dueOn` as `YYYY-MM-DD`.  
-   - Backend: `PUT /api/asana/tasks/:taskGid/due-on` (or `PUT .../tasks/:taskGid` with body `{ due_on }`); calls Asana `PUT /tasks/{task_gid}` with `{ data: { due_on } }`.
+When the deal detail shows a start-date discrepancy, admins can correct it. The frontend calls:
+
+1. **Override Asana date with database date** (and **Fill start date in Asana with database date** when Asana has no start date)  
+   - The frontend calls: `API.updateAsanaTaskDueDate(taskGid, dateStr)` where `dateStr` is `YYYY-MM-DD` (the database start date).  
+   - Backend: Set the Asana task’s **custom field "Start Date"** to that date. Do **not** use this to set `due_on`; the app intent is to sync the **Start Date** custom field. (Use Asana API to update the task’s custom field for "Start Date".) If the backend currently only updates `due_on`, it should be extended to update the custom Start Date field instead (or in addition), so that "Asana start date" in the app reflects the custom field.
 
 2. **Override database date with Asana date**  
-   - Frontend: `API.updateDealPipeline(dealPipelineId, { StartDate: asanaDate })`.  
-   - Backend: existing `PUT /api/pipeline/deal-pipeline/:id` with `StartDate` in body.
+   - The frontend uses the existing `API.updateDealPipeline(dealPipelineId, { StartDate: asanaDate })` where `asanaDate` is the task’s **start_date** (custom field) string (`YYYY-MM-DD`), not the task’s due date.  
+   - Backend: update the deal pipeline record’s Start Date (existing update endpoint).

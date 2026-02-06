@@ -66,9 +66,37 @@ function getDealPipelineProjectGid(): string {
   return process.env.ASANA_PROJECT_GID?.replace(/['"]/g, '').trim() || DEFAULT_DEAL_PIPELINE_PROJECT_GID;
 }
 
+function getDefaultWorkspace(): string | undefined {
+  return process.env.ASANA_WORKSPACE_GID?.replace(/['"]/g, '').trim();
+}
+
+async function fetchAllProjects(token: string, workspaceGid: string): Promise<AsanaProject[]> {
+  const projects: AsanaProject[] = [];
+  let offset: string | null = null;
+  do {
+    const params: Record<string, string> = { opt_fields: 'name,gid', limit: '100' };
+    if (offset) params.offset = offset;
+    const path = `/workspaces/${workspaceGid}/projects?${new URLSearchParams(params)}`;
+    const json = await asanaFetch(token, path);
+    const batch = (json.data || []) as AsanaProject[];
+    projects.push(...batch);
+    offset = json.next_page?.offset ?? null;
+  } while (offset);
+  return projects;
+}
+
 interface AsanaProject {
   gid: string;
   name: string;
+}
+
+interface AsanaCustomFieldValue {
+  gid?: string;
+  name?: string;
+  type?: string;
+  display_value?: string;
+  date_value?: { date?: string };
+  text_value?: string;
 }
 
 interface AsanaTaskRaw {
@@ -76,13 +104,28 @@ interface AsanaTaskRaw {
   name: string;
   due_on: string | null;
   permalink_url?: string;
+  custom_fields?: AsanaCustomFieldValue[];
 }
 
 interface UpcomingTask {
   gid: string;
   name: string;
-  due_on: string;
+  due_on: string | null;
+  start_date: string | null;
   permalink_url: string;
+}
+
+/** Extract "Start Date" custom field value (YYYY-MM-DD) or null. */
+function getStartDateFromCustomFields(customFields: AsanaCustomFieldValue[] | undefined): string | null {
+  if (!customFields || !Array.isArray(customFields)) return null;
+  for (const f of customFields) {
+    const name = (f.name || '').toLowerCase().trim();
+    if (name !== 'start date') continue;
+    if (f.date_value?.date) return f.date_value.date;
+    if (f.display_value && /^\d{4}-\d{2}-\d{2}$/.test(f.display_value)) return f.display_value;
+    return null;
+  }
+  return null;
 }
 
 interface ProjectWithTasks {
@@ -162,7 +205,8 @@ async function fetchTasksForProject(
 
   do {
     const params: Record<string, string> = {
-      opt_fields: 'name,due_on,permalink_url,gid',
+      opt_fields: 'name,due_on,permalink_url,gid,custom_fields',
+      opt_expand: 'custom_fields',
       limit: '100',
       completed_since: 'now',
     };
@@ -173,12 +217,15 @@ async function fetchTasksForProject(
     const batch = (json.data || []) as AsanaTaskRaw[];
 
     for (const t of batch) {
-      if (!t.due_on) continue;
-      if (t.due_on < today || t.due_on > endDate) continue;
+      const startDate = getStartDateFromCustomFields(t.custom_fields);
+      const dueInRange = t.due_on != null && t.due_on >= today && t.due_on <= endDate;
+      const include = dueInRange || t.due_on == null || startDate != null;
+      if (!include) continue;
       tasks.push({
         gid: t.gid,
         name: t.name,
-        due_on: t.due_on,
+        due_on: t.due_on ?? null,
+        start_date: startDate,
         permalink_url: t.permalink_url || `https://app.asana.com/0/0/${t.gid}`,
       });
     }
@@ -190,8 +237,9 @@ async function fetchTasksForProject(
 
 /**
  * GET /api/asana/upcoming-tasks
- * Uses the Deal Pipeline project only (ASANA_PROJECT_GID). Query: project (optional override), daysAhead (optional, default 90).
- * Returns Asana tasks with due dates in the next N days from the Deal Pipeline project.
+ * Query: workspace (optional), project (optional), daysAhead (optional, default 90).
+ * When workspace is set (query or ASANA_WORKSPACE_GID): list projects in workspace, fetch tasks per project with start_date from custom field.
+ * Otherwise: single Deal Pipeline project (ASANA_PROJECT_GID). Each task includes due_on, start_date (custom "Start Date"), permalink_url.
  */
 export async function getUpcomingTasks(req: Request, res: Response): Promise<void> {
   try {
@@ -201,25 +249,42 @@ export async function getUpcomingTasks(req: Request, res: Response): Promise<voi
       return;
     }
 
-    const projectGid = (req.query.project as string) || getDealPipelineProjectGid();
+    const workspace = (req.query.workspace as string)?.trim() || getDefaultWorkspace();
+    const projectGid = (req.query.project as string)?.trim();
     const daysAhead = Math.min(365, Math.max(1, parseInt(String(req.query.daysAhead), 10) || DEFAULT_DAYS_AHEAD));
     const today = new Date().toISOString().slice(0, 10);
     const end = new Date();
     end.setDate(end.getDate() + daysAhead);
     const endDate = end.toISOString().slice(0, 10);
 
-    const proj = await fetchProject(token, projectGid);
-    if (!proj) {
-      res.json({ success: true, data: [] });
-      return;
+    const result: ProjectWithTasks[] = [];
+
+    if (workspace) {
+      const projects = await fetchAllProjects(token, workspace);
+      for (const proj of projects) {
+        const tasks = await fetchTasksForProject(token, proj.gid, today, endDate);
+        tasks.sort((a, b) => {
+          const aDate = a.start_date || a.due_on || '9999-12-31';
+          const bDate = b.start_date || b.due_on || '9999-12-31';
+          return aDate.localeCompare(bDate);
+        });
+        if (tasks.length > 0) result.push({ projectGid: proj.gid, projectName: proj.name, tasks });
+      }
+    } else {
+      const pid = projectGid || getDealPipelineProjectGid();
+      const proj = await fetchProject(token, pid);
+      if (!proj) {
+        res.json({ success: true, data: [] });
+        return;
+      }
+      const tasks = await fetchTasksForProject(token, proj.gid, today, endDate);
+      tasks.sort((a, b) => {
+        const aDate = a.start_date || a.due_on || '9999-12-31';
+        const bDate = b.start_date || b.due_on || '9999-12-31';
+        return aDate.localeCompare(bDate);
+      });
+      result.push({ projectGid: proj.gid, projectName: proj.name, tasks });
     }
-
-    const tasks = await fetchTasksForProject(token, proj.gid, today, endDate);
-    tasks.sort((a, b) => a.due_on.localeCompare(b.due_on));
-
-    const result: ProjectWithTasks[] = [
-      { projectGid: proj.gid, projectName: proj.name, tasks },
-    ];
 
     res.json({ success: true, data: result });
   } catch (e) {
@@ -229,23 +294,24 @@ export async function getUpcomingTasks(req: Request, res: Response): Promise<voi
 }
 
 /** YYYY-MM-DD format. */
-const DUE_ON_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 
 /**
  * PUT /api/asana/tasks/:taskGid/due-on
- * Body: { due_on: "YYYY-MM-DD" }
- * Updates the Asana task's due date (admin remedy: override Asana with database date).
+ * Body: { due_on: "YYYY-MM-DD" } (or dateStr for Start Date custom field)
+ * Admin remedy: set Asana task's custom field "Start Date" when ASANA_START_DATE_CUSTOM_FIELD_GID is set;
+ * otherwise updates the task's due_on (legacy).
  */
 export async function updateTaskDueOn(req: Request, res: Response): Promise<void> {
   try {
     const taskGid = (req.params.taskGid || '').trim();
-    const dueOn = typeof req.body?.due_on === 'string' ? req.body.due_on.trim() : '';
+    const dateStr = typeof req.body?.due_on === 'string' ? req.body.due_on.trim() : '';
 
     if (!taskGid) {
       res.status(400).json({ success: false, error: { message: 'taskGid required' } });
       return;
     }
-    if (!DUE_ON_REGEX.test(dueOn)) {
+    if (!DATE_REGEX.test(dateStr)) {
       res.status(400).json({ success: false, error: { message: 'due_on must be YYYY-MM-DD' } });
       return;
     }
@@ -256,8 +322,20 @@ export async function updateTaskDueOn(req: Request, res: Response): Promise<void
       return;
     }
 
-    const json = await asanaPut(token, `/tasks/${taskGid}`, { due_on: dueOn });
-    res.json({ success: true, data: json.data || { gid: taskGid, due_on: dueOn } });
+    const startDateFieldGid = process.env.ASANA_START_DATE_CUSTOM_FIELD_GID?.replace(/['"]/g, '').trim();
+    let body: Record<string, unknown>;
+
+    if (startDateFieldGid) {
+      body = { custom_fields: { [startDateFieldGid]: dateStr } };
+    } else {
+      body = { due_on: dateStr };
+    }
+
+    const json = await asanaPut(token, `/tasks/${taskGid}`, body);
+    res.json({
+      success: true,
+      data: json.data || { gid: taskGid, due_on: dateStr, start_date: startDateFieldGid ? dateStr : undefined },
+    });
   } catch (e) {
     console.error('[Asana] updateTaskDueOn failed:', e instanceof Error ? e.message : e);
     res.status(200).json({

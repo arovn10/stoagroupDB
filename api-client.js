@@ -1235,12 +1235,13 @@
 }
 
 /**
- * Get Asana tasks with due dates from the Deal Pipeline project. GET /api/asana/upcoming-tasks (view-only; no auth required)
- * @param {object} [opts] - Optional: { project?: string (Asana project GID; default Deal Pipeline), daysAhead?: number (default 90) }
- * @returns {Promise<object>} { success: true, data: [ { projectGid, projectName, tasks: [ { gid, name, due_on, permalink_url } ] } ] } or { success: false, error: { message } }
+ * Get Asana tasks (with due_on and start_date from custom "Start Date" field). GET /api/asana/upcoming-tasks (view-only; no auth required)
+ * @param {object} [opts] - Optional: { workspace?: string (workspace GID), project?: string (project GID; when no workspace), daysAhead?: number (default 90) }
+ * @returns {Promise<object>} { success: true, data: [ { projectGid, projectName, tasks: [ { gid, name, due_on, start_date, permalink_url } ] } ] } or { success: false, error: { message } }
  */
   async function getAsanaUpcomingTasks(opts) {
   const params = new URLSearchParams();
+  if (opts?.workspace) params.set('workspace', opts.workspace);
   if (opts?.project) params.set('project', opts.project);
   if (opts?.daysAhead != null) params.set('daysAhead', String(opts.daysAhead));
   const qs = params.toString();
@@ -1249,13 +1250,14 @@
 }
 
 /**
- * Update an Asana task's due date (admin remedy: override Asana with database date). PUT /api/asana/tasks/:taskGid/due-on
+ * Set Asana task start date (admin remedy: override Asana with database date or fill when empty). PUT /api/asana/tasks/:taskGid/due-on
+ * Backend sets custom field "Start Date" when ASANA_START_DATE_CUSTOM_FIELD_GID is set; otherwise updates due_on.
  * @param {string} taskGid - Asana task GID
- * @param {string} dueOn - Date string YYYY-MM-DD
- * @returns {Promise<object>} { success: true, data: { gid, due_on } } or { success: false, error: { message } }
+ * @param {string} dateStr - Date string YYYY-MM-DD (e.g. database start date)
+ * @returns {Promise<object>} { success: true, data } or { success: false, error: { message } }
  */
-  async function updateAsanaTaskDueDate(taskGid, dueOn) {
-  return apiRequest(`/api/asana/tasks/${encodeURIComponent(taskGid)}/due-on`, 'PUT', { due_on: dueOn });
+  async function updateAsanaTaskDueDate(taskGid, dateStr) {
+  return apiRequest(`/api/asana/tasks/${encodeURIComponent(taskGid)}/due-on`, 'PUT', { due_on: dateStr });
 }
 
 // LIQUIDITY REQUIREMENTS
