@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { getConnection } from '../config/database';
 import { normalizeState, normalizeStateInPayload } from '../utils/stateAbbrev';
+import { wrapStoaEmailLayout } from '../utils/stoaEmailLayout';
 import { getFullPath, getRelativeStoragePath, buildBankingFileStoragePath } from '../middleware/uploadMiddleware';
 import {
   isBlobStorageConfigured,
@@ -109,6 +110,251 @@ export const getBankingEntities = async (req: Request, res: Response, next: Next
         entities: partnersResult.recordset,
       },
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ============================================================
+// BANKING CONTACTS (core.Person + banking.BankingContactExtension)
+// Role: Banker, Broker, Developer, Other. Notes on person (core) and banking-specific (extension).
+// ============================================================
+
+const BANKING_CONTACT_ROLES = ['Banker', 'Broker', 'Developer', 'Other'] as const;
+
+export const getAllBankingContacts = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { role, q } = req.query as { role?: string; q?: string };
+    const pool = await getConnection();
+    let query = `
+      SELECT
+        p.PersonId AS ContactId,
+        p.FullName AS Name,
+        p.Email,
+        p.Phone AS PhoneNumber,
+        p.Title,
+        p.Notes AS Notes,
+        e.Role,
+        e.Notes AS BankingNotes,
+        e.CreatedAt,
+        e.ModifiedAt
+      FROM core.Person p
+      INNER JOIN banking.BankingContactExtension e ON e.ContactId = p.PersonId
+      WHERE 1=1
+    `;
+    const request = pool.request();
+    if (role && role.trim() && BANKING_CONTACT_ROLES.includes(role.trim() as typeof BANKING_CONTACT_ROLES[number])) {
+      query += ` AND e.Role = @role`;
+      request.input('role', sql.NVarChar(50), role.trim());
+    }
+    if (q && typeof q === 'string' && q.trim()) {
+      query += ` AND (p.FullName LIKE @q OR p.Email LIKE @q OR p.Notes LIKE @q OR e.Notes LIKE @q)`;
+      request.input('q', sql.NVarChar(255), `%${q.trim()}%`);
+    }
+    query += ` ORDER BY p.FullName`;
+    const result = await request.query(query);
+    res.json({ success: true, data: result.recordset });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getBankingContactById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+      res.status(400).json({ success: false, error: { message: 'Invalid id' } });
+      return;
+    }
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input('id', sql.Int, id)
+      .query(`
+        SELECT
+          p.PersonId AS ContactId,
+          p.FullName AS Name,
+          p.Email,
+          p.Phone AS PhoneNumber,
+          p.Title,
+          p.Notes AS Notes,
+          e.Role,
+          e.Notes AS BankingNotes,
+          e.CreatedAt,
+          e.ModifiedAt
+        FROM core.Person p
+        INNER JOIN banking.BankingContactExtension e ON e.ContactId = p.PersonId
+        WHERE p.PersonId = @id
+      `);
+    if (result.recordset.length === 0) {
+      res.status(404).json({ success: false, error: { message: 'Contact not found' } });
+      return;
+    }
+    res.json({ success: true, data: result.recordset[0] });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createBankingContact = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { Name, Email, PhoneNumber, Title, Notes, Role, BankingNotes } = req.body;
+    if (!Name || typeof Name !== 'string' || !Name.trim()) {
+      res.status(400).json({ success: false, error: { message: 'Name is required' } });
+      return;
+    }
+    if (Role != null && Role !== '' && !BANKING_CONTACT_ROLES.includes(Role)) {
+      res.status(400).json({ success: false, error: { message: 'Role must be one of: Banker, Broker, Developer, Other' } });
+      return;
+    }
+    const pool = await getConnection();
+    const insertResult = await pool.request()
+      .input('FullName', sql.NVarChar(255), Name.trim())
+      .input('Email', sql.NVarChar(255), Email ?? null)
+      .input('Phone', sql.NVarChar(50), PhoneNumber ?? null)
+      .input('Title', sql.NVarChar(100), Title ?? null)
+      .input('Notes', sql.NVarChar(sql.MAX), Notes ?? null)
+      .query(`
+        INSERT INTO core.Person (FullName, Email, Phone, Title, Notes)
+        OUTPUT INSERTED.PersonId
+        VALUES (@FullName, @Email, @Phone, @Title, @Notes)
+      `);
+    const contactId = parseInt(String(insertResult.recordset[0].PersonId), 10);
+    if (!Number.isFinite(contactId)) {
+      res.status(500).json({ success: false, error: { message: 'Failed to create contact' } });
+      return;
+    }
+    const roleVal = Role && BANKING_CONTACT_ROLES.includes(Role) ? Role : null;
+    await pool.request()
+      .input('ContactId', sql.Int, contactId)
+      .input('Role', sql.NVarChar(50), roleVal)
+      .input('Notes', sql.NVarChar(sql.MAX), BankingNotes ?? null)
+      .query(`
+        INSERT INTO banking.BankingContactExtension (ContactId, Role, Notes)
+        VALUES (@ContactId, @Role, @Notes)
+      `);
+    const getResult = await pool.request().input('id', sql.Int, contactId).query(`
+      SELECT p.PersonId AS ContactId, p.FullName AS Name, p.Email, p.Phone AS PhoneNumber,
+             p.Title, p.Notes AS Notes, e.Role, e.Notes AS BankingNotes, e.CreatedAt, e.ModifiedAt
+      FROM core.Person p
+      INNER JOIN banking.BankingContactExtension e ON e.ContactId = p.PersonId
+      WHERE p.PersonId = @id
+    `);
+    res.status(201).json({ success: true, data: getResult.recordset[0] });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateBankingContact = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+      res.status(400).json({ success: false, error: { message: 'Invalid id' } });
+      return;
+    }
+    const { Name, Email, PhoneNumber, Title, Notes, Role, BankingNotes } = req.body;
+    if (Role !== undefined && Role !== null && Role !== '' && !BANKING_CONTACT_ROLES.includes(Role)) {
+      res.status(400).json({ success: false, error: { message: 'Role must be one of: Banker, Broker, Developer, Other' } });
+      return;
+    }
+    const pool = await getConnection();
+    const personCheck = await pool.request().input('id', sql.Int, id).query('SELECT PersonId FROM core.Person WHERE PersonId = @id');
+    if (personCheck.recordset.length === 0) {
+      res.status(404).json({ success: false, error: { message: 'Contact not found' } });
+      return;
+    }
+    if (Name !== undefined || Email !== undefined || PhoneNumber !== undefined || Title !== undefined || Notes !== undefined) {
+      const updates: string[] = [];
+      const reqPerson = pool.request().input('id', sql.Int, id);
+      if (Name !== undefined) { updates.push('FullName = @FullName'); reqPerson.input('FullName', sql.NVarChar(255), Name); }
+      if (Email !== undefined) { updates.push('Email = @Email'); reqPerson.input('Email', sql.NVarChar(255), Email); }
+      if (PhoneNumber !== undefined) { updates.push('Phone = @Phone'); reqPerson.input('Phone', sql.NVarChar(50), PhoneNumber); }
+      if (Title !== undefined) { updates.push('Title = @Title'); reqPerson.input('Title', sql.NVarChar(100), Title); }
+      if (Notes !== undefined) { updates.push('Notes = @Notes'); reqPerson.input('Notes', sql.NVarChar(sql.MAX), Notes); }
+      if (updates.length) await reqPerson.query(`UPDATE core.Person SET ${updates.join(', ')} WHERE PersonId = @id`);
+    }
+    const extExists = await pool.request().input('id', sql.Int, id).query('SELECT ContactId FROM banking.BankingContactExtension WHERE ContactId = @id');
+    if (extExists.recordset.length > 0) {
+      const updates: string[] = ['ModifiedAt = SYSDATETIME()'];
+      const reqExt = pool.request().input('id', sql.Int, id);
+      if (Role !== undefined) { updates.push('Role = @Role'); reqExt.input('Role', sql.NVarChar(50), Role && BANKING_CONTACT_ROLES.includes(Role) ? Role : null); }
+      if (BankingNotes !== undefined) { updates.push('Notes = @Notes'); reqExt.input('Notes', sql.NVarChar(sql.MAX), BankingNotes); }
+      if (updates.length > 1) await reqExt.query(`UPDATE banking.BankingContactExtension SET ${updates.join(', ')} WHERE ContactId = @id`);
+    }
+    const getResult = await pool.request().input('id', sql.Int, id).query(`
+      SELECT p.PersonId AS ContactId, p.FullName AS Name, p.Email, p.Phone AS PhoneNumber,
+             p.Title, p.Notes AS Notes, e.Role, e.Notes AS BankingNotes, e.CreatedAt, e.ModifiedAt
+      FROM core.Person p
+      INNER JOIN banking.BankingContactExtension e ON e.ContactId = p.PersonId
+      WHERE p.PersonId = @id
+    `);
+    res.json({ success: true, data: getResult.recordset[0] });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteBankingContact = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+      res.status(400).json({ success: false, error: { message: 'Invalid id' } });
+      return;
+    }
+    const pool = await getConnection();
+    const extCheck = await pool.request().input('id', sql.Int, id).query('SELECT ContactId FROM banking.BankingContactExtension WHERE ContactId = @id');
+    if (extCheck.recordset.length === 0) {
+      res.status(404).json({ success: false, error: { message: 'Contact not found' } });
+      return;
+    }
+    await pool.request().input('id', sql.Int, id).query('DELETE FROM banking.BankingContactExtension WHERE ContactId = @id');
+    res.json({ success: true, message: 'Banking contact removed' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/** Add banking team attributes (Role, Notes) to an existing core.Person. Master contact lives in core; this only creates the extension row. */
+export const addBankingContactExtension = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const personId = parseInt(req.params.personId, 10);
+    if (isNaN(personId)) {
+      res.status(400).json({ success: false, error: { message: 'Invalid personId' } });
+      return;
+    }
+    const { Role, BankingNotes } = req.body;
+    if (Role != null && Role !== '' && !BANKING_CONTACT_ROLES.includes(Role)) {
+      res.status(400).json({ success: false, error: { message: 'Role must be one of: Banker, Broker, Developer, Other' } });
+      return;
+    }
+    const pool = await getConnection();
+    const personCheck = await pool.request().input('id', sql.Int, personId).query('SELECT PersonId FROM core.Person WHERE PersonId = @id');
+    if (personCheck.recordset.length === 0) {
+      res.status(404).json({ success: false, error: { message: 'Person not found' } });
+      return;
+    }
+    const extExists = await pool.request().input('id', sql.Int, personId).query('SELECT ContactId FROM banking.BankingContactExtension WHERE ContactId = @id');
+    if (extExists.recordset.length > 0) {
+      res.status(409).json({ success: false, error: { message: 'Banking extension already exists for this contact; use PUT to update.' } });
+      return;
+    }
+    const roleVal = Role && BANKING_CONTACT_ROLES.includes(Role) ? Role : null;
+    await pool.request()
+      .input('ContactId', sql.Int, personId)
+      .input('Role', sql.NVarChar(50), roleVal)
+      .input('Notes', sql.NVarChar(sql.MAX), BankingNotes ?? null)
+      .query(`
+        INSERT INTO banking.BankingContactExtension (ContactId, Role, Notes)
+        VALUES (@ContactId, @Role, @Notes)
+      `);
+    const getResult = await pool.request().input('id', sql.Int, personId).query(`
+      SELECT p.PersonId AS ContactId, p.FullName AS Name, p.Email, p.Phone AS PhoneNumber,
+             p.Title, p.Notes AS Notes, e.Role, e.Notes AS BankingNotes, e.CreatedAt, e.ModifiedAt
+      FROM core.Person p
+      INNER JOIN banking.BankingContactExtension e ON e.ContactId = p.PersonId
+      WHERE p.PersonId = @id
+    `);
+    res.status(201).json({ success: true, data: getResult.recordset[0] });
   } catch (error) {
     next(error);
   }
@@ -2687,25 +2933,15 @@ export const saveUpcomingDatesReminderSettings = async (req: Request, res: Respo
   }
 };
 
-const COVENANT_REMINDER_HTML = `<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Covenant Reminder</title></head>
-<body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.6;color:#1f2937;margin:0;padding:24px;background:#f5f5f5;">
-  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.08);overflow:hidden;">
-    <div style="background:#7e8a6b;color:#fff;padding:20px 24px;"><h1 style="margin:0;font-size:20px;font-weight:600;">Banking Dashboard – Covenant Reminder</h1><p style="margin:8px 0 0;opacity:0.95;font-size:14px;">{{ProjectName}}</p></div>
-    <div style="padding:24px;">
-      <h2 style="margin:0 0 16px;font-size:16px;color:#1f2937;">Upcoming covenant date</h2>
-      <p style="margin:0 0 12px;font-size:14px;color:#4b5563;">This is a reminder for the following covenant.</p>
-      <div style="background:#f0f4eb;border-left:4px solid #7e8a6b;padding:12px 16px;margin:16px 0;border-radius:0 6px 6px 0;font-size:14px;">
-        <strong>Type:</strong> {{CovenantType}}<br/><strong>Date:</strong> {{CovenantDate}}<br/>{{DaysUntilBlock}}<strong>Requirement:</strong> {{Requirement}}
-      </div>
-      <p style="margin:0 0 12px;font-size:14px;color:#4b5563;">Please ensure required reporting or compliance is prepared by the date above.</p>
-      <div style="margin-top:20px;padding-top:16px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;">Property: {{ProjectName}} · Covenant ID: {{CovenantId}}</div>
-    </div>
-    <div style="padding:16px 24px;background:#f9fafb;font-size:12px;color:#6b7280;text-align:center;">Stoa Group – Banking Dashboard. This reminder was sent by the system based on your reminder settings.</div>
+const COVENANT_REMINDER_BODY_HTML = `
+  <h2 style="margin:0 0 16px;font-size:16px;color:#1f2937;">Upcoming covenant date</h2>
+  <p style="margin:0 0 12px;font-size:14px;color:#4b5563;">This is a reminder for the following covenant.</p>
+  <div style="background:#f0f4eb;border-left:4px solid #7e8a6b;padding:12px 16px;margin:16px 0;border-radius:0 6px 6px 0;font-size:14px;">
+    <strong>Type:</strong> {{CovenantType}}<br/><strong>Date:</strong> {{CovenantDate}}<br/>{{DaysUntilBlock}}<strong>Requirement:</strong> {{Requirement}}
   </div>
-</body>
-</html>`;
+  <p style="margin:0 0 12px;font-size:14px;color:#4b5563;">Please ensure required reporting or compliance is prepared by the date above.</p>
+  <div style="margin-top:20px;padding-top:16px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;">Property: {{ProjectName}} · Covenant ID: {{CovenantId}}</div>
+`;
 
 function replaceTemplateVars(html: string, vars: Record<string, string>): string {
   let out = html;
@@ -2754,13 +2990,18 @@ export const sendCovenantReminder = async (req: Request, res: Response, next: Ne
     const projectName = (row.ProjectName != null && String(row.ProjectName).trim()) ? String(row.ProjectName).trim() : 'Unknown';
     const covenantType = (row.CovenantType != null && String(row.CovenantType).trim()) ? String(row.CovenantType).trim() : 'Covenant';
     const escape = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    const html = replaceTemplateVars(COVENANT_REMINDER_HTML, {
+    const bodyHtml = replaceTemplateVars(COVENANT_REMINDER_BODY_HTML, {
       ProjectName: escape(projectName),
       CovenantType: escape(covenantType),
       CovenantDate: dateStr || '—',
       DaysUntilBlock: daysUntil,
       Requirement: escape(requirement),
       CovenantId: String(covenantId),
+    });
+    const html = wrapStoaEmailLayout(bodyHtml, {
+      pageTitle: 'Covenant Reminder',
+      header: { title: 'Banking Dashboard – Covenant Reminder', subtitle: projectName },
+      footer: { line: 'This reminder was sent by the system based on your reminder settings.' },
     });
     const subject = `Covenant reminder: ${covenantType} – ${projectName} – ${dateStr || '—'}`;
     const mailFrom = process.env.MAIL_FROM || process.env.SMTP_FROM;

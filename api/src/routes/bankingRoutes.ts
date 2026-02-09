@@ -143,5 +143,13 @@ router.delete('/files/:attachmentId', authenticate, bankingController.deleteBank
 router.post('/presence', authenticate, bankingController.reportPresence);
 router.get('/presence', authenticate, bankingController.getPresence);
 
+// Banking contacts (core.Person + banking.BankingContactExtension; Role: Banker, Broker, Developer, Other)
+router.get('/contacts', bankingController.getAllBankingContacts);
+router.post('/contacts/:personId/extension', authenticate, bankingController.addBankingContactExtension); // add team attributes to existing person
+router.get('/contacts/:id', bankingController.getBankingContactById);
+router.post('/contacts', authenticate, bankingController.createBankingContact);
+router.put('/contacts/:id', authenticate, bankingController.updateBankingContact);
+router.delete('/contacts/:id', authenticate, bankingController.deleteBankingContact);
+
 export default router;
 

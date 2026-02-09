@@ -276,6 +276,27 @@
   return apiRequest(`/api/core/persons/${id}`, 'DELETE');
 }
 
+  // Banking contacts: core.Person + banking extension (Role: Banker, Broker, Developer, Other; BankingNotes)
+  async function getAllBankingContacts(params) {
+  const qs = params && (params.role || params.q) ? '?' + new URLSearchParams(Object.fromEntries(Object.entries(params).filter(([, v]) => v != null && v !== ''))).toString() : '';
+  return apiRequest('/api/banking/contacts' + qs);
+  }
+  async function getBankingContactById(id) {
+  return apiRequest(`/api/banking/contacts/${id}`);
+  }
+  async function addBankingContactExtension(personId, data) {
+  return apiRequest(`/api/banking/contacts/${personId}/extension`, 'POST', data);
+  }
+  async function createBankingContact(data) {
+  return apiRequest('/api/banking/contacts', 'POST', data);
+  }
+  async function updateBankingContact(id, data) {
+  return apiRequest(`/api/banking/contacts/${id}`, 'PUT', data);
+  }
+  async function deleteBankingContact(id) {
+  return apiRequest(`/api/banking/contacts/${id}`, 'DELETE');
+  }
+
 // PRE-CON MANAGERS
 /**
  * Get all Pre-Con Managers
@@ -2644,6 +2665,14 @@
   API.createPerson = createPerson;
   API.updatePerson = updatePerson;
   API.deletePerson = deletePerson;
+
+  // Banking - Contacts (core.Person + banking.BankingContactExtension; team-specific Role & Notes)
+  API.getAllBankingContacts = getAllBankingContacts;
+  API.getBankingContactById = getBankingContactById;
+  API.addBankingContactExtension = addBankingContactExtension;
+  API.createBankingContact = createBankingContact;
+  API.updateBankingContact = updateBankingContact;
+  API.deleteBankingContact = deleteBankingContact;
 
   API.getAllPreConManagers = getAllPreConManagers;
   API.getPreConManagerById = getPreConManagerById;
