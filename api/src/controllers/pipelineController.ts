@@ -2508,16 +2508,26 @@ export const listDealPipelineAttachments = async (req: Request, res: Response, n
     const result = await pool.request()
       .input('dealPipelineId', sql.Int, dealPipelineId)
       .query(`
-        SELECT DealPipelineAttachmentId, DealPipelineId, FileName, ContentType, FileSizeBytes, CreatedAt
+        SELECT DealPipelineAttachmentId, DealPipelineId, FileName, ContentType, FileSizeBytes, Section, CreatedAt
         FROM pipeline.DealPipelineAttachment
         WHERE DealPipelineId = @dealPipelineId
-        ORDER BY CreatedAt DESC
+        ORDER BY Section, CreatedAt DESC
       `);
     res.json({ success: true, data: normalizeStateInPayload(result.recordset) });
   } catch (error) {
     next(error);
   }
 };
+
+/** Land Development file sections (Deal Pipeline). */
+const DEAL_PIPELINE_FILE_SECTIONS = [
+  'Land',
+  'Design and Permits',
+  'Comp Validation',
+  'Contractor',
+  'Legal',
+  'Underwriting',
+] as const;
 
 export const uploadDealPipelineAttachment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -2532,6 +2542,20 @@ export const uploadDealPipelineAttachment = async (req: Request, res: Response, 
     }).file;
     if (!file || (!file.path && !file.buffer)) {
       res.status(400).json({ success: false, error: { message: 'No file uploaded; use multipart field "file"' } });
+      return;
+    }
+    const rawSection = (req.body && (req.body as { section?: string }).section) ?? null;
+    const section: string | null =
+      rawSection === '' || rawSection === undefined || rawSection === null
+        ? null
+        : String(rawSection).trim();
+    if (section !== null && !DEAL_PIPELINE_FILE_SECTIONS.includes(section as (typeof DEAL_PIPELINE_FILE_SECTIONS)[number])) {
+      res.status(400).json({
+        success: false,
+        error: {
+          message: `Invalid section. Allowed: ${DEAL_PIPELINE_FILE_SECTIONS.join(', ')}`,
+        },
+      });
       return;
     }
     const pool = await getConnection();
@@ -2566,10 +2590,11 @@ export const uploadDealPipelineAttachment = async (req: Request, res: Response, 
       .input('StoragePath', sql.NVarChar(1000), storagePath)
       .input('ContentType', sql.NVarChar(100), contentType)
       .input('FileSizeBytes', sql.BigInt, fileSize)
+      .input('Section', sql.NVarChar(80), section)
       .query(`
-        INSERT INTO pipeline.DealPipelineAttachment (DealPipelineId, FileName, StoragePath, ContentType, FileSizeBytes)
-        OUTPUT INSERTED.DealPipelineAttachmentId, INSERTED.DealPipelineId, INSERTED.FileName, INSERTED.ContentType, INSERTED.FileSizeBytes, INSERTED.CreatedAt
-        VALUES (@DealPipelineId, @FileName, @StoragePath, @ContentType, @FileSizeBytes)
+        INSERT INTO pipeline.DealPipelineAttachment (DealPipelineId, FileName, StoragePath, ContentType, FileSizeBytes, Section)
+        OUTPUT INSERTED.DealPipelineAttachmentId, INSERTED.DealPipelineId, INSERTED.FileName, INSERTED.ContentType, INSERTED.FileSizeBytes, INSERTED.Section, INSERTED.CreatedAt
+        VALUES (@DealPipelineId, @FileName, @StoragePath, @ContentType, @FileSizeBytes, @Section)
       `);
     res.status(201).json({ success: true, data: normalizeStateInPayload(result.recordset[0]) });
   } catch (error) {

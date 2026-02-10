@@ -4568,16 +4568,27 @@ export const listBankingFiles = async (req: Request, res: Response, next: NextFu
     const result = await pool.request()
       .input('projectId', sql.Int, projectId)
       .query(`
-        SELECT BankingFileId, ProjectId, FileName, ContentType, FileSizeBytes, CreatedAt
+        SELECT BankingFileId, ProjectId, FileName, ContentType, FileSizeBytes, Section, CreatedAt
         FROM banking.BankingFile
         WHERE ProjectId = @projectId
-        ORDER BY CreatedAt DESC
+        ORDER BY Section, CreatedAt DESC
       `);
     res.json({ success: true, data: result.recordset });
   } catch (error) {
     next(error);
   }
 };
+
+/** Allowed Section values: Banking (Load docs, Underwriting) + Land Development (Land, Design and Permits, Comp Validation, Contractor, Legal, Underwriting). */
+const BANKING_FILE_SECTIONS = [
+  'Load docs',
+  'Underwriting',
+  'Land',
+  'Design and Permits',
+  'Comp Validation',
+  'Contractor',
+  'Legal',
+] as const;
 
 export const uploadBankingFile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -4591,6 +4602,20 @@ export const uploadBankingFile = async (req: Request, res: Response, next: NextF
     }).file;
     if (!file || (!file.path && !file.buffer)) {
       res.status(400).json({ success: false, error: { message: 'No file uploaded; use multipart field "file"' } });
+      return;
+    }
+    const rawSection = (req.body && (req.body as { section?: string }).section) ?? null;
+    const section: string | null =
+      rawSection === '' || rawSection === undefined || rawSection === null
+        ? null
+        : String(rawSection).trim();
+    if (section !== null && !BANKING_FILE_SECTIONS.includes(section as (typeof BANKING_FILE_SECTIONS)[number])) {
+      res.status(400).json({
+        success: false,
+        error: {
+          message: `Invalid section. Allowed: ${BANKING_FILE_SECTIONS.join(', ')}`,
+        },
+      });
       return;
     }
     const pool = await getConnection();
@@ -4624,10 +4649,11 @@ export const uploadBankingFile = async (req: Request, res: Response, next: NextF
       .input('StoragePath', sql.NVarChar(1000), storagePath)
       .input('ContentType', sql.NVarChar(100), contentType)
       .input('FileSizeBytes', sql.BigInt, fileSize)
+      .input('Section', sql.NVarChar(80), section)
       .query(`
-        INSERT INTO banking.BankingFile (ProjectId, FileName, StoragePath, ContentType, FileSizeBytes)
-        OUTPUT INSERTED.BankingFileId, INSERTED.ProjectId, INSERTED.FileName, INSERTED.ContentType, INSERTED.FileSizeBytes, INSERTED.CreatedAt
-        VALUES (@ProjectId, @FileName, @StoragePath, @ContentType, @FileSizeBytes)
+        INSERT INTO banking.BankingFile (ProjectId, FileName, StoragePath, ContentType, FileSizeBytes, Section)
+        OUTPUT INSERTED.BankingFileId, INSERTED.ProjectId, INSERTED.FileName, INSERTED.ContentType, INSERTED.FileSizeBytes, INSERTED.Section, INSERTED.CreatedAt
+        VALUES (@ProjectId, @FileName, @StoragePath, @ContentType, @FileSizeBytes, @Section)
       `);
     res.status(201).json({ success: true, data: result.recordset[0] });
   } catch (error) {
