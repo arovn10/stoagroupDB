@@ -1337,6 +1337,52 @@
   return apiRequest(`/api/asana/tasks/${encodeURIComponent(taskGid)}/custom-field`, 'PUT', { field: fieldKey, value: value == null ? '' : value });
 }
 
+// REVIEWS (online review tracking; dashboard + scraper)
+/**
+ * Get reviews with optional filters. Returns rows matching Domo dataset shape.
+ * @param {object} [filters] - { property, sentiment, category, from, to, limit, includeOnlyReport }
+ * @returns {Promise<object>} { success: true, data: [...] }
+ */
+  async function getReviews(filters = {}) {
+  const params = new URLSearchParams();
+  if (filters.property != null) params.set('property', filters.property);
+  if (filters.sentiment != null) params.set('sentiment', filters.sentiment);
+  if (filters.category != null) params.set('category', filters.category);
+  if (filters.from != null) params.set('from', filters.from);
+  if (filters.to != null) params.set('to', filters.to);
+  if (filters.limit != null) params.set('limit', String(filters.limit));
+  if (filters.includeOnlyReport != null) params.set('includeOnlyReport', filters.includeOnlyReport ? 'true' : 'false');
+  const qs = params.toString();
+  return apiRequest('/api/reviews' + (qs ? '?' + qs : ''));
+}
+
+/**
+ * Get active review properties (Lease-Up, Stabilized) with GoogleMapsUrl and IncludeInReviewsReport.
+ * @returns {Promise<object>} { success: true, data: [{ ProjectId, ProjectName, GoogleMapsUrl, IncludeInReviewsReport, ... }] }
+ */
+  async function getReviewProperties() {
+  return apiRequest('/api/reviews/properties');
+}
+
+/**
+ * Update property review config (GoogleMapsUrl, IncludeInReviewsReport). Requires auth.
+ * @param {number} projectId - Project ID
+ * @param {object} payload - { GoogleMapsUrl?, IncludeInReviewsReport? }
+ * @returns {Promise<object>} { success: true, data: {...} }
+ */
+  async function updatePropertyReviewConfig(projectId, payload) {
+  return apiRequest(`/api/reviews/properties/${projectId}/config`, 'PUT', payload);
+}
+
+/**
+ * Bulk upsert reviews (scraper). Duplicates are skipped by DB dedupe key.
+ * @param {object[]} reviews - Array of review objects (Property, Review_Text, rating, reviewer_name, etc.)
+ * @returns {Promise<object>} { success: true, data: { inserted, skipped, total } }
+ */
+  async function bulkUpsertReviews(reviews) {
+  return apiRequest('/api/reviews/bulk', 'POST', { reviews });
+}
+
 // LIQUIDITY REQUIREMENTS
 /**
  * Get all liquidity requirements
@@ -2771,6 +2817,11 @@
   API.updateAsanaTaskStartDate = updateAsanaTaskStartDate;
   API.updateAsanaTaskDueDate = updateAsanaTaskDueDate;
   API.updateAsanaTaskCustomField = updateAsanaTaskCustomField;
+  // Reviews
+  API.getReviews = getReviews;
+  API.getReviewProperties = getReviewProperties;
+  API.updatePropertyReviewConfig = updatePropertyReviewConfig;
+  API.bulkUpsertReviews = bulkUpsertReviews;
   
   // Banking - Liquidity Requirements
   API.getAllLiquidityRequirements = getAllLiquidityRequirements;

@@ -12,6 +12,7 @@ import pipelineRoutes from './routes/pipelineRoutes';
 import authRoutes from './routes/authRoutes';
 import landDevelopmentRoutes from './routes/landDevelopmentRoutes';
 import asanaRoutes from './routes/asanaRoutes';
+import reviewsRoutes from './routes/reviewsRoutes';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { getConnection } from './config/database';
 import { ensureContainerExists } from './config/azureBlob';
@@ -55,6 +56,7 @@ app.use('/api/banking', bankingRoutes);
 app.use('/api/pipeline', pipelineRoutes);
 app.use('/api/land-development', landDevelopmentRoutes);
 app.use('/api/asana', asanaRoutes);
+app.use('/api/reviews', reviewsRoutes);
 
 // API Documentation endpoint
 app.get('/api', (req: Request, res: Response) => {
@@ -256,6 +258,12 @@ app.get('/api', (req: Request, res: Response) => {
         upcomingTasks: 'GET /api/asana/upcoming-tasks (?workspace, project, daysAhead; tasks include start_date from custom field)',
         updateTaskDueOn: 'PUT /api/asana/tasks/:taskGid/due-on (body: { due_on: "YYYY-MM-DD" }; sets Start Date custom field only)',
         updateTaskCustomField: 'PUT /api/asana/tasks/:taskGid/custom-field (body: { field, value }; unit_count, bank, location, etc.)',
+      },
+      reviews: {
+        getReviews: 'GET /api/reviews (?property, sentiment, category, from, to, limit, includeOnlyReport)',
+        getReviewProperties: 'GET /api/reviews/properties (active Lease-Up/Stabilized + GoogleMapsUrl, IncludeInReviewsReport)',
+        updatePropertyReviewConfig: 'PUT /api/reviews/properties/:projectId/config (auth; body: { GoogleMapsUrl?, IncludeInReviewsReport? })',
+        bulkUpsertReviews: 'POST /api/reviews/bulk (body: { reviews: [...] }; deduped by Property+reviewer+date+text)',
       },
     },
   });
