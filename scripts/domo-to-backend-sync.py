@@ -36,6 +36,7 @@ import io
 import json
 import os
 import sys
+import time
 from pathlib import Path
 from typing import Any
 
@@ -171,20 +172,27 @@ def build_payload_from_local(local_paths: dict[str, str]) -> dict[str, list]:
 
 
 def post_sync(base_url: str, payload: dict[str, list]) -> dict[str, Any]:
-    """POST to backend /api/leasing/sync. Sends one dataset per request to avoid 413 (entity too large)."""
+    """POST to backend /api/leasing/sync. Sends one dataset per request; short delay between to avoid connection drops."""
     url = f"{base_url.rstrip('/')}/api/leasing/sync"
     all_synced = []
     all_skipped = []
     all_errors = []
-    for key, rows in payload.items():
+    for i, (key, rows) in enumerate(payload.items()):
+        if i > 0:
+            time.sleep(2)
         try:
             r = requests.post(
                 url,
                 json={key: rows},
                 headers={"Content-Type": "application/json"},
-                timeout=600,
+                timeout=900,
             )
-            data = r.json()
+            try:
+                data = r.json()
+            except ValueError:
+                msg = f"Response not JSON (status {r.status_code}): {r.text[:200]}"
+                all_errors.append({"dataset": key, "message": msg})
+                continue
             all_synced.extend(data.get("synced", []))
             all_skipped.extend(data.get("skipped", []))
             if data.get("errors"):
