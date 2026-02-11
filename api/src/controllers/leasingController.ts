@@ -629,7 +629,7 @@ async function rebuildDashboardSnapshot(): Promise<void> {
  * Single pre-computed dashboard payload. Serves from DashboardSnapshot if present (fast);
  * otherwise computes from raw tables and returns (slower). Frontend is visual-only.
  * Query: asOf (optional) YYYY-MM-DD.
- * When source is 'none', returns success with dashboard: null so frontend falls back to Domo + client-side calc.
+ * All paths return JSON-serializable dashboard (Maps converted to plain objects) so the client gets full data.
  */
 export const getDashboard = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -650,7 +650,7 @@ export const getDashboard = async (req: Request, res: Response, next: NextFuncti
     const dashboard = await buildDashboardFromRaw(raw);
     res.json({
       success: true,
-      dashboard,
+      dashboard: dashboardPayloadToJsonSafe(dashboard),
       _meta: { source: AGGREGATION_SOURCE, asOf },
     });
   } catch (error) {
