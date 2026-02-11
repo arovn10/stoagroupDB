@@ -70,11 +70,24 @@ function post(path, timeoutMs = SYNC_TIMEOUT_MS) {
     }
     console.log('Domo changes detected; running sync-from-domo...');
     const syncRes = await post('/api/leasing/sync-from-domo');
-    if (syncRes.statusCode !== 200) {
+    const ok = syncRes.statusCode === 200 || syncRes.statusCode === 207;
+    if (!ok) {
       console.error('sync-from-domo failed:', syncRes.statusCode, syncRes.body.slice(0, 300));
       process.exit(1);
     }
-    console.log('Sync completed.');
+    let summary;
+    try {
+      summary = JSON.parse(syncRes.body);
+    } catch (_) {
+      summary = null;
+    }
+    if (syncRes.statusCode === 207 && summary?.errors?.length) {
+      console.log('Sync completed with partial errors:', summary.synced?.length || 0, 'synced,', summary.errors?.length || 0, 'errors');
+      summary.errors.forEach((e) => console.error('  -', e.dataset + ':', e.message?.slice(0, 80)));
+    } else {
+      console.log('Sync completed.', summary?.synced?.length ? summary.synced.length + ' tables synced.' : '');
+    }
+    process.exit(0);
   } catch (e) {
     console.error(e);
     process.exit(1);

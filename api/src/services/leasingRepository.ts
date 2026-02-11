@@ -145,6 +145,34 @@ export async function canSync(datasetAlias: string, dataHashNew: string): Promis
   return false;
 }
 
+/** Truncate all leasing data tables and clear SyncLog so the next sync-from-domo does a full replace. */
+export async function wipeLeasingTables(): Promise<{ truncated: string[] }> {
+  const tables = [
+    `${LEASING_SCHEMA}.Leasing`,
+    `${LEASING_SCHEMA}.MMRData`,
+    `${LEASING_SCHEMA}.UnitByUnitTradeout`,
+    `${LEASING_SCHEMA}.PortfolioUnitDetails`,
+    `${LEASING_SCHEMA}.Units`,
+    `${LEASING_SCHEMA}.UnitMix`,
+    `${LEASING_SCHEMA}.Pricing`,
+    `${LEASING_SCHEMA}.RecentRents`,
+  ];
+  const pool = await getConnection();
+  const tx = new sql.Transaction(pool);
+  await tx.begin();
+  try {
+    for (const table of tables) {
+      await tx.request().query(`TRUNCATE TABLE ${table}`);
+    }
+    await tx.request().query(`DELETE FROM ${SYNC_LOG}`);
+    await tx.commit();
+    return { truncated: [...tables, SYNC_LOG] };
+  } catch (e) {
+    await tx.rollback();
+    throw e;
+  }
+}
+
 // ---------- Leasing ----------
 const T_LEASING = `${LEASING_SCHEMA}.Leasing`;
 const LEASING_COLS = ['Property', 'Units', 'LeasesNeeded', 'NewLeasesCurrentGrossRent', 'LeasingVelocity7Day', 'LeasingVelocity28Day', 'MonthOf', 'BatchTimestamp'];

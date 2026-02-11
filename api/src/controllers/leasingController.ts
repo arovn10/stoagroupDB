@@ -34,6 +34,7 @@ import {
   createLeasing,
   updateLeasing,
   deleteLeasing,
+  wipeLeasingTables,
 } from '../services/leasingRepository';
 import { buildDashboardFromRaw, dashboardPayloadToJsonSafe } from '../services/leasingDashboardService';
 
@@ -461,6 +462,29 @@ export const postSyncFromDomo = async (req: Request, res: Response, next: NextFu
       errors: errors.length ? errors : undefined,
       _meta: { at: now.toISOString(), chunkSize: SYNC_CHUNK_SIZE, restMs: SYNC_REST_MS },
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * POST /api/leasing/wipe
+ * Truncates all leasing data tables and clears SyncLog. Next sync-check will report changes and
+ * sync-from-domo will do a full replace. Use to clear bad/null data before re-syncing.
+ * Same auth as sync-from-domo: X-Sync-Secret if LEASING_SYNC_WEBHOOK_SECRET is set.
+ */
+export const postWipeLeasing = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const secret = process.env.LEASING_SYNC_WEBHOOK_SECRET?.trim();
+    if (secret) {
+      const provided = (req.headers['x-sync-secret'] as string) || (req.body && typeof req.body === 'object' && (req.body as { secret?: string }).secret);
+      if (provided !== secret) {
+        res.status(401).json({ success: false, error: 'Invalid or missing sync secret' });
+        return;
+      }
+    }
+    const result = await wipeLeasingTables();
+    res.status(200).json({ success: true, ...result });
   } catch (error) {
     next(error);
   }

@@ -19,6 +19,8 @@ router.post('/sync', leasingController.postSync);
 router.get('/sync-check', leasingController.getSyncCheck);
 // Sync from Domo: backend fetches datasets from Domo API and syncs. For Domo alerts or cron. Optional header X-Sync-Secret.
 router.post('/sync-from-domo', leasingController.postSyncFromDomo);
+// Wipe: truncate all leasing tables and SyncLog so next sync does full replace. Same auth as sync-from-domo.
+router.post('/wipe', leasingController.postWipeLeasing);
 
 // CRUD: list all rows for a dataset
 router.get('/datasets/:dataset', leasingController.listDataset);

@@ -6,6 +6,52 @@ Sync can run automatically in two ways: **on a schedule** or **when Domo data is
 
 ---
 
+## Test locally
+
+1. **Env** — In `api/.env` (or repo root `.env` loaded by the API) set at least:
+   - `PORT=3000` (API listen port; do not use 1433 — that is the SQL Server port)
+   - `DB_SERVER`, `DB_DATABASE`, `DB_USER`, `DB_PASSWORD`, `DB_ENCRYPT` (and optional `DB_TRUST_SERVER_CERTIFICATE`)
+   - `DOMO_CLIENT_ID`, `DOMO_CLIENT_SECRET`
+   - At least one `DOMO_DATASET_*` (e.g. `DOMO_DATASET_LEASING`, `DOMO_DATASET_PUD`)
+   - Optional: `LEASING_SYNC_WEBHOOK_SECRET` (if set, requests must send `X-Sync-Secret` with the same value)
+
+2. **Start the API** (from repo root):
+   ```bash
+   cd api && npm run build && npm start
+   ```
+   Or for dev with auto-reload: `cd api && npm run dev`. Server runs at **http://localhost:3000**.
+
+3. **Trigger sync** (in another terminal):
+
+   - **Sync-check only** (no DB write):
+     ```bash
+     curl -sS http://localhost:3000/api/leasing/sync-check
+     ```
+   - **Full sync-from-domo** (backend fetches from Domo and writes in 5000-row batches with rest):
+     ```bash
+     curl -sS -X POST http://localhost:3000/api/leasing/sync-from-domo \
+       -H "Content-Type: application/json" \
+       -H "X-Sync-Secret: YOUR_SECRET"   # omit if LEASING_SYNC_WEBHOOK_SECRET is not set
+     ```
+
+4. **Faster local run** (optional): turn off rest between batches so the full sync finishes sooner:
+   ```bash
+   cd api && LEASING_SYNC_REST_MS=0 npm start
+   ```
+   Then in another terminal run the `curl` POST above.
+
+5. **Cron script against local API**: from repo root with `API_BASE_URL=http://localhost:3000` in `.env` or environment:
+   ```bash
+   API_BASE_URL=http://localhost:3000 node scripts/cron-leasing-sync-node.js
+   ```
+
+6. **Wipe tables before re-sync**: If you have bad or null data and want the next sync to do a full replace, call **POST /api/leasing/wipe** (same auth as sync-from-domo). This truncates all leasing data tables and clears SyncLog; the next sync-check will report `changes: true` and sync-from-domo will run and replace everything.
+   ```bash
+   curl -sS -X POST http://localhost:3000/api/leasing/wipe -H "Content-Type: application/json" -H "X-Sync-Secret: YOUR_SECRET"
+   ```
+
+---
+
 ## Option 1: Run on a schedule (recommended)
 
 Run the sync at a fixed interval (e.g. every hour). No Domo configuration required.
@@ -137,20 +183,23 @@ Then whenever Domo calls the URL, the API will fetch from Domo and run the sync.
 
 ---
 
-## Where to change request timeout (fix 15s / "request failed to complete in 15000ms")
+## Where to change request timeout (fix 15s / 502 / "request failed to complete in 15000ms")
 
-The API needs enough time to accept and process large sync bodies (e.g. pricing ~24k rows, PUD ~224k rows). **Change the timeout on the host or reverse proxy**, not only in the client script:
+The API needs enough time for long syncs (e.g. PUD ~224k rows in batches). **Set the timeout in your app**; Render does not expose a proxy request timeout in the dashboard (Render allows responses up to ~100 minutes; the limit is usually your app).
 
-1. **Render**  
-   Dashboard → your **Web Service** → **Settings** → **Advanced** → set **Request timeout** (e.g. **300** seconds). Save and redeploy.
+1. **Render (Node/Express)**  
+   In the **Web Service** that runs the API: **Environment** → add or edit:
+   - **Key:** `SERVER_REQUEST_TIMEOUT_MS`
+   - **Value:** `600000` (10 min) or `900000` (15 min)  
+   Save. Redeploy so the new env is applied. The API sets `server.timeout` from this (default 10 min; see `api/src/server.ts`).
 
 2. **Azure App Service**  
-   Portal → your App Service → **Configuration** → **General settings** → **Request time-out** (e.g. **300**). Save.
+   Portal → your App Service → **Configuration** → **General settings** → **Request time-out** (e.g. **600**). Save.
 
 3. **Other (nginx, load balancer)**  
-   Increase the upstream read/request timeout (e.g. `proxy_read_timeout 300s`) for the API.
+   Increase the upstream read/request timeout (e.g. `proxy_read_timeout 600s`) for the API.
 
-The Node server is also set to allow long-lived requests (see `api/src/server.ts`). If you still see 15s errors after increasing the host timeout, confirm no proxy in between is enforcing a lower limit.
+If you still see 15s errors, something else (e.g. a middle proxy) is enforcing a lower limit.
 
 ---
 

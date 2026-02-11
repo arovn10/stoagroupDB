@@ -1,6 +1,8 @@
-// Ensure Node.js crypto is loaded and available globally (required for attachment download/signing and deps that expect global crypto)
+// Polyfill globalThis.crypto for older Node; Node 19+ provides it read-only, so only set when missing
 import nodeCrypto from 'crypto';
-(globalThis as Record<string, unknown>).crypto = nodeCrypto;
+if (typeof (globalThis as { crypto?: unknown }).crypto === 'undefined') {
+  (globalThis as Record<string, unknown>).crypto = nodeCrypto;
+}
 
 import express, { Request, Response } from 'express';
 import cors from 'cors';
@@ -17,8 +19,12 @@ import leasingRoutes from './routes/leasingRoutes';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { getConnection } from './config/database';
 import { ensureContainerExists } from './config/azureBlob';
+import path from 'path';
 
-dotenv.config();
+// Load .env from repo root then api/ (when running from api/dist, __dirname is api/dist)
+dotenv.config({ path: path.join(__dirname, '..', '..', '.env') });
+dotenv.config({ path: path.join(__dirname, '..', '.env') });
+dotenv.config(); // fallback: cwd
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -275,6 +281,7 @@ app.get('/api', (req: Request, res: Response) => {
         sync: 'POST /api/leasing/sync (body: leasing?, MMRData?, unitbyunittradeout?, portfolioUnitDetails?, units?, unitmix?, pricing?, recentrents?)',
         syncCheck: 'GET /api/leasing/sync-check (optional X-Sync-Secret; returns { changes } from Domo metadata vs last sync – run before sync-from-domo in cron)',
         syncFromDomo: 'POST /api/leasing/sync-from-domo (optional X-Sync-Secret; backend fetches from Domo and syncs – for cron or Domo alert)',
+        wipe: 'POST /api/leasing/wipe (optional X-Sync-Secret; truncate all leasing tables + SyncLog so next sync does full replace)',
       },
     },
   });
@@ -292,7 +299,7 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`📚 API Documentation: http://localhost:${PORT}/api`);
   console.log(`❤️  Health Check: http://localhost:${PORT}/health`);
 });
-server.timeout = Number(process.env.SERVER_REQUEST_TIMEOUT_MS) || 300_000; // 5 min default for sync routes
+server.timeout = Number(process.env.SERVER_REQUEST_TIMEOUT_MS) || 600_000; // 10 min default so sync-from-domo (e.g. PUD) can finish; set env for longer
 ensureContainerExists().catch((err) => {
   console.warn('Azure Blob container check failed (blob features may be limited):', err?.message ?? err);
 });
