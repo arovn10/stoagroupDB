@@ -334,6 +334,7 @@ export async function wipeLeasingTables(): Promise<{ truncated: string[] }> {
 }
 
 // ---------- Leasing ----------
+const LEASING_ALIAS = 'leasing';
 const T_LEASING = `${LEASING_SCHEMA}.Leasing`;
 const LEASING_COLS = ['Property', 'Units', 'LeasesNeeded', 'NewLeasesCurrentGrossRent', 'LeasingVelocity7Day', 'LeasingVelocity28Day', 'MonthOf', 'BatchTimestamp'];
 const LEASING_KEYS = ['Property', 'MonthOf'];
@@ -343,14 +344,14 @@ export async function syncLeasing(rows: Record<string, unknown>[], replace = tru
   await tx.begin();
   try {
     const n = await batchInsert(tx, T_LEASING, LEASING_COLS, rows, (row) => [
-      str(getVal(row, 'Property', 'Property Name', 'PropertyName', 'Community', 'Asset')),
-      num(getVal(row, 'Units', 'Total Units', 'Unit Count', 'UnitsCount')),
-      num(getVal(row, 'LeasesNeeded', 'Leases Needed', 'Leases needed')),
-      num(getVal(row, 'NewLeasesCurrentGrossRent', 'New Leases Current Gross Rent', 'New Leases Gross Rent', 'NewLeasesGrossRent')),
-      num(getVal(row, 'LeasingVelocity7Day', '7DayLeasingVelocity', '7-Day Leasing Velocity', '7 Day Leasing Velocity', '7 Day Velocity', 'Leasing Velocity 7 Day')),
-      num(getVal(row, 'LeasingVelocity28Day', '28DayLeasingVelocity', '28-Day Leasing Velocity', '28 Day Leasing Velocity', '28 Day Velocity', 'Leasing Velocity 28 Day')),
-      str(getVal(row, 'MonthOf', 'Month Of', 'Month', 'Report Month', 'As Of Date', 'AsOfDate', 'ReportDate', 'Date')),
-      str(getVal(row, 'BatchTimestamp', 'Batch Timestamp', 'Timestamp', 'SyncedAt')),
+      str(getValWithOverrides(LEASING_ALIAS, 'Property', row, 'Property Name', 'PropertyName', 'Community', 'Asset')),
+      num(getValWithOverrides(LEASING_ALIAS, 'Units', row, 'Total Units', 'Unit Count', 'UnitsCount')),
+      num(getValWithOverrides(LEASING_ALIAS, 'LeasesNeeded', row, 'Leases Needed', 'Leases needed')),
+      num(getValWithOverrides(LEASING_ALIAS, 'NewLeasesCurrentGrossRent', row, 'New Leases Current Gross Rent', 'New Leases Gross Rent', 'NewLeasesGrossRent')),
+      num(getValWithOverrides(LEASING_ALIAS, 'LeasingVelocity7Day', row, '7DayLeasingVelocity', '7-Day Leasing Velocity', '7 Day Leasing Velocity', '7 Day Velocity', 'Leasing Velocity 7 Day')),
+      num(getValWithOverrides(LEASING_ALIAS, 'LeasingVelocity28Day', row, '28DayLeasingVelocity', '28-Day Leasing Velocity', '28 Day Leasing Velocity', '28 Day Velocity', 'Leasing Velocity 28 Day')),
+      str(getValWithOverrides(LEASING_ALIAS, 'MonthOf', row, 'Month Of', 'Month', 'Report Month', 'As Of Date', 'AsOfDate', 'ReportDate', 'Date')),
+      str(getValWithOverrides(LEASING_ALIAS, 'BatchTimestamp', row, 'Batch Timestamp', 'Timestamp', 'SyncedAt')),
     ], replace, LEASING_KEYS);
     await tx.commit();
     return n;
@@ -361,6 +362,7 @@ export async function syncLeasing(rows: Record<string, unknown>[], replace = tru
 }
 
 // ---------- MMRData ----------
+const MMR_ALIAS = 'MMRData';
 const T_MMR = `${LEASING_SCHEMA}.MMRData`;
 const MMR_COLS = ['Property', 'Location', 'TotalUnits', 'OccupancyPercent', 'CurrentLeasedPercent', 'MI', 'MO', 'FirstVisit', 'Applied', 'Canceled', 'Denied', 'T12LeasesExpired', 'T12LeasesRenewed', 'Delinquent', 'OccupiedRent', 'BudgetedRent', 'CurrentMonthIncome', 'BudgetedIncome', 'MoveInRent', 'OccUnits', 'Week3EndDate', 'Week3MoveIns', 'Week3MoveOuts', 'Week3OccUnits', 'Week3OccPercent', 'Week4EndDate', 'Week4MoveIns', 'Week4MoveOuts', 'Week4OccUnits', 'Week4OccPercent', 'Week7EndDate', 'Week7MoveIns', 'Week7MoveOuts', 'Week7OccUnits', 'Week7OccPercent', 'InServiceUnits', 'T12LeaseBreaks', 'BudgetedOccupancyCurrentMonth', 'BudgetedOccupancyPercentCurrentMonth', 'BudgetedLeasedPercentCurrentMonth', 'BudgetedLeasedCurrentMonth', 'ReportDate', 'ConstructionStatus', 'Rank', 'PreviousOccupancyPercent', 'PreviousLeasedPercent', 'PreviousDelinquentUnits', 'WeekStart', 'LatestDate', 'City', 'State', 'Status', 'FinancingStatus', 'ProductType', 'Units', 'FullAddress', 'Latitude', 'Longitude', 'Region', 'LatestConstructionStatus', 'BirthOrder', 'NetLsd'];
 const MMR_KEYS = ['Property', 'ReportDate'];
@@ -370,11 +372,11 @@ export async function syncMMRData(rows: Record<string, unknown>[], replace = tru
   await tx.begin();
   try {
     const n = await batchInsert(tx, T_MMR, MMR_COLS, rows, (row) => [
-      str(getVal(row, 'Property', 'Property Name', 'PropertyName', 'Community', 'Asset')), str(getVal(row, 'Location', 'Property Location', 'Address')),
-      num(getVal(row, 'TotalUnits', 'Total Units')), num(getVal(row, 'OccupancyPercent', 'Occupancy Percent', 'Occupancy %')), num(getVal(row, 'CurrentLeasedPercent', 'Current Leased Percent', 'Leased %')),
-      num(getVal(row, 'MI')), num(getVal(row, 'MO')), num(getVal(row, 'FirstVisit', '1st Visit', 'First Visit')), num(getVal(row, 'Applied')), num(getVal(row, 'Canceled')), num(getVal(row, 'Denied')), num(getVal(row, 'T12LeasesExpired', 'T12 Leases Expired')), num(getVal(row, 'T12LeasesRenewed', 'T12 Leases Renewed')), num(getVal(row, 'Delinquent')), num(getVal(row, 'OccupiedRent', 'Occupied Rent')), num(getVal(row, 'BudgetedRent', 'Budgeted Rent')), num(getVal(row, 'CurrentMonthIncome', 'Current Month Income')), num(getVal(row, 'BudgetedIncome', 'Budgeted Income')), num(getVal(row, 'MoveInRent', 'Move In Rent')), num(getVal(row, 'OccUnits', 'Occ Units')),
-      str(getVal(row, 'Week3EndDate', 'Week 3 End Date', 'Week3 End Date')), num(getVal(row, 'Week3MoveIns', 'Week 3 Move Ins')), num(getVal(row, 'Week3MoveOuts', 'Week 3 Move Outs')), num(getVal(row, 'Week3OccUnits', 'Week 3 Occ Units')), num(getVal(row, 'Week3OccPercent', 'Week 3 Occ Percent')), str(getVal(row, 'Week4EndDate', 'Week 4 End Date')), num(getVal(row, 'Week4MoveIns')), num(getVal(row, 'Week4MoveOuts')), num(getVal(row, 'Week4OccUnits')), num(getVal(row, 'Week4OccPercent')), str(getVal(row, 'Week7EndDate', 'Week 7 End Date')), num(getVal(row, 'Week7MoveIns')), num(getVal(row, 'Week7MoveOuts')), num(getVal(row, 'Week7OccUnits')), num(getVal(row, 'Week7OccPercent')), num(getVal(row, 'InServiceUnits', 'In Service Units')), num(getVal(row, 'T12LeaseBreaks', 'T12 Lease Breaks')), num(getVal(row, 'BudgetedOccupancyCurrentMonth')), num(getVal(row, 'BudgetedOccupancyPercentCurrentMonth')), num(getVal(row, 'BudgetedLeasedPercentCurrentMonth')), num(getVal(row, 'BudgetedLeasedCurrentMonth')),
-      str(getVal(row, 'ReportDate', 'Report Date')), str(getVal(row, 'ConstructionStatus', 'Construction Status')), num(getVal(row, 'Rank')), num(getVal(row, 'PreviousOccupancyPercent')), num(getVal(row, 'PreviousLeasedPercent')), num(getVal(row, 'PreviousDelinquentUnits')), str(getVal(row, 'WeekStart', 'Week Start')), str(getVal(row, 'LatestDate', 'Latest Date')), str(getVal(row, 'City')), str(getVal(row, 'State')), str(getVal(row, 'Status')), str(getVal(row, 'FinancingStatus', 'Financing Status')), str(getVal(row, 'ProductType', 'Product Type')), num(getVal(row, 'Units')), str(getVal(row, 'FullAddress', 'Full Address')), num(getVal(row, 'Latitude')), num(getVal(row, 'Longitude')), str(getVal(row, 'Region')), str(getVal(row, 'LatestConstructionStatus', 'Latest Construction Status')), num(getVal(row, 'BirthOrder', 'Birth Order')), num(getVal(row, 'NetLsd', 'Net LSD')),
+      str(getValWithOverrides(MMR_ALIAS, 'Property', row, 'Property Name', 'PropertyName', 'Community', 'Asset')), str(getValWithOverrides(MMR_ALIAS, 'Location', row, 'Property Location', 'Address')),
+      num(getValWithOverrides(MMR_ALIAS, 'TotalUnits', row, 'Total Units')), num(getValWithOverrides(MMR_ALIAS, 'OccupancyPercent', row, 'Occupancy Percent', 'Occupancy %')), num(getValWithOverrides(MMR_ALIAS, 'CurrentLeasedPercent', row, 'Current Leased Percent', 'Leased %')),
+      num(getValWithOverrides(MMR_ALIAS, 'MI', row)), num(getValWithOverrides(MMR_ALIAS, 'MO', row)), num(getValWithOverrides(MMR_ALIAS, 'FirstVisit', row, '1st Visit', 'First Visit')), num(getValWithOverrides(MMR_ALIAS, 'Applied', row)), num(getValWithOverrides(MMR_ALIAS, 'Canceled', row)), num(getValWithOverrides(MMR_ALIAS, 'Denied', row)), num(getValWithOverrides(MMR_ALIAS, 'T12LeasesExpired', row, 'T12 Leases Expired')), num(getValWithOverrides(MMR_ALIAS, 'T12LeasesRenewed', row, 'T12 Leases Renewed')), num(getValWithOverrides(MMR_ALIAS, 'Delinquent', row)), num(getValWithOverrides(MMR_ALIAS, 'OccupiedRent', row, 'Occupied Rent')), num(getValWithOverrides(MMR_ALIAS, 'BudgetedRent', row, 'Budgeted Rent')), num(getValWithOverrides(MMR_ALIAS, 'CurrentMonthIncome', row, 'Current Month Income')), num(getValWithOverrides(MMR_ALIAS, 'BudgetedIncome', row, 'Budgeted Income')), num(getValWithOverrides(MMR_ALIAS, 'MoveInRent', row, 'Move In Rent')), num(getValWithOverrides(MMR_ALIAS, 'OccUnits', row, 'Occ Units')),
+      str(getValWithOverrides(MMR_ALIAS, 'Week3EndDate', row, 'Week 3 End Date', 'Week3 End Date')), num(getValWithOverrides(MMR_ALIAS, 'Week3MoveIns', row, 'Week 3 Move Ins')), num(getValWithOverrides(MMR_ALIAS, 'Week3MoveOuts', row, 'Week 3 Move Outs')), num(getValWithOverrides(MMR_ALIAS, 'Week3OccUnits', row, 'Week 3 Occ Units')), num(getValWithOverrides(MMR_ALIAS, 'Week3OccPercent', row, 'Week 3 Occ Percent')), str(getValWithOverrides(MMR_ALIAS, 'Week4EndDate', row, 'Week 4 End Date')), num(getValWithOverrides(MMR_ALIAS, 'Week4MoveIns', row)), num(getValWithOverrides(MMR_ALIAS, 'Week4MoveOuts', row)), num(getValWithOverrides(MMR_ALIAS, 'Week4OccUnits', row)), num(getValWithOverrides(MMR_ALIAS, 'Week4OccPercent', row)), str(getValWithOverrides(MMR_ALIAS, 'Week7EndDate', row, 'Week 7 End Date')), num(getValWithOverrides(MMR_ALIAS, 'Week7MoveIns', row)), num(getValWithOverrides(MMR_ALIAS, 'Week7MoveOuts', row)), num(getValWithOverrides(MMR_ALIAS, 'Week7OccUnits', row)), num(getValWithOverrides(MMR_ALIAS, 'Week7OccPercent', row)), num(getValWithOverrides(MMR_ALIAS, 'InServiceUnits', row, 'In Service Units')), num(getValWithOverrides(MMR_ALIAS, 'T12LeaseBreaks', row, 'T12 Lease Breaks')), num(getValWithOverrides(MMR_ALIAS, 'BudgetedOccupancyCurrentMonth', row)), num(getValWithOverrides(MMR_ALIAS, 'BudgetedOccupancyPercentCurrentMonth', row)), num(getValWithOverrides(MMR_ALIAS, 'BudgetedLeasedPercentCurrentMonth', row)), num(getValWithOverrides(MMR_ALIAS, 'BudgetedLeasedCurrentMonth', row)),
+      str(getValWithOverrides(MMR_ALIAS, 'ReportDate', row, 'Report Date')), str(getValWithOverrides(MMR_ALIAS, 'ConstructionStatus', row, 'Construction Status')), num(getValWithOverrides(MMR_ALIAS, 'Rank', row)), num(getValWithOverrides(MMR_ALIAS, 'PreviousOccupancyPercent', row)), num(getValWithOverrides(MMR_ALIAS, 'PreviousLeasedPercent', row)), num(getValWithOverrides(MMR_ALIAS, 'PreviousDelinquentUnits', row)), str(getValWithOverrides(MMR_ALIAS, 'WeekStart', row, 'Week Start')), str(getValWithOverrides(MMR_ALIAS, 'LatestDate', row, 'Latest Date')), str(getValWithOverrides(MMR_ALIAS, 'City', row)), str(getValWithOverrides(MMR_ALIAS, 'State', row)), str(getValWithOverrides(MMR_ALIAS, 'Status', row)), str(getValWithOverrides(MMR_ALIAS, 'FinancingStatus', row, 'Financing Status')), str(getValWithOverrides(MMR_ALIAS, 'ProductType', row, 'Product Type')), num(getValWithOverrides(MMR_ALIAS, 'Units', row)), str(getValWithOverrides(MMR_ALIAS, 'FullAddress', row, 'Full Address')), num(getValWithOverrides(MMR_ALIAS, 'Latitude', row)), num(getValWithOverrides(MMR_ALIAS, 'Longitude', row)), str(getValWithOverrides(MMR_ALIAS, 'Region', row)), str(getValWithOverrides(MMR_ALIAS, 'LatestConstructionStatus', row, 'Latest Construction Status')), num(getValWithOverrides(MMR_ALIAS, 'BirthOrder', row, 'Birth Order')), num(getValWithOverrides(MMR_ALIAS, 'NetLsd', row, 'Net LSD')),
     ], replace, MMR_KEYS);
     await tx.commit();
     return n;
@@ -385,6 +387,7 @@ export async function syncMMRData(rows: Record<string, unknown>[], replace = tru
 }
 
 // ---------- UnitByUnitTradeout ----------
+const UTRADE_ALIAS = 'unitbyunittradeout';
 const T_UTRADE = `${LEASING_SCHEMA}.UnitByUnitTradeout`;
 const UTRADE_COLS = ['FloorPlan', 'UnitDetailsUnitType', 'UnitDetailsBuilding', 'UnitDetailsUnit', 'UnitDetailsSqFt', 'CurrentLeaseRateType', 'CurrentLeaseLeaseType', 'CurrentLeaseAppSignedDate', 'CurrentLeaseLeaseStart', 'CurrentLeaseLeaseEnd', 'CurrentLeaseTerm', 'CurrentLeasePrem', 'CurrentLeaseGrossRent', 'CurrentLeaseConc', 'CurrentLeaseEffRent', 'PreviousLeaseRateType', 'PreviousLeaseLeaseStart', 'PreviousLeaseScheduledLeaseEnd', 'PreviousLeaseActualLeaseEnd', 'PreviousLeaseTerm', 'PreviousLeasePrem', 'PreviousLeaseGrossRent', 'PreviousLeaseConc', 'PreviousLeaseEffRent', 'VacantDays', 'TermVariance', 'TradeOutPercentage', 'TradeOutAmount', 'ReportDate', 'JoinDate', 'MonthOf', 'Property', 'City', 'State', 'Status', 'Units', 'FullAddress', 'Latitude', 'Longitude', 'Region', 'ConstructionStatus', 'BirthOrder'];
 const UTRADE_KEYS = ['Property', 'UnitDetailsBuilding', 'UnitDetailsUnit', 'ReportDate'];
@@ -394,48 +397,48 @@ export async function syncUnitByUnitTradeout(rows: Record<string, unknown>[], re
   await tx.begin();
   try {
     const n = await batchInsert(tx, T_UTRADE, UTRADE_COLS, rows, (row) => [
-      str(getVal(row, 'FloorPlan', 'Floor Plan', 'FloorPlanName')),
-      str(getVal(row, 'UnitDetailsUnitType', 'Unit Type', 'UnitDetails UnitType', 'Unit Type Details')),
-      str(getVal(row, 'UnitDetailsBuilding', 'Building', 'UnitDetails Building', 'Unit Building')),
-      str(getVal(row, 'UnitDetailsUnit', 'Unit', 'Unit Number', 'Unit #', 'UnitDetails Unit')),
-      num(getVal(row, 'UnitDetailsSqFt', 'Sq Ft', 'Square Feet', 'UnitDetails SqFt', 'SqFt')),
-      str(getVal(row, 'CurrentLeaseRateType', 'Current Lease Rate Type', 'Rate Type', 'Lease Rate Type')),
-      str(getVal(row, 'CurrentLeaseLeaseType', 'Current Lease Lease Type', 'Lease Type', 'Current Lease Type')),
-      str(getVal(row, 'CurrentLeaseAppSignedDate', 'App Signed Date', 'Application Signed Date', 'Current Lease App Signed Date')),
-      str(getVal(row, 'CurrentLeaseLeaseStart', 'Lease Start', 'Current Lease Start', 'Current Lease Lease Start')),
-      str(getVal(row, 'CurrentLeaseLeaseEnd', 'Lease End', 'Current Lease End', 'Current Lease Lease End')),
-      num(getVal(row, 'CurrentLeaseTerm', 'Current Lease Term', 'Term', 'Lease Term')),
-      num(getVal(row, 'CurrentLeasePrem', 'Current Lease Prem', 'Premium', 'Prem')),
-      num(getVal(row, 'CurrentLeaseGrossRent', 'Current Lease Gross Rent', 'Gross Rent', 'GrossRent')),
-      num(getVal(row, 'CurrentLeaseConc', 'Current Lease Conc', 'Concession', 'Conc')),
-      num(getVal(row, 'CurrentLeaseEffRent', 'Current Lease Eff Rent', 'Effective Rent', 'Eff Rent', 'EffRent')),
-      str(getVal(row, 'PreviousLeaseRateType', 'Previous Lease Rate Type', 'Prev Rate Type')),
-      str(getVal(row, 'PreviousLeaseLeaseStart', 'Previous Lease Start', 'Previous Lease Lease Start')),
-      str(getVal(row, 'PreviousLeaseScheduledLeaseEnd', 'Previous Lease Scheduled Lease End', 'Scheduled Lease End', 'Prev Scheduled End')),
-      str(getVal(row, 'PreviousLeaseActualLeaseEnd', 'Previous Lease Actual Lease End', 'Actual Lease End', 'Prev Actual End')),
-      num(getVal(row, 'PreviousLeaseTerm', 'Previous Lease Term', 'Prev Term')),
-      num(getVal(row, 'PreviousLeasePrem', 'Previous Lease Prem', 'Prev Prem')),
-      num(getVal(row, 'PreviousLeaseGrossRent', 'Previous Lease Gross Rent', 'Prev Gross Rent')),
-      num(getVal(row, 'PreviousLeaseConc', 'Previous Lease Conc', 'Prev Conc')),
-      num(getVal(row, 'PreviousLeaseEffRent', 'Previous Lease Eff Rent', 'Prev Eff Rent')),
-      num(getVal(row, 'VacantDays', 'Vacant Days', 'Days Vacant')),
-      num(getVal(row, 'TermVariance', 'Term Variance', 'Term Var')),
-      num(getVal(row, 'TradeOutPercentage', 'Trade Out Percentage', 'Trade Out %', 'TradeOut %')),
-      num(getVal(row, 'TradeOutAmount', 'Trade Out Amount', 'Trade Out Amt')),
-      str(getVal(row, 'ReportDate', 'Report Date', 'Report date')),
-      str(getVal(row, 'JoinDate', 'Join Date', 'Join date')),
-      str(getVal(row, 'MonthOf', 'Month Of', 'Month', 'MonthOf')),
-      str(getVal(row, 'Property', 'Property Name', 'Location', 'PropertyName')),
-      str(getVal(row, 'City', 'Property City')),
-      str(getVal(row, 'State', 'Property State')),
-      str(getVal(row, 'Status', 'Property Status', 'Construction Status')),
-      num(getVal(row, 'Units', 'Total Units', 'Unit Count', 'TotalUnits')),
-      str(getVal(row, 'FullAddress', 'Full Address', 'Address')),
-      num(getVal(row, 'Latitude', 'Lat')),
-      num(getVal(row, 'Longitude', 'Long', 'Lng')),
-      str(getVal(row, 'Region', 'Property Region')),
-      str(getVal(row, 'ConstructionStatus', 'Construction Status', 'Status Construction')),
-      num(getVal(row, 'BirthOrder', 'Birth Order', 'BirthOrder')),
+      str(getValWithOverrides(UTRADE_ALIAS, 'FloorPlan', row, 'Floor Plan', 'FloorPlanName')),
+      str(getValWithOverrides(UTRADE_ALIAS, 'UnitDetailsUnitType', row, 'Unit Type', 'UnitDetails UnitType', 'Unit Type Details')),
+      str(getValWithOverrides(UTRADE_ALIAS, 'UnitDetailsBuilding', row, 'Building', 'UnitDetails Building', 'Unit Building')),
+      str(getValWithOverrides(UTRADE_ALIAS, 'UnitDetailsUnit', row, 'Unit', 'Unit Number', 'Unit #', 'UnitDetails Unit')),
+      num(getValWithOverrides(UTRADE_ALIAS, 'UnitDetailsSqFt', row, 'Sq Ft', 'Square Feet', 'UnitDetails SqFt', 'SqFt')),
+      str(getValWithOverrides(UTRADE_ALIAS, 'CurrentLeaseRateType', row, 'Current Lease Rate Type', 'Rate Type', 'Lease Rate Type')),
+      str(getValWithOverrides(UTRADE_ALIAS, 'CurrentLeaseLeaseType', row, 'Current Lease Lease Type', 'Lease Type', 'Current Lease Type')),
+      str(getValWithOverrides(UTRADE_ALIAS, 'CurrentLeaseAppSignedDate', row, 'App Signed Date', 'Application Signed Date', 'Current Lease App Signed Date')),
+      str(getValWithOverrides(UTRADE_ALIAS, 'CurrentLeaseLeaseStart', row, 'Lease Start', 'Current Lease Start', 'Current Lease Lease Start')),
+      str(getValWithOverrides(UTRADE_ALIAS, 'CurrentLeaseLeaseEnd', row, 'Lease End', 'Current Lease End', 'Current Lease Lease End')),
+      num(getValWithOverrides(UTRADE_ALIAS, 'CurrentLeaseTerm', row, 'Current Lease Term', 'Term', 'Lease Term')),
+      num(getValWithOverrides(UTRADE_ALIAS, 'CurrentLeasePrem', row, 'Premium', 'Prem')),
+      num(getValWithOverrides(UTRADE_ALIAS, 'CurrentLeaseGrossRent', row, 'Current Lease Gross Rent', 'Gross Rent', 'GrossRent')),
+      num(getValWithOverrides(UTRADE_ALIAS, 'CurrentLeaseConc', row, 'Current Lease Conc', 'Concession', 'Conc')),
+      num(getValWithOverrides(UTRADE_ALIAS, 'CurrentLeaseEffRent', row, 'Effective Rent', 'Eff Rent', 'EffRent')),
+      str(getValWithOverrides(UTRADE_ALIAS, 'PreviousLeaseRateType', row, 'Previous Lease Rate Type', 'Prev Rate Type')),
+      str(getValWithOverrides(UTRADE_ALIAS, 'PreviousLeaseLeaseStart', row, 'Previous Lease Start', 'Previous Lease Lease Start')),
+      str(getValWithOverrides(UTRADE_ALIAS, 'PreviousLeaseScheduledLeaseEnd', row, 'Previous Lease Scheduled Lease End', 'Scheduled Lease End', 'Prev Scheduled End')),
+      str(getValWithOverrides(UTRADE_ALIAS, 'PreviousLeaseActualLeaseEnd', row, 'Previous Lease Actual Lease End', 'Actual Lease End', 'Prev Actual End')),
+      num(getValWithOverrides(UTRADE_ALIAS, 'PreviousLeaseTerm', row, 'Previous Lease Term', 'Prev Term')),
+      num(getValWithOverrides(UTRADE_ALIAS, 'PreviousLeasePrem', row, 'Previous Lease Prem', 'Prev Prem')),
+      num(getValWithOverrides(UTRADE_ALIAS, 'PreviousLeaseGrossRent', row, 'Previous Lease Gross Rent', 'Prev Gross Rent')),
+      num(getValWithOverrides(UTRADE_ALIAS, 'PreviousLeaseConc', row, 'Previous Lease Conc', 'Prev Conc')),
+      num(getValWithOverrides(UTRADE_ALIAS, 'PreviousLeaseEffRent', row, 'Previous Lease Eff Rent', 'Prev Eff Rent')),
+      num(getValWithOverrides(UTRADE_ALIAS, 'VacantDays', row, 'Vacant Days', 'Days Vacant')),
+      num(getValWithOverrides(UTRADE_ALIAS, 'TermVariance', row, 'Term Variance', 'Term Var')),
+      num(getValWithOverrides(UTRADE_ALIAS, 'TradeOutPercentage', row, 'Trade Out Percentage', 'Trade Out %', 'TradeOut %')),
+      num(getValWithOverrides(UTRADE_ALIAS, 'TradeOutAmount', row, 'Trade Out Amount', 'Trade Out Amt')),
+      str(getValWithOverrides(UTRADE_ALIAS, 'ReportDate', row, 'Report Date', 'Report date')),
+      str(getValWithOverrides(UTRADE_ALIAS, 'JoinDate', row, 'Join Date', 'Join date')),
+      str(getValWithOverrides(UTRADE_ALIAS, 'MonthOf', row, 'Month Of', 'Month', 'MonthOf')),
+      str(getValWithOverrides(UTRADE_ALIAS, 'Property', row, 'Property Name', 'Location', 'PropertyName')),
+      str(getValWithOverrides(UTRADE_ALIAS, 'City', row, 'Property City')),
+      str(getValWithOverrides(UTRADE_ALIAS, 'State', row, 'Property State')),
+      str(getValWithOverrides(UTRADE_ALIAS, 'Status', row, 'Property Status', 'Construction Status')),
+      num(getValWithOverrides(UTRADE_ALIAS, 'Units', row, 'Total Units', 'Unit Count', 'TotalUnits')),
+      str(getValWithOverrides(UTRADE_ALIAS, 'FullAddress', row, 'Full Address', 'Address')),
+      num(getValWithOverrides(UTRADE_ALIAS, 'Latitude', row, 'Lat')),
+      num(getValWithOverrides(UTRADE_ALIAS, 'Longitude', row, 'Long', 'Lng')),
+      str(getValWithOverrides(UTRADE_ALIAS, 'Region', row, 'Property Region')),
+      str(getValWithOverrides(UTRADE_ALIAS, 'ConstructionStatus', row, 'Construction Status', 'Status Construction')),
+      num(getValWithOverrides(UTRADE_ALIAS, 'BirthOrder', row, 'Birth Order', 'BirthOrder')),
     ], replace, UTRADE_KEYS);
     await tx.commit();
     return n;
@@ -496,6 +499,7 @@ export async function syncPortfolioUnitDetails(rows: Record<string, unknown>[], 
 }
 
 // ---------- Units ----------
+const UNITS_ALIAS = 'units';
 const T_UNITS = `${LEASING_SCHEMA}.Units`;
 const UNITS_COLS = ['PropertyName', 'FloorPlan', 'UnitType', 'BldgUnit', 'SqFt', 'Features', 'Condition', 'Vacated', 'DateAvailable', 'BestPriceTerm', 'Monthlygrossrent', 'Concessions', 'MonthlyEffectiveRent', 'PreviousLeaseTerm', 'PreviousLeaseMonthlyEffectiveRent', 'GrossForecastedTradeout', 'ReportDate'];
 const UNITS_KEYS = ['PropertyName', 'BldgUnit', 'ReportDate'];
@@ -505,23 +509,23 @@ export async function syncUnits(rows: Record<string, unknown>[], replace = true)
   await tx.begin();
   try {
     const n = await batchInsert(tx, T_UNITS, UNITS_COLS, rows, (row) => [
-      str(getVal(row, 'PropertyName', 'Property', 'Property Name', 'Location')),
-      str(getVal(row, 'FloorPlan', 'Floor Plan', 'FloorPlanName', 'Plan')),
-      str(getVal(row, 'UnitType', 'Unit Type', 'UnitDetailsUnitType', 'Type')),
-      str(getVal(row, 'BldgUnit', 'Bldg Unit', 'Unit', 'Unit #', 'Unit Number', 'Building Unit')),
-      num(getVal(row, 'SqFt', 'Sq Ft', 'Square Feet', 'SqFt', 'SF')),
-      str(getVal(row, 'Features', 'Unit Features', 'Feature', 'Amenities')),
-      str(getVal(row, 'Condition', 'Status', 'Unit Status', 'Unit Condition', 'Lease Status')),
-      str(getVal(row, 'Vacated', 'Vacated Date', 'Move Out', 'Move Out Date')),
-      str(getVal(row, 'DateAvailable', 'Date Available', 'Available Date', 'Available', 'Available On')),
-      str(getVal(row, 'BestPriceTerm', 'Best Price Term', 'Best Term', 'Term')),
-      num(getVal(row, 'Monthlygrossrent', 'Monthly Gross Rent', 'Gross Rent', 'Rent', 'Monthly Rent')),
-      str(getVal(row, 'Concessions', 'Concession')),
-      num(getVal(row, 'MonthlyEffectiveRent', 'Monthly Effective Rent', 'Effective Rent', 'Eff Rent')),
-      num(getVal(row, 'PreviousLeaseTerm', 'Previous Lease Term', 'Prev Lease Term')),
-      num(getVal(row, 'PreviousLeaseMonthlyEffectiveRent', 'Previous Lease Monthly Effective Rent', 'Prev Eff Rent', 'Previous Eff Rent')),
-      num(getVal(row, 'GrossForecastedTradeout', 'Gross Forecasted Tradeout', 'Forecasted Tradeout', 'Tradeout')),
-      str(getVal(row, 'ReportDate', 'Report Date', 'Report date')),
+      str(getValWithOverrides(UNITS_ALIAS, 'PropertyName', row, 'Property', 'Property Name', 'Location')),
+      str(getValWithOverrides(UNITS_ALIAS, 'FloorPlan', row, 'Floor Plan', 'FloorPlanName', 'Plan')),
+      str(getValWithOverrides(UNITS_ALIAS, 'UnitType', row, 'Unit Type', 'UnitDetailsUnitType', 'Type')),
+      str(getValWithOverrides(UNITS_ALIAS, 'BldgUnit', row, 'Bldg Unit', 'Unit', 'Unit #', 'Unit Number', 'Building Unit')),
+      num(getValWithOverrides(UNITS_ALIAS, 'SqFt', row, 'Sq Ft', 'Square Feet', 'SqFt', 'SF')),
+      str(getValWithOverrides(UNITS_ALIAS, 'Features', row, 'Unit Features', 'Feature', 'Amenities')),
+      str(getValWithOverrides(UNITS_ALIAS, 'Condition', row, 'Status', 'Unit Status', 'Unit Condition', 'Lease Status')),
+      str(getValWithOverrides(UNITS_ALIAS, 'Vacated', row, 'Vacated Date', 'Move Out', 'Move Out Date')),
+      str(getValWithOverrides(UNITS_ALIAS, 'DateAvailable', row, 'Date Available', 'Available Date', 'Available', 'Available On')),
+      str(getValWithOverrides(UNITS_ALIAS, 'BestPriceTerm', row, 'Best Price Term', 'Best Term', 'Term')),
+      num(getValWithOverrides(UNITS_ALIAS, 'Monthlygrossrent', row, 'Monthly Gross Rent', 'Gross Rent', 'Rent', 'Monthly Rent')),
+      str(getValWithOverrides(UNITS_ALIAS, 'Concessions', row, 'Concession')),
+      num(getValWithOverrides(UNITS_ALIAS, 'MonthlyEffectiveRent', row, 'Monthly Effective Rent', 'Effective Rent', 'Eff Rent')),
+      num(getValWithOverrides(UNITS_ALIAS, 'PreviousLeaseTerm', row, 'Previous Lease Term', 'Prev Lease Term')),
+      num(getValWithOverrides(UNITS_ALIAS, 'PreviousLeaseMonthlyEffectiveRent', row, 'Previous Lease Monthly Effective Rent', 'Prev Eff Rent', 'Previous Eff Rent')),
+      num(getValWithOverrides(UNITS_ALIAS, 'GrossForecastedTradeout', row, 'Gross Forecasted Tradeout', 'Forecasted Tradeout', 'Tradeout')),
+      str(getValWithOverrides(UNITS_ALIAS, 'ReportDate', row, 'Report Date', 'Report date')),
     ], replace, UNITS_KEYS);
     await tx.commit();
     return n;
@@ -532,6 +536,7 @@ export async function syncUnits(rows: Record<string, unknown>[], replace = true)
 }
 
 // ---------- UnitMix ----------
+const UNITMIX_ALIAS = 'unitmix';
 const T_UNITMIX = `${LEASING_SCHEMA}.UnitMix`;
 const UNITMIX_COLS = ['PropertyName', 'UnitType', 'TotalUnits', 'SquareFeet', 'PercentOccupied', 'percentLeased', 'GrossOfferedRent30days', 'GrossInPlaceRent', 'GrossRecentExecutedRent60days', 'GrossOfferedRentPSF', 'GrossRecentExecutedRentPSF', 'ReportDate', 'FloorPlan'];
 const UNITMIX_KEYS = ['PropertyName', 'FloorPlan', 'ReportDate'];
@@ -541,19 +546,19 @@ export async function syncUnitMix(rows: Record<string, unknown>[], replace = tru
   await tx.begin();
   try {
     const n = await batchInsert(tx, T_UNITMIX, UNITMIX_COLS, rows, (row) => [
-      str(getVal(row, 'PropertyName', 'Property', 'Property Name', 'Location')),
-      str(getVal(row, 'UnitType', 'Unit Type', 'Floor Plan Type')),
-      num(getVal(row, 'TotalUnits', 'Total Units', 'Units')),
-      num(getVal(row, 'SquareFeet', 'Square Feet', 'Sq Ft', 'SqFt')),
-      num(getVal(row, 'PercentOccupied', 'Percent Occupied', '% Occupied', 'Occupied %')),
-      num(getVal(row, 'percentLeased', 'Percent Leased', '% Leased', 'percent Leased')),
-      num(getVal(row, 'GrossOfferedRent30days', 'Gross Offered Rent 30 days', 'Gross Offered Rent 30 Days', 'Offered Rent 30d')),
-      num(getVal(row, 'GrossInPlaceRent', 'Gross In Place Rent', 'In Place Rent', 'In-Place Rent')),
-      num(getVal(row, 'GrossRecentExecutedRent60days', 'Gross Recent Executed Rent 60 days', 'Recent Executed Rent 60d', 'Executed Rent 60d')),
-      num(getVal(row, 'GrossOfferedRentPSF', 'Gross Offered Rent PSF', 'Offered Rent PSF', 'Offered $/SF')),
-      num(getVal(row, 'GrossRecentExecutedRentPSF', 'Gross Recent Executed Rent PSF', 'Recent Executed Rent PSF', 'Executed $/SF')),
-      str(getVal(row, 'ReportDate', 'Report Date', 'Report date')),
-      str(getVal(row, 'FloorPlan', 'Floor Plan', 'FloorPlanName')),
+      str(getValWithOverrides(UNITMIX_ALIAS, 'PropertyName', row, 'Property', 'Property Name', 'Location')),
+      str(getValWithOverrides(UNITMIX_ALIAS, 'UnitType', row, 'Unit Type', 'Floor Plan Type')),
+      num(getValWithOverrides(UNITMIX_ALIAS, 'TotalUnits', row, 'Total Units', 'Units')),
+      num(getValWithOverrides(UNITMIX_ALIAS, 'SquareFeet', row, 'Square Feet', 'Sq Ft', 'SqFt')),
+      num(getValWithOverrides(UNITMIX_ALIAS, 'PercentOccupied', row, 'Percent Occupied', '% Occupied', 'Occupied %')),
+      num(getValWithOverrides(UNITMIX_ALIAS, 'percentLeased', row, 'Percent Leased', '% Leased', 'percent Leased')),
+      num(getValWithOverrides(UNITMIX_ALIAS, 'GrossOfferedRent30days', row, 'Gross Offered Rent 30 days', 'Gross Offered Rent 30 Days', 'Offered Rent 30d')),
+      num(getValWithOverrides(UNITMIX_ALIAS, 'GrossInPlaceRent', row, 'Gross In Place Rent', 'In Place Rent', 'In-Place Rent')),
+      num(getValWithOverrides(UNITMIX_ALIAS, 'GrossRecentExecutedRent60days', row, 'Gross Recent Executed Rent 60 days', 'Recent Executed Rent 60d', 'Executed Rent 60d')),
+      num(getValWithOverrides(UNITMIX_ALIAS, 'GrossOfferedRentPSF', row, 'Gross Offered Rent PSF', 'Offered Rent PSF', 'Offered $/SF')),
+      num(getValWithOverrides(UNITMIX_ALIAS, 'GrossRecentExecutedRentPSF', row, 'Gross Recent Executed Rent PSF', 'Recent Executed Rent PSF', 'Executed $/SF')),
+      str(getValWithOverrides(UNITMIX_ALIAS, 'ReportDate', row, 'Report Date', 'Report date')),
+      str(getValWithOverrides(UNITMIX_ALIAS, 'FloorPlan', row, 'Floor Plan', 'FloorPlanName')),
     ], replace, UNITMIX_KEYS);
     await tx.commit();
     return n;
@@ -564,6 +569,7 @@ export async function syncUnitMix(rows: Record<string, unknown>[], replace = tru
 }
 
 // ---------- Pricing ----------
+const PRICING_ALIAS = 'pricing';
 const T_PRICING = `${LEASING_SCHEMA}.Pricing`;
 const PRICING_COLS = ['Property', 'FloorPlan', 'RateType', 'PostDate', 'EndDate', 'DaysLeft', 'CapacityActualUnits', 'CapacitySustainablePercentage', 'CapacitySustainableUnits', 'CurrentInPlaceLeases', 'CurrentInPlaceOcc', 'CurrentForecastLeases', 'CurrentForecastOcc', 'RecommendedForecastLeases', 'RecommendedForecastOcc', 'RecommendedForecastChg', 'YesterdayDate', 'YesterdayRent', 'YesterdayPercentage', 'AmenityNormModelRent', 'AmenityNormAmenAdj', 'RecommendationsRecommendedEffRent', 'RecommendationsRecommendedEffPercentage', 'RecommendationsChangeRent', 'RecommendationsChangeRev', 'RecommendationsRecentAvgEffRent', 'RecommendationsRecentAvgEffPercentage'];
 const PRICING_KEYS = ['Property', 'FloorPlan', 'RateType', 'PostDate'];
@@ -573,33 +579,33 @@ export async function syncPricing(rows: Record<string, unknown>[], replace = tru
   await tx.begin();
   try {
     const n = await batchInsert(tx, T_PRICING, PRICING_COLS, rows, (row) => [
-      str(getVal(row, 'Property')),
-      str(getVal(row, 'FloorPlan', 'Floor Plan')),
-      str(getVal(row, 'RateType', 'Rate Type')),
-      str(getVal(row, 'PostDate', 'Post Date')),
-      str(getVal(row, 'EndDate', 'End Date')),
-      num(getVal(row, 'DaysLeft', 'Days Left')),
-      num(getVal(row, 'CapacityActualUnits', 'Capacity - Actual Units')),
-      num(getVal(row, 'CapacitySustainablePercentage', 'Capacity - Sustainable Percentage', 'Capacity - Sustainable %')),
-      num(getVal(row, 'CapacitySustainableUnits', 'Capacity - Sustainable Units')),
-      num(getVal(row, 'CurrentInPlaceLeases', 'Current In Place Leases')),
-      num(getVal(row, 'CurrentInPlaceOcc', 'Current In Place Occ')),
-      num(getVal(row, 'CurrentForecastLeases', 'Current Forecast Leases')),
-      num(getVal(row, 'CurrentForecastOcc', 'Current Forecast Occ')),
-      num(getVal(row, 'RecommendedForecastLeases', 'Recommended Forecast Leases')),
-      num(getVal(row, 'RecommendedForecastOcc', 'Recommended Forecast Occ')),
-      num(getVal(row, 'RecommendedForecastChg', 'Recommended Forecast Chg')),
-      str(getVal(row, 'YesterdayDate', 'Yesterday Date')),
-      num(getVal(row, 'YesterdayRent', 'Yesterday Rent')),
-      num(getVal(row, 'YesterdayPercentage', 'Yesterday Percentage')),
-      num(getVal(row, 'AmenityNormModelRent', 'Amenity Norm Model Rent')),
-      num(getVal(row, 'AmenityNormAmenAdj', 'Amenity Norm Amen Adj')),
-      num(getVal(row, 'RecommendationsRecommendedEffRent', 'Recommendations - Recommended Eff Rent')),
-      num(getVal(row, 'RecommendationsRecommendedEffPercentage', 'Recommendations - Recommended Eff Percentage')),
-      num(getVal(row, 'RecommendationsChangeRent', 'Recommendations - Change Rent')),
-      num(getVal(row, 'RecommendationsChangeRev', 'Recommendations - Change Rev')),
-      num(getVal(row, 'RecommendationsRecentAvgEffRent', 'Recommendations - Recent Avg Eff Rent')),
-      num(getVal(row, 'RecommendationsRecentAvgEffPercentage', 'Recommendations - Recent Avg Eff Percentage')),
+      str(getValWithOverrides(PRICING_ALIAS, 'Property', row)),
+      str(getValWithOverrides(PRICING_ALIAS, 'FloorPlan', row, 'Floor Plan')),
+      str(getValWithOverrides(PRICING_ALIAS, 'RateType', row, 'Rate Type')),
+      str(getValWithOverrides(PRICING_ALIAS, 'PostDate', row, 'Post Date')),
+      str(getValWithOverrides(PRICING_ALIAS, 'EndDate', row, 'End Date')),
+      num(getValWithOverrides(PRICING_ALIAS, 'DaysLeft', row, 'Days Left')),
+      num(getValWithOverrides(PRICING_ALIAS, 'CapacityActualUnits', row, 'Capacity - Actual Units')),
+      num(getValWithOverrides(PRICING_ALIAS, 'CapacitySustainablePercentage', row, 'Capacity - Sustainable Percentage', 'Capacity - Sustainable %')),
+      num(getValWithOverrides(PRICING_ALIAS, 'CapacitySustainableUnits', row, 'Capacity - Sustainable Units')),
+      num(getValWithOverrides(PRICING_ALIAS, 'CurrentInPlaceLeases', row, 'Current In Place Leases')),
+      num(getValWithOverrides(PRICING_ALIAS, 'CurrentInPlaceOcc', row, 'Current In Place Occ')),
+      num(getValWithOverrides(PRICING_ALIAS, 'CurrentForecastLeases', row, 'Current Forecast Leases')),
+      num(getValWithOverrides(PRICING_ALIAS, 'CurrentForecastOcc', row, 'Current Forecast Occ')),
+      num(getValWithOverrides(PRICING_ALIAS, 'RecommendedForecastLeases', row, 'Recommended Forecast Leases')),
+      num(getValWithOverrides(PRICING_ALIAS, 'RecommendedForecastOcc', row, 'Recommended Forecast Occ')),
+      num(getValWithOverrides(PRICING_ALIAS, 'RecommendedForecastChg', row, 'Recommended Forecast Chg')),
+      str(getValWithOverrides(PRICING_ALIAS, 'YesterdayDate', row, 'Yesterday Date')),
+      num(getValWithOverrides(PRICING_ALIAS, 'YesterdayRent', row, 'Yesterday Rent')),
+      num(getValWithOverrides(PRICING_ALIAS, 'YesterdayPercentage', row, 'Yesterday Percentage')),
+      num(getValWithOverrides(PRICING_ALIAS, 'AmenityNormModelRent', row, 'Amenity Norm Model Rent')),
+      num(getValWithOverrides(PRICING_ALIAS, 'AmenityNormAmenAdj', row, 'Amenity Norm Amen Adj')),
+      num(getValWithOverrides(PRICING_ALIAS, 'RecommendationsRecommendedEffRent', row, 'Recommendations - Recommended Eff Rent')),
+      num(getValWithOverrides(PRICING_ALIAS, 'RecommendationsRecommendedEffPercentage', row, 'Recommendations - Recommended Eff Percentage')),
+      num(getValWithOverrides(PRICING_ALIAS, 'RecommendationsChangeRent', row, 'Recommendations - Change Rent')),
+      num(getValWithOverrides(PRICING_ALIAS, 'RecommendationsChangeRev', row, 'Recommendations - Change Rev')),
+      num(getValWithOverrides(PRICING_ALIAS, 'RecommendationsRecentAvgEffRent', row, 'Recommendations - Recent Avg Eff Rent')),
+      num(getValWithOverrides(PRICING_ALIAS, 'RecommendationsRecentAvgEffPercentage', row, 'Recommendations - Recent Avg Eff Percentage')),
     ], replace, PRICING_KEYS);
     await tx.commit();
     return n;
@@ -610,6 +616,7 @@ export async function syncPricing(rows: Record<string, unknown>[], replace = tru
 }
 
 // ---------- RecentRents ----------
+const RECENTS_ALIAS = 'recentrents';
 const T_RECENTS = `${LEASING_SCHEMA}.RecentRents`;
 const RECENTS_COLS = ['Property', 'FloorPlan', 'ApplicationDate', 'EffectiveDate', 'LeaseStart', 'LeaseEnd', 'GrossRent', 'EffectiveRent', 'ReportDate'];
 const RECENTS_KEYS = ['Property', 'FloorPlan', 'ApplicationDate', 'LeaseStart', 'LeaseEnd'];
@@ -619,7 +626,15 @@ export async function syncRecentRents(rows: Record<string, unknown>[], replace =
   await tx.begin();
   try {
     const n = await batchInsert(tx, T_RECENTS, RECENTS_COLS, rows, (row) => [
-      str(getVal(row, 'Property')), str(getVal(row, 'FloorPlan')), str(getVal(row, 'ApplicationDate')), str(getVal(row, 'EffectiveDate')), str(getVal(row, 'LeaseStart')), str(getVal(row, 'LeaseEnd')), num(getVal(row, 'GrossRent')), num(getVal(row, 'EffectiveRent', 'ActualEffectiveRent')),       str(getVal(row, 'ReportDate')),
+      str(getValWithOverrides(RECENTS_ALIAS, 'Property', row)),
+      str(getValWithOverrides(RECENTS_ALIAS, 'FloorPlan', row)),
+      str(getValWithOverrides(RECENTS_ALIAS, 'ApplicationDate', row)),
+      str(getValWithOverrides(RECENTS_ALIAS, 'EffectiveDate', row)),
+      str(getValWithOverrides(RECENTS_ALIAS, 'LeaseStart', row)),
+      str(getValWithOverrides(RECENTS_ALIAS, 'LeaseEnd', row)),
+      num(getValWithOverrides(RECENTS_ALIAS, 'GrossRent', row)),
+      num(getValWithOverrides(RECENTS_ALIAS, 'EffectiveRent', row, 'ActualEffectiveRent')),
+      str(getValWithOverrides(RECENTS_ALIAS, 'ReportDate', row)),
     ], replace, RECENTS_KEYS);
     await tx.commit();
     return n;

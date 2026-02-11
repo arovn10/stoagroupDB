@@ -45,10 +45,19 @@ Sync can run automatically in two ways: **on a schedule** or **when Domo data is
    API_BASE_URL=http://localhost:3000 node scripts/cron-leasing-sync-node.js
    ```
 
-6. **Wipe tables before re-sync**: If you have bad or null data and want the next sync to do a full replace, call **POST /api/leasing/wipe** (same auth as sync-from-domo). This truncates all leasing data tables and clears SyncLog; the next sync-check will report `changes: true` and sync-from-domo will run and replace everything.
+6. **Wipe tables before re-sync**: If you have bad or null data and want the next sync to do a full replace, call **POST /api/leasing/wipe** (same auth as sync-from-domo). This truncates all leasing data tables and clears SyncLog; the next sync-check will report `changes: true` and sync-from-domo will run and replace everything. To wipe only one table: **POST /api/leasing/wipe?table=**`alias` (e.g. `?table=portfolioUnitDetails`).
    ```bash
    curl -sS -X POST http://localhost:3000/api/leasing/wipe -H "Content-Type: application/json" -H "X-Sync-Secret: YOUR_SECRET"
    ```
+   To sync only one dataset: **POST /api/leasing/sync-from-domo?dataset=**`alias` (e.g. `?dataset=portfolioUnitDetails`).
+
+7. **Check-and-fix all-NULL columns**: If some DB columns stay entirely NULL after sync (Domo CSV header names don’t match), run the automated script. It checks each leasing table for all-NULL columns, fetches Domo CSV headers, adds matching aliases via **POST /api/leasing/sync-add-alias**, wipes and re-syncs that table, and repeats until no all-NULL columns or max attempts.
+   - **Prerequisites:** API running, `.env` with `DOMO_CLIENT_ID`, `DOMO_CLIENT_SECRET`, and each `DOMO_DATASET_*` you use. Optional: `API_BASE_URL` (default `http://localhost:3000`), `LEASING_SYNC_WEBHOOK_SECRET` for wipe/sync/add-alias.
+   - From repo root:
+     ```bash
+     node scripts/check-and-fix-leasing-sync.js
+     ```
+   - Aliases added by the script are stored in `api/src/config/domo-alias-overrides.json` and applied on every sync (no API restart needed).
 
 ---
 
