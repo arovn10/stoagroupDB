@@ -33,10 +33,24 @@ const PORT = Number(process.env.PORT) || 3000;
 // Middleware
 app.use(helmet());
 // CORS: allow Domo (*.domo.com) always so Leasing dashboard can call from Domo Custom Apps; plus CORS_ORIGINS if set.
+const isDomoOrigin = (o: string | undefined) => o && /\.domo\.com$/i.test(o);
+app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+  const origin = req.get('Origin');
+  if (isDomoOrigin(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin as string);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Sync-Secret');
+  }
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end();
+  }
+  next();
+});
 app.use(cors({
   origin: (origin, cb) => {
+    if (isDomoOrigin(origin)) return cb(null, origin);
     const allowed = process.env.CORS_ORIGINS?.split(',').map((s) => s.trim()).filter(Boolean) || [];
-    if (origin && /\.domo\.com$/i.test(origin)) return cb(null, origin);
     if (allowed.length === 0) return cb(null, true);
     if (origin && allowed.includes(origin)) return cb(null, origin);
     if (allowed.includes('*')) return cb(null, true);

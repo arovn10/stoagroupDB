@@ -634,8 +634,10 @@ export async function rebuildDashboardSnapshot(): Promise<void> {
 export const getDashboard = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const asOf = typeof req.query.asOf === 'string' ? req.query.asOf : undefined;
-
+    const t0 = Date.now();
+    console.log('[leasing/dashboard] GET start');
     const snapshot = await getDashboardSnapshot();
+    console.log('[leasing/dashboard] snapshot fetch', Date.now() - t0, 'ms', snapshot?.payload ? 'hit' : 'miss');
     if (snapshot?.payload) {
       const dashboard = JSON.parse(snapshot.payload) as LeasingDashboardPayload;
       res.json({
@@ -643,11 +645,15 @@ export const getDashboard = async (req: Request, res: Response, next: NextFuncti
         dashboard,
         _meta: { source: AGGREGATION_SOURCE, asOf, fromSnapshot: true, builtAt: snapshot.builtAt?.toISOString?.() },
       });
+      console.log('[leasing/dashboard] sent from snapshot', Date.now() - t0, 'ms');
       return;
     }
 
+    console.log('[leasing/dashboard] building from raw...');
     const raw = await getAllForDashboard();
+    console.log('[leasing/dashboard] raw fetch', Date.now() - t0, 'ms');
     const dashboard = await buildDashboardFromRaw(raw);
+    console.log('[leasing/dashboard] build done', Date.now() - t0, 'ms');
     const safe = dashboardPayloadToJsonSafe(dashboard);
     await upsertDashboardSnapshot(JSON.stringify(safe));
     res.json({
@@ -655,7 +661,9 @@ export const getDashboard = async (req: Request, res: Response, next: NextFuncti
       dashboard: safe,
       _meta: { source: AGGREGATION_SOURCE, asOf },
     });
+    console.log('[leasing/dashboard] sent from raw', Date.now() - t0, 'ms');
   } catch (error) {
+    console.error('[leasing/dashboard] error', error instanceof Error ? error.message : error);
     next(error);
   }
 };

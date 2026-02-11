@@ -7,7 +7,23 @@ import sql from 'mssql';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
+import zlib from 'zlib';
 import { getConnection } from '../config/database';
+
+const SNAPSHOT_COMPRESS_PREFIX = 'gz:';
+
+function compressSnapshotPayload(json: string): string {
+  const buf = Buffer.from(json, 'utf8');
+  const compressed = zlib.gzipSync(buf, { level: 9 });
+  return SNAPSHOT_COMPRESS_PREFIX + compressed.toString('base64');
+}
+
+function decompressSnapshotPayload(stored: string): string {
+  if (!stored.startsWith(SNAPSHOT_COMPRESS_PREFIX)) return stored;
+  const b64 = stored.slice(SNAPSHOT_COMPRESS_PREFIX.length);
+  const compressed = Buffer.from(b64, 'base64');
+  return zlib.gunzipSync(compressed).toString('utf8');
+}
 
 const OVERRIDES_PATH = path.join(__dirname, '../config/domo-alias-overrides.json');
 
@@ -850,8 +866,9 @@ export async function getDashboardSnapshot(): Promise<{ payload: string; builtAt
     .input('id', sql.Int, SNAPSHOT_ID)
     .query(`SELECT Payload, BuiltAt FROM ${T_SNAPSHOT} WHERE Id = @id`);
   if (r.recordset.length === 0 || r.recordset[0].Payload == null) return null;
+  const raw = String(r.recordset[0].Payload);
   return {
-    payload: String(r.recordset[0].Payload),
+    payload: decompressSnapshotPayload(raw),
     builtAt: r.recordset[0].BuiltAt as Date,
   };
 }
@@ -859,10 +876,11 @@ export async function getDashboardSnapshot(): Promise<{ payload: string; builtAt
 export async function upsertDashboardSnapshot(payloadJson: string): Promise<void> {
   const pool = await getConnection();
   const now = new Date();
+  const stored = compressSnapshotPayload(payloadJson);
   await pool
     .request()
     .input('id', sql.Int, SNAPSHOT_ID)
-    .input('payload', sql.NVarChar(2147483647), payloadJson)
+    .input('payload', sql.NVarChar(2147483647), stored)
     .input('builtAt', sql.DateTime2, now)
     .query(`
       MERGE ${T_SNAPSHOT} AS t
