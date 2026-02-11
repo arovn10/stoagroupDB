@@ -210,6 +210,22 @@ function normalizeReviewDate(r: {
   return fifteenthOfMonth(r.review_year, r.review_month) ?? null;
 }
 
+/** Normalize request_timestamp for sql.DateTime2: scraper sends integer (ms) or ISO string. */
+function normalizeRequestTimestamp(value: unknown): Date | null {
+  if (value == null) return null;
+  if (typeof value === 'number') {
+    const ms = value > 1e12 ? value : value * 1000;
+    const d = new Date(ms);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+  if (typeof value === 'string' && value.trim() !== '') {
+    const d = new Date(value);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+  if (value instanceof Date && !Number.isNaN(value.getTime())) return value;
+  return null;
+}
+
 /**
  * POST /api/reviews/bulk
  * Upsert reviews (scraper). Dedupe by same Property+reviewer_name+review_date_original+text; duplicates are skipped.
@@ -228,6 +244,7 @@ export const bulkUpsertReviews = async (req: Request, res: Response, next: NextF
     for (const r of reviews) {
       try {
         const reviewDate = normalizeReviewDate(r);
+        const requestTimestamp = normalizeRequestTimestamp(r.request_timestamp);
         await pool.request()
           .input('ProjectId', sql.Int, r.ProjectId ?? null)
           .input('Property', sql.NVarChar, r.Property ?? '')
@@ -245,7 +262,7 @@ export const bulkUpsertReviews = async (req: Request, res: Response, next: NextF
           .input('extraction_method', sql.NVarChar, r.extraction_method ?? null)
           .input('property_url', sql.NVarChar, r.property_url ?? null)
           .input('request_ip', sql.NVarChar, r.request_ip ?? null)
-          .input('request_timestamp', sql.DateTime2, r.request_timestamp ?? null)
+          .input('request_timestamp', sql.DateTime2, requestTimestamp)
           .input('category', sql.NVarChar, r.category ?? null)
           .input('sentiment', sql.NVarChar, r.sentiment ?? null)
           .input('common_phrase', sql.NVarChar, r.common_phrase ?? null)
