@@ -53,16 +53,64 @@ function escapeSqlVal(v: unknown): string {
 
 const BATCH_SIZE = 500;
 
-/** Run batched INSERT (multi-row VALUES). When replace=true, TRUNCATE first. When replace=false, append only (for chunked uploads). */
+/** Null-safe ON clause for MERGE: (t.col = s.col OR (t.col IS NULL AND s.col IS NULL)) */
+function mergeOnClause(keyCols: string[]): string {
+  return keyCols
+    .map((c) => `(t.[${c}] = s.[${c}] OR (t.[${c}] IS NULL AND s.[${c}] IS NULL))`)
+    .join(' AND ');
+}
+
+/**
+ * Run batched MERGE (upsert): update existing rows by key, insert new ones. No truncate.
+ * Used when replace=false so sync appends/updates instead of wiping the table.
+ */
+async function batchUpsert(
+  tx: sql.Transaction,
+  table: string,
+  keyCols: string[],
+  columns: string[],
+  rows: Record<string, unknown>[],
+  rowToValues: (row: Record<string, unknown>) => unknown[]
+): Promise<number> {
+  if (rows.length === 0) return 0;
+  const colList = columns.join(', ');
+  const updateSet = columns.map((c) => `t.[${c}] = s.[${c}]`).join(', ') + ', t.SyncedAt = SYSDATETIME()';
+  const insertCols = colList + ', SyncedAt';
+  const insertVals = columns.map((c) => `s.[${c}]`).join(', ') + ', SYSDATETIME()';
+  const onClause = mergeOnClause(keyCols);
+  for (let i = 0; i < rows.length; i += BATCH_SIZE) {
+    const chunk = rows.slice(i, i + BATCH_SIZE);
+    const valuesList = chunk.map((row) => {
+      const vals = rowToValues(row).map(escapeSqlVal);
+      return `(${vals.join(',')})`;
+    });
+    const sqlStr = `
+      MERGE ${table} AS t
+      USING (VALUES ${valuesList.join(',')}) AS s(${columns.map((c) => `[${c}]`).join(', ')})
+      ON ${onClause}
+      WHEN MATCHED THEN UPDATE SET ${updateSet}
+      WHEN NOT MATCHED THEN INSERT (${insertCols}) VALUES (${insertVals});
+    `;
+    await tx.request().query(sqlStr);
+  }
+  return rows.length;
+}
+
+/** Run batched INSERT (multi-row VALUES). When replace=true, TRUNCATE first. When replace=false, upsert by key (no wipe). */
 async function batchInsert(
   tx: sql.Transaction,
   table: string,
   columns: string[],
   rows: Record<string, unknown>[],
   rowToValues: (row: Record<string, unknown>) => unknown[],
-  replace = true
+  replace = true,
+  keyCols?: string[]
 ): Promise<number> {
-  if (replace) await tx.request().query(`TRUNCATE TABLE ${table}`);
+  if (replace) {
+    await tx.request().query(`TRUNCATE TABLE ${table}`);
+  } else if (keyCols && keyCols.length > 0) {
+    return batchUpsert(tx, table, keyCols, columns, rows, rowToValues);
+  }
   if (rows.length === 0) return 0;
   const colList = columns.join(', ');
   for (let i = 0; i < rows.length; i += BATCH_SIZE) {
@@ -176,6 +224,7 @@ export async function wipeLeasingTables(): Promise<{ truncated: string[] }> {
 // ---------- Leasing ----------
 const T_LEASING = `${LEASING_SCHEMA}.Leasing`;
 const LEASING_COLS = ['Property', 'Units', 'LeasesNeeded', 'NewLeasesCurrentGrossRent', 'LeasingVelocity7Day', 'LeasingVelocity28Day', 'MonthOf', 'BatchTimestamp'];
+const LEASING_KEYS = ['Property', 'MonthOf'];
 export async function syncLeasing(rows: Record<string, unknown>[], replace = true): Promise<number> {
   const pool = await getConnection();
   const tx = new sql.Transaction(pool);
@@ -190,7 +239,7 @@ export async function syncLeasing(rows: Record<string, unknown>[], replace = tru
       num(getVal(row, 'LeasingVelocity28Day', '28DayLeasingVelocity', '28-Day Leasing Velocity', '28 Day Leasing Velocity', '28 Day Velocity', 'Leasing Velocity 28 Day')),
       str(getVal(row, 'MonthOf', 'Month Of', 'Month', 'Report Month', 'As Of Date', 'AsOfDate', 'ReportDate', 'Date')),
       str(getVal(row, 'BatchTimestamp', 'Batch Timestamp', 'Timestamp', 'SyncedAt')),
-    ], replace);
+    ], replace, LEASING_KEYS);
     await tx.commit();
     return n;
   } catch (e) {
@@ -202,6 +251,7 @@ export async function syncLeasing(rows: Record<string, unknown>[], replace = tru
 // ---------- MMRData ----------
 const T_MMR = `${LEASING_SCHEMA}.MMRData`;
 const MMR_COLS = ['Property', 'Location', 'TotalUnits', 'OccupancyPercent', 'CurrentLeasedPercent', 'MI', 'MO', 'FirstVisit', 'Applied', 'Canceled', 'Denied', 'T12LeasesExpired', 'T12LeasesRenewed', 'Delinquent', 'OccupiedRent', 'BudgetedRent', 'CurrentMonthIncome', 'BudgetedIncome', 'MoveInRent', 'OccUnits', 'Week3EndDate', 'Week3MoveIns', 'Week3MoveOuts', 'Week3OccUnits', 'Week3OccPercent', 'Week4EndDate', 'Week4MoveIns', 'Week4MoveOuts', 'Week4OccUnits', 'Week4OccPercent', 'Week7EndDate', 'Week7MoveIns', 'Week7MoveOuts', 'Week7OccUnits', 'Week7OccPercent', 'InServiceUnits', 'T12LeaseBreaks', 'BudgetedOccupancyCurrentMonth', 'BudgetedOccupancyPercentCurrentMonth', 'BudgetedLeasedPercentCurrentMonth', 'BudgetedLeasedCurrentMonth', 'ReportDate', 'ConstructionStatus', 'Rank', 'PreviousOccupancyPercent', 'PreviousLeasedPercent', 'PreviousDelinquentUnits', 'WeekStart', 'LatestDate', 'City', 'State', 'Status', 'FinancingStatus', 'ProductType', 'Units', 'FullAddress', 'Latitude', 'Longitude', 'Region', 'LatestConstructionStatus', 'BirthOrder', 'NetLsd'];
+const MMR_KEYS = ['Property', 'ReportDate'];
 export async function syncMMRData(rows: Record<string, unknown>[], replace = true): Promise<number> {
   const pool = await getConnection();
   const tx = new sql.Transaction(pool);
@@ -213,7 +263,7 @@ export async function syncMMRData(rows: Record<string, unknown>[], replace = tru
       num(getVal(row, 'MI')), num(getVal(row, 'MO')), num(getVal(row, 'FirstVisit', '1st Visit', 'First Visit')), num(getVal(row, 'Applied')), num(getVal(row, 'Canceled')), num(getVal(row, 'Denied')), num(getVal(row, 'T12LeasesExpired', 'T12 Leases Expired')), num(getVal(row, 'T12LeasesRenewed', 'T12 Leases Renewed')), num(getVal(row, 'Delinquent')), num(getVal(row, 'OccupiedRent', 'Occupied Rent')), num(getVal(row, 'BudgetedRent', 'Budgeted Rent')), num(getVal(row, 'CurrentMonthIncome', 'Current Month Income')), num(getVal(row, 'BudgetedIncome', 'Budgeted Income')), num(getVal(row, 'MoveInRent', 'Move In Rent')), num(getVal(row, 'OccUnits', 'Occ Units')),
       str(getVal(row, 'Week3EndDate', 'Week 3 End Date', 'Week3 End Date')), num(getVal(row, 'Week3MoveIns', 'Week 3 Move Ins')), num(getVal(row, 'Week3MoveOuts', 'Week 3 Move Outs')), num(getVal(row, 'Week3OccUnits', 'Week 3 Occ Units')), num(getVal(row, 'Week3OccPercent', 'Week 3 Occ Percent')), str(getVal(row, 'Week4EndDate', 'Week 4 End Date')), num(getVal(row, 'Week4MoveIns')), num(getVal(row, 'Week4MoveOuts')), num(getVal(row, 'Week4OccUnits')), num(getVal(row, 'Week4OccPercent')), str(getVal(row, 'Week7EndDate', 'Week 7 End Date')), num(getVal(row, 'Week7MoveIns')), num(getVal(row, 'Week7MoveOuts')), num(getVal(row, 'Week7OccUnits')), num(getVal(row, 'Week7OccPercent')), num(getVal(row, 'InServiceUnits', 'In Service Units')), num(getVal(row, 'T12LeaseBreaks', 'T12 Lease Breaks')), num(getVal(row, 'BudgetedOccupancyCurrentMonth')), num(getVal(row, 'BudgetedOccupancyPercentCurrentMonth')), num(getVal(row, 'BudgetedLeasedPercentCurrentMonth')), num(getVal(row, 'BudgetedLeasedCurrentMonth')),
       str(getVal(row, 'ReportDate', 'Report Date')), str(getVal(row, 'ConstructionStatus', 'Construction Status')), num(getVal(row, 'Rank')), num(getVal(row, 'PreviousOccupancyPercent')), num(getVal(row, 'PreviousLeasedPercent')), num(getVal(row, 'PreviousDelinquentUnits')), str(getVal(row, 'WeekStart', 'Week Start')), str(getVal(row, 'LatestDate', 'Latest Date')), str(getVal(row, 'City')), str(getVal(row, 'State')), str(getVal(row, 'Status')), str(getVal(row, 'FinancingStatus', 'Financing Status')), str(getVal(row, 'ProductType', 'Product Type')), num(getVal(row, 'Units')), str(getVal(row, 'FullAddress', 'Full Address')), num(getVal(row, 'Latitude')), num(getVal(row, 'Longitude')), str(getVal(row, 'Region')), str(getVal(row, 'LatestConstructionStatus', 'Latest Construction Status')), num(getVal(row, 'BirthOrder', 'Birth Order')), num(getVal(row, 'NetLsd', 'Net LSD')),
-    ], replace);
+    ], replace, MMR_KEYS);
     await tx.commit();
     return n;
   } catch (e) {
@@ -225,6 +275,7 @@ export async function syncMMRData(rows: Record<string, unknown>[], replace = tru
 // ---------- UnitByUnitTradeout ----------
 const T_UTRADE = `${LEASING_SCHEMA}.UnitByUnitTradeout`;
 const UTRADE_COLS = ['FloorPlan', 'UnitDetailsUnitType', 'UnitDetailsBuilding', 'UnitDetailsUnit', 'UnitDetailsSqFt', 'CurrentLeaseRateType', 'CurrentLeaseLeaseType', 'CurrentLeaseAppSignedDate', 'CurrentLeaseLeaseStart', 'CurrentLeaseLeaseEnd', 'CurrentLeaseTerm', 'CurrentLeasePrem', 'CurrentLeaseGrossRent', 'CurrentLeaseConc', 'CurrentLeaseEffRent', 'PreviousLeaseRateType', 'PreviousLeaseLeaseStart', 'PreviousLeaseScheduledLeaseEnd', 'PreviousLeaseActualLeaseEnd', 'PreviousLeaseTerm', 'PreviousLeasePrem', 'PreviousLeaseGrossRent', 'PreviousLeaseConc', 'PreviousLeaseEffRent', 'VacantDays', 'TermVariance', 'TradeOutPercentage', 'TradeOutAmount', 'ReportDate', 'JoinDate', 'MonthOf', 'Property', 'City', 'State', 'Status', 'Units', 'FullAddress', 'Latitude', 'Longitude', 'Region', 'ConstructionStatus', 'BirthOrder'];
+const UTRADE_KEYS = ['Property', 'UnitDetailsBuilding', 'UnitDetailsUnit', 'ReportDate'];
 export async function syncUnitByUnitTradeout(rows: Record<string, unknown>[], replace = true): Promise<number> {
   const pool = await getConnection();
   const tx = new sql.Transaction(pool);
@@ -273,7 +324,7 @@ export async function syncUnitByUnitTradeout(rows: Record<string, unknown>[], re
       str(getVal(row, 'Region', 'Property Region')),
       str(getVal(row, 'ConstructionStatus', 'Construction Status', 'Status Construction')),
       num(getVal(row, 'BirthOrder', 'Birth Order', 'BirthOrder')),
-    ], replace);
+    ], replace, UTRADE_KEYS);
     await tx.commit();
     return n;
   } catch (e) {
@@ -285,6 +336,7 @@ export async function syncUnitByUnitTradeout(rows: Record<string, unknown>[], re
 // ---------- PortfolioUnitDetails ----------
 const T_PUD = `${LEASING_SCHEMA}.PortfolioUnitDetails`;
 const PUD_COLS = ['Property', 'UnitNumber', 'FloorPlan', 'UnitDesignation', 'SQFT', 'UnitLeaseStatus', 'ResidentNameExternalTenantID', 'LeaseID', 'MoveIn', 'Notice', 'MoveOut', 'DaysVacant', 'MakeReady', 'MakeReadyDaystoComplete', 'LeaseStart', 'Leaseend', 'ApplicationDate', 'LeaseType', 'MarketRent', 'LeaseRent', 'EffectiveRent', 'Concession', 'SubsidyRent', 'Amenities', 'TotalBilling', 'UnitText', 'firstFloorDesignator', 'floor', 'ReportDate', 'BATCHLASTRUN'];
+const PUD_KEYS = ['Property', 'UnitNumber', 'ReportDate'];
 export async function syncPortfolioUnitDetails(rows: Record<string, unknown>[], replace = true): Promise<number> {
   const pool = await getConnection();
   const tx = new sql.Transaction(pool);
@@ -292,7 +344,7 @@ export async function syncPortfolioUnitDetails(rows: Record<string, unknown>[], 
   try {
     const n = await batchInsert(tx, T_PUD, PUD_COLS, rows, (row) => [
       str(getVal(row, 'Property')), str(getVal(row, 'UnitNumber')), str(getVal(row, 'FloorPlan')), str(getVal(row, 'UnitDesignation')), num(getVal(row, 'SQFT')), str(getVal(row, 'UnitLeaseStatus')), str(getVal(row, 'ResidentNameExternalTenantID')), str(getVal(row, 'LeaseID')), str(getVal(row, 'MoveIn')), str(getVal(row, 'Notice')), str(getVal(row, 'MoveOut')), num(getVal(row, 'DaysVacant')), str(getVal(row, 'MakeReady')), num(getVal(row, 'MakeReadyDaystoComplete')), str(getVal(row, 'LeaseStart')), str(getVal(row, 'Leaseend')), str(getVal(row, 'ApplicationDate')), str(getVal(row, 'LeaseType')), num(getVal(row, 'MarketRent')), num(getVal(row, 'LeaseRent')), num(getVal(row, 'EffectiveRent')), num(getVal(row, 'Concession')), num(getVal(row, 'SubsidyRent')), str(getVal(row, 'Amenities')), num(getVal(row, 'TotalBilling')), str(getVal(row, 'UnitText')), str(getVal(row, 'firstFloorDesignator')), str(getVal(row, 'floor')), str(getVal(row, 'ReportDate')),       str(getVal(row, 'BATCHLASTRUN')),
-    ], replace);
+    ], replace, PUD_KEYS);
     await tx.commit();
     return n;
   } catch (e) {
@@ -304,6 +356,7 @@ export async function syncPortfolioUnitDetails(rows: Record<string, unknown>[], 
 // ---------- Units ----------
 const T_UNITS = `${LEASING_SCHEMA}.Units`;
 const UNITS_COLS = ['PropertyName', 'FloorPlan', 'UnitType', 'BldgUnit', 'SqFt', 'Features', 'Condition', 'Vacated', 'DateAvailable', 'BestPriceTerm', 'Monthlygrossrent', 'Concessions', 'MonthlyEffectiveRent', 'PreviousLeaseTerm', 'PreviousLeaseMonthlyEffectiveRent', 'GrossForecastedTradeout', 'ReportDate'];
+const UNITS_KEYS = ['PropertyName', 'BldgUnit', 'ReportDate'];
 export async function syncUnits(rows: Record<string, unknown>[], replace = true): Promise<number> {
   const pool = await getConnection();
   const tx = new sql.Transaction(pool);
@@ -327,7 +380,7 @@ export async function syncUnits(rows: Record<string, unknown>[], replace = true)
       num(getVal(row, 'PreviousLeaseMonthlyEffectiveRent', 'Previous Lease Monthly Effective Rent', 'Prev Eff Rent', 'Previous Eff Rent')),
       num(getVal(row, 'GrossForecastedTradeout', 'Gross Forecasted Tradeout', 'Forecasted Tradeout', 'Tradeout')),
       str(getVal(row, 'ReportDate', 'Report Date', 'Report date')),
-    ], replace);
+    ], replace, UNITS_KEYS);
     await tx.commit();
     return n;
   } catch (e) {
@@ -339,6 +392,7 @@ export async function syncUnits(rows: Record<string, unknown>[], replace = true)
 // ---------- UnitMix ----------
 const T_UNITMIX = `${LEASING_SCHEMA}.UnitMix`;
 const UNITMIX_COLS = ['PropertyName', 'UnitType', 'TotalUnits', 'SquareFeet', 'PercentOccupied', 'percentLeased', 'GrossOfferedRent30days', 'GrossInPlaceRent', 'GrossRecentExecutedRent60days', 'GrossOfferedRentPSF', 'GrossRecentExecutedRentPSF', 'ReportDate', 'FloorPlan'];
+const UNITMIX_KEYS = ['PropertyName', 'FloorPlan', 'ReportDate'];
 export async function syncUnitMix(rows: Record<string, unknown>[], replace = true): Promise<number> {
   const pool = await getConnection();
   const tx = new sql.Transaction(pool);
@@ -358,7 +412,7 @@ export async function syncUnitMix(rows: Record<string, unknown>[], replace = tru
       num(getVal(row, 'GrossRecentExecutedRentPSF', 'Gross Recent Executed Rent PSF', 'Recent Executed Rent PSF', 'Executed $/SF')),
       str(getVal(row, 'ReportDate', 'Report Date', 'Report date')),
       str(getVal(row, 'FloorPlan', 'Floor Plan', 'FloorPlanName')),
-    ], replace);
+    ], replace, UNITMIX_KEYS);
     await tx.commit();
     return n;
   } catch (e) {
@@ -370,6 +424,7 @@ export async function syncUnitMix(rows: Record<string, unknown>[], replace = tru
 // ---------- Pricing ----------
 const T_PRICING = `${LEASING_SCHEMA}.Pricing`;
 const PRICING_COLS = ['Property', 'FloorPlan', 'RateType', 'PostDate', 'EndDate', 'DaysLeft', 'CapacityActualUnits', 'CapacitySustainablePercentage', 'CapacitySustainableUnits', 'CurrentInPlaceLeases', 'CurrentInPlaceOcc', 'CurrentForecastLeases', 'CurrentForecastOcc', 'RecommendedForecastLeases', 'RecommendedForecastOcc', 'RecommendedForecastChg', 'YesterdayDate', 'YesterdayRent', 'YesterdayPercentage', 'AmenityNormModelRent', 'AmenityNormAmenAdj', 'RecommendationsRecommendedEffRent', 'RecommendationsRecommendedEffPercentage', 'RecommendationsChangeRent', 'RecommendationsChangeRev', 'RecommendationsRecentAvgEffRent', 'RecommendationsRecentAvgEffPercentage'];
+const PRICING_KEYS = ['Property', 'FloorPlan', 'RateType', 'PostDate'];
 export async function syncPricing(rows: Record<string, unknown>[], replace = true): Promise<number> {
   const pool = await getConnection();
   const tx = new sql.Transaction(pool);
@@ -403,7 +458,7 @@ export async function syncPricing(rows: Record<string, unknown>[], replace = tru
       num(getVal(row, 'RecommendationsChangeRev', 'Recommendations - Change Rev')),
       num(getVal(row, 'RecommendationsRecentAvgEffRent', 'Recommendations - Recent Avg Eff Rent')),
       num(getVal(row, 'RecommendationsRecentAvgEffPercentage', 'Recommendations - Recent Avg Eff Percentage')),
-    ], replace);
+    ], replace, PRICING_KEYS);
     await tx.commit();
     return n;
   } catch (e) {
@@ -415,6 +470,7 @@ export async function syncPricing(rows: Record<string, unknown>[], replace = tru
 // ---------- RecentRents ----------
 const T_RECENTS = `${LEASING_SCHEMA}.RecentRents`;
 const RECENTS_COLS = ['Property', 'FloorPlan', 'ApplicationDate', 'EffectiveDate', 'LeaseStart', 'LeaseEnd', 'GrossRent', 'EffectiveRent', 'ReportDate'];
+const RECENTS_KEYS = ['Property', 'FloorPlan', 'ApplicationDate', 'LeaseStart', 'LeaseEnd'];
 export async function syncRecentRents(rows: Record<string, unknown>[], replace = true): Promise<number> {
   const pool = await getConnection();
   const tx = new sql.Transaction(pool);
@@ -422,7 +478,7 @@ export async function syncRecentRents(rows: Record<string, unknown>[], replace =
   try {
     const n = await batchInsert(tx, T_RECENTS, RECENTS_COLS, rows, (row) => [
       str(getVal(row, 'Property')), str(getVal(row, 'FloorPlan')), str(getVal(row, 'ApplicationDate')), str(getVal(row, 'EffectiveDate')), str(getVal(row, 'LeaseStart')), str(getVal(row, 'LeaseEnd')), num(getVal(row, 'GrossRent')), num(getVal(row, 'EffectiveRent', 'ActualEffectiveRent')),       str(getVal(row, 'ReportDate')),
-    ], replace);
+    ], replace, RECENTS_KEYS);
     await tx.commit();
     return n;
   } catch (e) {

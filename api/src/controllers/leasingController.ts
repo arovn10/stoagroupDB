@@ -361,13 +361,21 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+let syncFromDomoInProgress = false;
+
 /**
  * POST /api/leasing/sync-from-domo
  * Fetches leasing datasets from Domo one table at a time, syncs each in batches (default 5000 rows)
  * with a short rest between batches to avoid timeouts and overload. Call from cron or Domo webhook.
+ * Only one sync runs at a time; concurrent requests get 409.
  * Env: LEASING_SYNC_CHUNK_SIZE (default 5000), LEASING_SYNC_REST_MS (default 3000).
  */
 export const postSyncFromDomo = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  if (syncFromDomoInProgress) {
+    res.status(409).json({ success: false, error: 'Sync already in progress' });
+    return;
+  }
+  syncFromDomoInProgress = true;
   try {
     const secret = process.env.LEASING_SYNC_WEBHOOK_SECRET?.trim();
     if (secret) {
@@ -427,7 +435,7 @@ export const postSyncFromDomo = async (req: Request, res: Response, next: NextFu
       try {
         const t0 = Date.now();
         for (let i = 0; i < chunks.length; i++) {
-          const replace = i === 0;
+          const replace = false; // always upsert: append/merge by key, never wipe table
           await syncFn(chunks[i], replace);
           const done = (i + 1) * SYNC_CHUNK_SIZE;
           console.log(`[leasing/sync] ${alias}: ${Math.min(done, count)}/${count} rows (batch ${i + 1}/${chunks.length}) in ${((Date.now() - t0) / 1000).toFixed(1)}s`);
@@ -464,13 +472,15 @@ export const postSyncFromDomo = async (req: Request, res: Response, next: NextFu
     });
   } catch (error) {
     next(error);
+  } finally {
+    syncFromDomoInProgress = false;
   }
 };
 
 /**
  * POST /api/leasing/wipe
  * Truncates all leasing data tables and clears SyncLog. Next sync-check will report changes and
- * sync-from-domo will do a full replace. Use to clear bad/null data before re-syncing.
+ * sync-from-domo now upserts (never wipes). Use wipe to clear all data before a fresh sync if needed.
  * Same auth as sync-from-domo: X-Sync-Secret if LEASING_SYNC_WEBHOOK_SECRET is set.
  */
 export const postWipeLeasing = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
