@@ -13,6 +13,7 @@ import authRoutes from './routes/authRoutes';
 import landDevelopmentRoutes from './routes/landDevelopmentRoutes';
 import asanaRoutes from './routes/asanaRoutes';
 import reviewsRoutes from './routes/reviewsRoutes';
+import leasingRoutes from './routes/leasingRoutes';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { getConnection } from './config/database';
 import { ensureContainerExists } from './config/azureBlob';
@@ -57,6 +58,7 @@ app.use('/api/pipeline', pipelineRoutes);
 app.use('/api/land-development', landDevelopmentRoutes);
 app.use('/api/asana', asanaRoutes);
 app.use('/api/reviews', reviewsRoutes);
+app.use('/api/leasing', leasingRoutes);
 
 // API Documentation endpoint
 app.get('/api', (req: Request, res: Response) => {
@@ -264,6 +266,11 @@ app.get('/api', (req: Request, res: Response) => {
         getReviewProperties: 'GET /api/reviews/properties (active Lease-Up/Stabilized + GoogleMapsUrl, IncludeInReviewsReport)',
         updatePropertyReviewConfig: 'PUT /api/reviews/properties/:projectId/config (auth; body: { GoogleMapsUrl?, IncludeInReviewsReport? })',
         bulkUpsertReviews: 'POST /api/reviews/bulk (body: { reviews: [...] }; deduped by Property+reviewer+date+text)',
+      },
+      leasing: {
+        aggregatesAvailable: 'GET /api/leasing/aggregates/available (pre-aggregated data available?)',
+        aggregates: 'GET /api/leasing/aggregates (?asOf=YYYY-MM-DD; leasingSummary, tradeoutSummary, pudSummary for million-row scaling)',
+        dashboard: 'GET /api/leasing/dashboard (?asOf=YYYY-MM-DD; full pre-computed payload – all calculations on backend, frontend visual-only)',
       },
     },
   });

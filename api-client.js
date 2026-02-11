@@ -1402,6 +1402,40 @@
   return apiRequest('/api/reviews/bulk', 'POST', { reviews });
 }
 
+// LEASING AGGREGATION (million-row scaling: pre-computed metrics from backend)
+/**
+ * Check if pre-aggregated leasing data is available from the API.
+ * @returns {Promise<{ success: boolean, available: boolean, source: string }>}
+ */
+  async function getLeasingAggregatesAvailable() {
+  return apiRequest('/api/leasing/aggregates/available');
+}
+
+/**
+ * Get pre-aggregated leasing metrics (leasingSummary, tradeoutSummary, pudSummary).
+ * Use when available to avoid pulling millions of raw rows from Domo.
+ * @param {object} opts - { asOf?: 'YYYY-MM-DD' }
+ * @returns {Promise<{ success: boolean, data: { leasingSummary?, tradeoutSummary?, pudSummary? }, _meta? }>}
+ */
+  async function getLeasingAggregates(opts = {}) {
+  const params = new URLSearchParams();
+  if (opts.asOf) params.set('asOf', opts.asOf);
+  const qs = params.toString();
+  return apiRequest('/api/leasing/aggregates' + (qs ? '?' + qs : ''));
+}
+
+/**
+ * Get full pre-computed dashboard payload. All authoritative calculations run on the backend; frontend is visual-only.
+ * @param {object} opts - { asOf?: 'YYYY-MM-DD' }
+ * @returns {Promise<{ success: boolean, dashboard: object|null, _meta? }>}
+ */
+  async function getLeasingDashboard(opts = {}) {
+  const params = new URLSearchParams();
+  if (opts.asOf) params.set('asOf', opts.asOf);
+  const qs = params.toString();
+  return apiRequest('/api/leasing/dashboard' + (qs ? '?' + qs : ''));
+}
+
 // LIQUIDITY REQUIREMENTS
 /**
  * Get all liquidity requirements
@@ -2845,7 +2879,10 @@
   API.addDailyAlertRecipient = addDailyAlertRecipient;
   API.removeDailyAlertRecipient = removeDailyAlertRecipient;
   API.bulkUpsertReviews = bulkUpsertReviews;
-  
+  API.getLeasingAggregatesAvailable = getLeasingAggregatesAvailable;
+  API.getLeasingAggregates = getLeasingAggregates;
+  API.getLeasingDashboard = getLeasingDashboard;
+
   // Banking - Liquidity Requirements
   API.getAllLiquidityRequirements = getAllLiquidityRequirements;
   API.getLiquidityRequirementById = getLiquidityRequirementById;
