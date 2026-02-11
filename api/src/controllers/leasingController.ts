@@ -47,7 +47,8 @@ import { buildDashboardFromRaw, dashboardPayloadToJsonSafe } from '../services/l
  */
 
 const AGGREGATION_SOURCE = process.env.LEASING_AGGREGATION_SOURCE || 'none';
-const SYNC_MAP: Record<string, (rows: Record<string, unknown>[]) => Promise<number>> = {
+type SyncFn = (rows: Record<string, unknown>[], replace?: boolean) => Promise<number>;
+const SYNC_MAP: Record<string, SyncFn> = {
   leasing: syncLeasing,
   MMRData: syncMMRData,
   unitbyunittradeout: syncUnitByUnitTradeout,
@@ -245,6 +246,13 @@ export const getAggregates = async (req: Request, res: Response, next: NextFunct
 export const postSync = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const body = (req.body || {}) as Record<string, unknown[]>;
+    const firstChunk = (req.headers['x-leasing-sync-first-chunk'] as string)?.toLowerCase() === 'true';
+    const lastChunk = (req.headers['x-leasing-sync-last-chunk'] as string)?.toLowerCase() === 'true';
+    const totalRowsHeader = req.headers['x-leasing-sync-total-rows'] as string;
+    const dataHashHeader = req.headers['x-leasing-sync-data-hash'] as string;
+    const isChunked = req.headers['x-leasing-sync-first-chunk'] !== undefined;
+    const replace = !isChunked || firstChunk;
+
     const synced: string[] = [];
     const skipped: string[] = [];
     const errors: Array<{ dataset: string; message: string }> = [];
@@ -255,16 +263,25 @@ export const postSync = async (req: Request, res: Response, next: NextFunction):
       const alias = key === 'recents' ? 'recentrents' : key;
       if (!SYNC_MAP[alias] || !Array.isArray(rows)) continue;
       const count = rows.length;
-      const hash = dataHash(rows as unknown[]);
+      const hash = replace ? dataHash(rows as unknown[]) : (dataHashHeader || '');
       try {
-        const allowed = await canSync(alias, hash);
-        if (!allowed) {
-          skipped.push(alias);
-          continue;
+        if (replace) {
+          const allowed = await canSync(alias, hash);
+          if (!allowed) {
+            skipped.push(alias);
+            continue;
+          }
         }
         const syncFn = SYNC_MAP[alias];
-        await syncFn(rows as Record<string, unknown>[]);
-        await upsertSyncLog(alias, now, today, hash, count);
+        const t0 = Date.now();
+        await syncFn(rows as Record<string, unknown>[], replace);
+        console.log(`[leasing/sync] ${alias}: ${count} rows (replace=${replace}) in ${((Date.now() - t0) / 1000).toFixed(1)}s`);
+        if (lastChunk && isChunked) {
+          const totalCount = totalRowsHeader ? parseInt(totalRowsHeader, 10) : count;
+          await upsertSyncLog(alias, now, today, dataHashHeader || hash, Number.isNaN(totalCount) ? count : totalCount);
+        } else if (!isChunked) {
+          await upsertSyncLog(alias, now, today, hash, count);
+        }
         synced.push(alias);
       } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
@@ -396,7 +413,9 @@ export const postSyncFromDomo = async (req: Request, res: Response, next: NextFu
           continue;
         }
         const syncFn = SYNC_MAP[alias];
+        const t0 = Date.now();
         await syncFn(rows as Record<string, unknown>[]);
+        console.log(`[leasing/sync] ${alias}: ${count} rows in ${((Date.now() - t0) / 1000).toFixed(1)}s`);
         await upsertSyncLog(alias, now, today, hash, count);
         synced.push(alias);
       } catch (e) {

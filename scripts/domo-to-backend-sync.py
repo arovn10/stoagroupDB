@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import io
 import json
 import os
@@ -39,6 +40,10 @@ import sys
 import time
 from pathlib import Path
 from typing import Any
+
+# Chunk size for large datasets to avoid 502/timeouts (~5 min request limit on many hosts).
+# Each chunk is sent as a separate POST; first chunk TRUNCATE+insert, rest append.
+CHUNK_ROWS = 5000
 
 try:
     import requests
@@ -175,8 +180,14 @@ def build_payload_from_local(local_paths: dict[str, str]) -> dict[str, list]:
     return payload
 
 
+def _data_hash(rows: list) -> str:
+    """Stable hash matching backend dataHash (length + first 50 rows) for sync log."""
+    payload = json.dumps(len(rows)) + json.dumps([json.dumps(r) for r in rows[:50]])
+    return hashlib.sha256(payload.encode()).hexdigest()[:32]
+
+
 def post_sync(base_url: str, payload: dict[str, list]) -> dict[str, Any]:
-    """POST to backend /api/leasing/sync. Sends one dataset per request; short delay between to avoid connection drops."""
+    """POST to backend /api/leasing/sync. Large datasets are sent in chunks to avoid 502/timeouts."""
     url = f"{base_url.rstrip('/')}/api/leasing/sync"
     all_synced = []
     all_skipped = []
@@ -184,31 +195,75 @@ def post_sync(base_url: str, payload: dict[str, list]) -> dict[str, Any]:
     for i, (key, rows) in enumerate(payload.items()):
         if i > 0:
             time.sleep(2)
-        try:
-            r = requests.post(
-                url,
-                json={key: rows},
-                headers={"Content-Type": "application/json"},
-                timeout=900,
-            )
+        total_rows = len(rows)
+        if total_rows <= CHUNK_ROWS:
+            # Single request (no chunk headers)
+            body = {key: rows}
+            payload_bytes = len(json.dumps(body))
+            payload_mb = payload_bytes / (1024 * 1024)
+            print(f"  POST {key}: {total_rows} rows, ~{payload_mb:.2f} MB ...", file=sys.stderr, flush=True)
+            t0 = time.perf_counter()
             try:
-                data = r.json()
-            except ValueError:
-                msg = f"Response not JSON (status {r.status_code}): {r.text[:200]}"
-                all_errors.append({"dataset": key, "message": msg})
-                continue
-            all_synced.extend(data.get("synced", []))
-            all_skipped.extend(data.get("skipped", []))
-            if data.get("errors"):
-                all_errors.extend(data.get("errors", []))
-        except Exception as e:
-            all_errors.append({"dataset": key, "message": str(e)})
+                r = requests.post(url, json=body, headers={"Content-Type": "application/json"}, timeout=900)
+                elapsed = time.perf_counter() - t0
+                print(f"  -> {key}: {r.status_code} in {elapsed:.1f}s", file=sys.stderr, flush=True)
+                _collect_response(r, key, all_synced, all_skipped, all_errors)
+            except Exception as e:
+                print(f"  -> {key}: ERROR after {time.perf_counter() - t0:.1f}s: {e}", file=sys.stderr, flush=True)
+                all_errors.append({"dataset": key, "message": str(e)})
+            continue
+        # Chunked upload
+        full_hash = _data_hash(rows)
+        chunks = [rows[j : j + CHUNK_ROWS] for j in range(0, total_rows, CHUNK_ROWS)]
+        num_chunks = len(chunks)
+        print(f"  POST {key}: {total_rows} rows in {num_chunks} chunks (~{CHUNK_ROWS} rows each) ...", file=sys.stderr, flush=True)
+        for c, chunk in enumerate(chunks):
+            first = c == 0
+            last = c == num_chunks - 1
+            headers = {"Content-Type": "application/json"}
+            headers["X-Leasing-Sync-First-Chunk"] = "true" if first else "false"
+            headers["X-Leasing-Sync-Last-Chunk"] = "true" if last else "false"
+            if last:
+                headers["X-Leasing-Sync-Total-Rows"] = str(total_rows)
+                headers["X-Leasing-Sync-Data-Hash"] = full_hash
+            body = {key: chunk}
+            payload_mb = len(json.dumps(body)) / (1024 * 1024)
+            t0 = time.perf_counter()
+            try:
+                r = requests.post(url, json=body, headers=headers, timeout=900)
+                elapsed = time.perf_counter() - t0
+                print(f"  -> {key} chunk {c + 1}/{num_chunks}: {r.status_code} in {elapsed:.1f}s (~{payload_mb:.2f} MB)", file=sys.stderr, flush=True)
+                _collect_response(r, key, all_synced, all_skipped, all_errors)
+            except Exception as e:
+                print(f"  -> {key} chunk {c + 1}/{num_chunks}: ERROR after {time.perf_counter() - t0:.1f}s: {e}", file=sys.stderr, flush=True)
+                all_errors.append({"dataset": key, "message": str(e)})
+                break
+            if c < num_chunks - 1:
+                time.sleep(1)
     return {
         "success": len(all_errors) == 0,
         "synced": all_synced,
         "skipped": all_skipped,
         "errors": all_errors if all_errors else None,
     }
+
+
+def _collect_response(
+    r: requests.Response,
+    key: str,
+    all_synced: list,
+    all_skipped: list,
+    all_errors: list,
+) -> None:
+    try:
+        data = r.json()
+    except ValueError:
+        all_errors.append({"dataset": key, "message": f"Response not JSON (status {r.status_code}): {r.text[:200]}"})
+        return
+    all_synced.extend(data.get("synced", []))
+    all_skipped.extend(data.get("skipped", []))
+    if data.get("errors"):
+        all_errors.extend(data.get("errors", []))
 
 
 def main() -> int:
@@ -231,6 +286,11 @@ def main() -> int:
         "--skip-pud",
         action="store_true",
         help="Skip portfolioUnitDetails (224k+ rows). Use cron/sync-from-domo for full sync including PUD.",
+    )
+    parser.add_argument(
+        "--only",
+        metavar="KEY",
+        help="Sync only this dataset (e.g. leasing, pricing, MMRData). Useful to test one dataset and see timing.",
     )
     args = parser.parse_args()
 
@@ -270,6 +330,15 @@ def main() -> int:
     if not payload:
         print("No data to sync.", file=sys.stderr)
         return 1
+
+    if getattr(args, "only", None):
+        only_key = (args.only or "").strip()
+        if only_key and only_key in payload:
+            payload = {only_key: payload[only_key]}
+            print(f"Only syncing: {only_key} ({len(payload[only_key])} rows)", file=sys.stderr)
+        elif only_key:
+            print(f"Unknown --only key: {only_key}. Available: {list(payload.keys())}", file=sys.stderr)
+            return 1
 
     if args.dry_run:
         total = sum(len(v) for v in payload.values())
