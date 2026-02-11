@@ -40,7 +40,7 @@ app.use((req: express.Request, res: express.Response, next: express.NextFunction
     res.setHeader('Access-Control-Allow-Origin', origin as string);
     res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Sync-Secret');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Sync-Secret, Cache-Control, Pragma');
   }
   if (req.method === 'OPTIONS') {
     return res.status(204).end();

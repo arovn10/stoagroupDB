@@ -1426,14 +1426,36 @@
 
 /**
  * Get full pre-computed dashboard payload. All authoritative calculations run on the backend; frontend is visual-only.
- * @param {object} opts - { asOf?: 'YYYY-MM-DD' }
+ * Uses mode: 'cors', cache: 'no-store' and a long timeout so it works from Domo (HTTPS, CSP).
+ * @param {object} opts - { asOf?: 'YYYY-MM-DD', timeoutMs?: number }
  * @returns {Promise<{ success: boolean, dashboard: object|null, _meta? }>}
  */
   async function getLeasingDashboard(opts = {}) {
   const params = new URLSearchParams();
   if (opts.asOf) params.set('asOf', opts.asOf);
   const qs = params.toString();
-  return apiRequest('/api/leasing/dashboard' + (qs ? '?' + qs : ''));
+  const url = API_BASE_URL.replace(/\/$/, '') + '/api/leasing/dashboard' + (qs ? '?' + qs : '');
+  const timeoutMs = opts.timeoutMs || 120000;
+  const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timeoutId = controller ? setTimeout(function() { controller.abort(); }, timeoutMs) : null;
+  try {
+    const res = await fetch(url, {
+      method: 'GET',
+      mode: 'cors',
+      cache: 'no-store',
+      credentials: 'omit',
+      signal: controller ? controller.signal : undefined,
+      headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+    });
+    if (timeoutId) clearTimeout(timeoutId);
+    const text = await res.text();
+    const result = text ? (function() { try { return JSON.parse(text); } catch (_) { return {}; } })() : {};
+    if (!res.ok) throw new Error(result.message || result.error || 'API Error: ' + res.status);
+    return result;
+  } catch (e) {
+    if (timeoutId) clearTimeout(timeoutId);
+    throw e;
+  }
 }
 
 // LIQUIDITY REQUIREMENTS

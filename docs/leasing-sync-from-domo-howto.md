@@ -91,6 +91,8 @@ curl -sS -X POST "http://localhost:3000/api/leasing/sync-from-domo?force=true" \
 - The API triggers a dashboard snapshot rebuild after a successful sync (so GET /api/leasing/dashboard serves from the new data).
 - Check row counts: `node scripts/leasing-db-inspect.js`
 
+**Why fewer rows in the DB than in Domo?** Each leasing table has a **unique key**. Sync dedupes and upserts by that key, so you get **one row per key**. For example, `leasing.Leasing` uses **(Property, MonthOf)** — one row per property per month. If Domo sends 1101 rows but only 76 unique property+month combinations, the DB will have 76 rows. The log now shows both input count and rows written (e.g. `1101/1101 input → 76 rows written`).
+
 ---
 
 ## More

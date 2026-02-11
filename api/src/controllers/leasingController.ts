@@ -466,9 +466,9 @@ export const postSyncFromDomo = async (req: Request, res: Response, next: NextFu
         const t0 = Date.now();
         for (let i = 0; i < chunks.length; i++) {
           const replace = false; // always upsert: append/merge by key, never wipe table
-          await syncFn(chunks[i], replace);
+          const written = await syncFn(chunks[i], replace);
           const done = (i + 1) * SYNC_CHUNK_SIZE;
-          console.log(`[leasing/sync] ${alias}: ${Math.min(done, count)}/${count} rows (batch ${i + 1}/${chunks.length}) in ${((Date.now() - t0) / 1000).toFixed(1)}s`);
+          console.log(`[leasing/sync] ${alias}: ${Math.min(done, count)}/${count} input → ${written} rows written (batch ${i + 1}/${chunks.length}) in ${((Date.now() - t0) / 1000).toFixed(1)}s`);
           if (i < chunks.length - 1 && SYNC_REST_MS > 0) {
             await sleep(SYNC_REST_MS);
           }
