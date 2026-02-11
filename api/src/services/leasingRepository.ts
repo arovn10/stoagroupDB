@@ -304,6 +304,17 @@ export const LEASING_TABLE_BY_ALIAS: Record<string, string> = {
   recentrents: 'RecentRents',
 };
 
+/** Return current row count for a leasing table (for sync-check: Domo vs DB comparison). */
+export async function getLeasingTableRowCount(datasetAlias: string): Promise<number> {
+  const tableName = LEASING_TABLE_BY_ALIAS[datasetAlias];
+  if (!tableName) return 0;
+  const fullName = `${LEASING_SCHEMA}.${tableName}`;
+  const pool = await getConnection();
+  const r = await pool.request().query(`SELECT COUNT(*) AS n FROM ${fullName}`);
+  const row = r.recordset[0] as { n?: number };
+  return typeof row?.n === 'number' ? row.n : 0;
+}
+
 /** Alias -> list of data columns to check for all-null (excludes Id, SyncedAt). */
 export const LEASING_COLUMNS_BY_ALIAS: Record<string, string[]> = {
   leasing: ['Property', 'Units', 'LeasesNeeded', 'NewLeasesCurrentGrossRent', 'LeasingVelocity7Day', 'LeasingVelocity28Day', 'MonthOf', 'BatchTimestamp'],

@@ -2,7 +2,7 @@
 
 Sync can run automatically in two ways: **on a schedule** or **when Domo data is updated** (triggered by Domo).
 
-**Check-then-sync (recommended for cron):** To avoid pulling large data when nothing changed, use the **sync-check** endpoint first. Every 15 minutes: call `GET /api/leasing/sync-check`; if the response has `"changes": false`, exit immediately; if `"changes": true`, then call `POST /api/leasing/sync-from-domo` to update. The API compares Domo dataset metadata (row count) to the last sync; if they match, no full sync is needed.
+**Check-then-sync (recommended for cron):** To avoid pulling large data when nothing changed, use the **sync-check** endpoint first. Every 15 minutes: call `GET /api/leasing/sync-check`; if the response has `"changes": false`, exit immediately; if `"changes": true`, then call `POST /api/leasing/sync-from-domo` to update. The API compares **Domo dataset row count** to the **current database row count** for each table; if they differ, it reports `changes: true`. Sync-from-domo then runs and **only adds or updates** rows that exist in Domo (never deletes or wipes). So the cron detects “Domo has more or fewer rows than the DB” and syncs only to bring in new or changed data.
 
 ---
 
@@ -143,9 +143,9 @@ chmod +x scripts/cron-leasing-sync.sh
 */15 * * * * /path/to/stoagroupDB/scripts/cron-leasing-sync.sh
 ```
 
-The script calls `GET /api/leasing/sync-check` first; if the response does not contain `"changes": true`, it exits without calling the sync. If changes are detected (Domo row count differs from last sync, or a dataset has never been synced), it then calls `POST /api/leasing/sync-from-domo` to update the backend.
+The script calls `GET /api/leasing/sync-check` first; if the response does not contain `"changes": true`, it exits without calling the sync. If changes are detected (Domo row count differs from **current database** row count for that table), it then calls `POST /api/leasing/sync-from-domo` to update the backend. Sync-from-domo only adds or updates rows (upsert by key); it never wipes or deletes.
 
-**Note:** Sync-check uses Domo’s dataset metadata (GET /v1/datasets/{id}) to compare row count to the last sync. If your Domo API does not return a row count in metadata, the check may always report no changes after the first sync. In that case, run `POST /api/leasing/sync-from-domo` on a schedule instead; the backend still skips writing when the data hash is unchanged.
+**Note:** Sync-check compares Domo’s dataset metadata (GET /v1/datasets/{id}) to the **database** `COUNT(*)` for each leasing table. For tables that dedupe by key (e.g. leasing: one DB row per Property+MonthOf), Domo raw row count may never equal the DB count, so those datasets may always report `changes: true`; the cron will still run sync, which is safe (upsert-only). If your Domo API does not return a row count in metadata, the check may always report no changes; in that case run `POST /api/leasing/sync-from-domo` on a schedule instead.
 
 **Alternative: call sync every time (no check):**
 
@@ -229,9 +229,15 @@ If you still see 15s errors, something else (e.g. a middle proxy) is enforcing a
 
 ---
 
+## Snapshot: built at end of sync (not on deploy)
+
+The dashboard snapshot is built **at the end of sync-from-domo** when any dataset was synced. The server does **not** rebuild the snapshot on deploy unless you set **`RUN_LEASING_SNAPSHOT_ON_STARTUP=true`**. So the intended flow is: cron runs sync-check → sync-from-domo → snapshot is built automatically after sync.
+
+---
+
 ## Sync-from-domo: one table at a time, batched with rest
 
-On deploy, **POST /api/leasing/sync-from-domo** runs one table at a time. For each table it fetches from Domo, then writes to the DB in **batches of 5000 rows** with a **rest** (pause) between batches. This reduces timeouts and load.
+When you call **POST /api/leasing/sync-from-domo**, it runs one table at a time. For each table it fetches from Domo, then writes to the DB in **batches of 5000 rows** with a **rest** (pause) between batches. This reduces timeouts and load.
 
 - **Order:** Tables are processed in a fixed order (leasing → MMRData → unitbyunittradeout → portfolioUnitDetails → units → unitmix → pricing → recentrents; only tables with a configured `DOMO_DATASET_*` env var run).
 - **Batching:** Each table is synced in chunks of **5000 rows** (first chunk does replace/TRUNCATE, later chunks append).

@@ -11,11 +11,13 @@ The dashboard snapshot is stored in the database so the UI can load instantly in
   - `BuiltAt` (datetime2, NOT NULL) — when the snapshot was built
 - If you see a row with all NULLs in SSMS, the API may be using a different database (check `api/.env` connection string), or the table may have been created with different column types. The app uses UPDATE-then-INSERT and verifies the row after write; check API logs for `[leasing] DashboardSnapshot verify: row missing or Payload NULL`.
 - **Written by:**
+  - **After sync (primary):** `POST /api/leasing/sync-from-domo` calls `rebuildDashboardSnapshot()` when any dataset was synced. The cron should run sync-check → sync-from-domo; the snapshot is built at the end of sync, not on deploy.
   - `getDashboard` when it builds from raw (then upserts snapshot before returning)
-  - `rebuildDashboardSnapshot()` — called from POST `/api/leasing/rebuild-snapshot`, after sync, and on server startup
+  - `rebuildDashboardSnapshot()` — also callable via POST `/api/leasing/rebuild-snapshot` (manual or cron).
+  - **On server startup:** only if **`RUN_LEASING_SNAPSHOT_ON_STARTUP=true`** (default: no snapshot on deploy).
 - **Read by:** `getDashboard` — serves from this table when a row exists; otherwise builds from raw and saves
 
-**Memory and OOM (e.g. Render 2GB):** Building the snapshot loads all raw leasing tables and builds a large JSON payload, which can exceed 2GB and cause "Ran out of memory" and `ETIMEDOUT`. To avoid a rebuild spike on every deploy, set **`SKIP_LEASING_STARTUP_REBUILD=true`** in the environment. The app will then serve from any existing snapshot; if none exists, the first GET `/api/leasing/dashboard` will build and save one (or you can run POST `/api/leasing/rebuild-snapshot` from a cron or a worker with more memory). Snapshot is stored as the full API response body so serving from snapshot does not parse the payload again, reducing memory when handling GET requests.
+**Memory and OOM (e.g. Render 2GB):** Building the snapshot loads all raw leasing tables and can exceed 2GB. Snapshot is built at the **end of sync-from-domo** (cron), not on deploy. Set **`RUN_LEASING_SNAPSHOT_ON_STARTUP=true`** only if you need a snapshot on every deploy; otherwise the first GET `/api/leasing/dashboard` will build and save one on demand, or run POST `/api/leasing/rebuild-snapshot` manually. Snapshot is stored as the full API response body so serving from snapshot does not parse the payload again.
 
 ---
 

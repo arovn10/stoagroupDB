@@ -302,7 +302,7 @@ app.get('/api', (req: Request, res: Response) => {
         aggregates: 'GET /api/leasing/aggregates (?asOf=YYYY-MM-DD; leasingSummary, tradeoutSummary, pudSummary for million-row scaling)',
         dashboard: 'GET /api/leasing/dashboard (?asOf=YYYY-MM-DD; full pre-computed payload – all calculations on backend, frontend visual-only)',
         sync: 'POST /api/leasing/sync (body: leasing?, MMRData?, unitbyunittradeout?, portfolioUnitDetails?, units?, unitmix?, pricing?, recentrents?)',
-        syncCheck: 'GET /api/leasing/sync-check (optional X-Sync-Secret; returns { changes } from Domo metadata vs last sync – run before sync-from-domo in cron)',
+        syncCheck: 'GET /api/leasing/sync-check (optional X-Sync-Secret; returns { changes, details } comparing Domo vs DB row count – run before sync-from-domo in cron)',
         syncFromDomo: 'POST /api/leasing/sync-from-domo (optional X-Sync-Secret; backend fetches from Domo and syncs – for cron or Domo alert)',
         wipe: 'POST /api/leasing/wipe (optional X-Sync-Secret; truncate all leasing tables + SyncLog so next sync does full replace)',
       },
@@ -323,8 +323,9 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`❤️  Health Check: http://localhost:${PORT}/health`);
   getConnection()
     .then(() => {
-      if (process.env.SKIP_LEASING_STARTUP_REBUILD === 'true') {
-        console.log('[leasing] Skipping startup snapshot rebuild (SKIP_LEASING_STARTUP_REBUILD=true)');
+      // Snapshot is built at the end of sync-from-domo (cron). Do not rebuild on deploy unless explicitly requested.
+      if (process.env.RUN_LEASING_SNAPSHOT_ON_STARTUP !== 'true') {
+        console.log('[leasing] Snapshot is built after sync (cron). Set RUN_LEASING_SNAPSHOT_ON_STARTUP=true to rebuild on deploy.');
         return;
       }
       rebuildDashboardSnapshot().then(() => console.log('[leasing] Dashboard snapshot ready')).catch((err) => console.warn('[leasing] Startup snapshot rebuild:', err?.message ?? err));

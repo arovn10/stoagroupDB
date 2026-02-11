@@ -88,7 +88,7 @@ curl -sS -X POST "http://localhost:3000/api/leasing/sync-from-domo?force=true" \
 ## 4. After sync
 
 - Response lists `fetched`, `synced`, `skipped`, and any `errors`.
-- The API triggers a dashboard snapshot rebuild after a successful sync (so GET /api/leasing/dashboard serves from the new data).
+- The API **builds the dashboard snapshot at the end of sync** (so GET /api/leasing/dashboard serves from the new data). Snapshot is not built on deploy; cron (sync-from-domo) is the place it runs.
 - Check row counts: `node scripts/leasing-db-inspect.js`
 
 **Why fewer rows in the DB than in Domo?** Each leasing table has a **unique key**. Sync dedupes and upserts by that key, so you get **one row per key**. For example, `leasing.Leasing` uses **(Property, MonthOf)** — one row per property per month. If Domo sends 1101 rows but only 76 unique property+month combinations, the DB will have 76 rows. The log now shows both input count and rows written (e.g. `1101/1101 input → 76 rows written`).
@@ -97,6 +97,6 @@ curl -sS -X POST "http://localhost:3000/api/leasing/sync-from-domo?force=true" \
 
 ## More
 
-- **Check if Domo data changed (no write):** `GET /api/leasing/sync-check`  
+- **Check if Domo and DB differ (no write):** `GET /api/leasing/sync-check` — compares Domo dataset row count to current DB row count per table; returns `{ changes: true, details: [{ dataset, domoRows, dbRows, lastRows, hasChange }] }`. When `changes` is true, run sync-from-domo to add/update only (never delete).  
 - **Wipe:** Sync never wipes automatically. To clear all leasing data you must call `POST /api/leasing/wipe` explicitly (same auth as sync). Use only when you need a full replace (e.g. repair); normal sync is upsert-only.  
 - **Cron / Domo webhook:** see `docs/leasing-sync-auto-run.md`

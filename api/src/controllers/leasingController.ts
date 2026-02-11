@@ -3,6 +3,7 @@ import {
   dataHash,
   canSync,
   getSyncLog,
+  getLeasingTableRowCount,
   upsertSyncLog,
   syncLeasing,
   syncMMRData,
@@ -321,8 +322,9 @@ export const postSync = async (req: Request, res: Response, next: NextFunction):
 
 /**
  * GET /api/leasing/sync-check
- * Lightweight check: compare Domo dataset metadata (row count) to last sync. For cron: if changes=false, exit;
- * if changes=true, call POST /api/leasing/sync-from-domo. Optional: X-Sync-Secret if LEASING_SYNC_WEBHOOK_SECRET set.
+ * Lightweight check: compare Domo dataset row count to current database row count. For cron: if changes=false, exit;
+ * if changes=true, call POST /api/leasing/sync-from-domo (which only adds/updates rows that exist in Domo, never deletes).
+ * Optional: X-Sync-Secret if LEASING_SYNC_WEBHOOK_SECRET set.
  */
 export const getSyncCheck = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -336,7 +338,7 @@ export const getSyncCheck = async (req: Request, res: Response, next: NextFuncti
     }
 
     const token = await getDomoToken();
-    const details: Array<{ dataset: string; domoRows: number | null; lastRows: number | null; hasChange: boolean }> = [];
+    const details: Array<{ dataset: string; domoRows: number | null; dbRows: number; lastRows: number | null; hasChange: boolean }> = [];
     let hasChange = false;
 
     for (const [key, envKey] of Object.entries(DOMO_DATASET_KEYS)) {
@@ -344,17 +346,15 @@ export const getSyncCheck = async (req: Request, res: Response, next: NextFuncti
       if (!datasetId) continue;
       const alias = key === 'recents' ? 'recentrents' : key;
       const meta = await fetchDomoDatasetMetadata(datasetId, token);
+      const domoRows = meta.rowCount ?? null;
+      const dbRows = await getLeasingTableRowCount(alias);
       const log = await getSyncLog(alias);
       const lastRows = log?.LastRowCount ?? null;
-      const domoRows = meta.rowCount;
+      // Difference in Domo vs DB length → need to sync (sync only adds/updates, never wipes).
       const changed =
-        log == null
-          ? true
-          : domoRows != null && lastRows != null
-            ? domoRows !== lastRows
-            : false;
+        domoRows != null && domoRows !== dbRows;
       if (changed) hasChange = true;
-      details.push({ dataset: alias, domoRows, lastRows, hasChange: changed });
+      details.push({ dataset: alias, domoRows, dbRows, lastRows, hasChange: changed });
     }
 
     if (details.length === 0) {
@@ -491,6 +491,7 @@ export const postSyncFromDomo = async (req: Request, res: Response, next: NextFu
       return;
     }
 
+    // Build dashboard snapshot at end of sync so cron is the source of truth (not deploy).
     if (synced.length > 0) rebuildDashboardSnapshot().catch(() => {});
     res.status(errors.length ? 207 : 200).json({
       success: errors.length === 0,
