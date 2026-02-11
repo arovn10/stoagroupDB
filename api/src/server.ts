@@ -286,11 +286,13 @@ app.use(errorHandler);
 
 // Start server immediately so Render (and other platforms) detect an open port.
 // Azure Blob container setup runs in background and does not block listening.
-app.listen(PORT, '0.0.0.0', () => {
+// Allow long-lived requests (e.g. leasing sync with large body); host/proxy timeout must also be increased (see docs/leasing-sync-auto-run.md).
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📚 API Documentation: http://localhost:${PORT}/api`);
   console.log(`❤️  Health Check: http://localhost:${PORT}/health`);
 });
+server.timeout = Number(process.env.SERVER_REQUEST_TIMEOUT_MS) || 300_000; // 5 min default for sync routes
 ensureContainerExists().catch((err) => {
   console.warn('Azure Blob container check failed (blob features may be limited):', err?.message ?? err);
 });

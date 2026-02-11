@@ -633,6 +633,39 @@ export async function getAllForDashboard(): Promise<LeasingDashboardRaw> {
   };
 }
 
+// ---------- DashboardSnapshot (pre-computed payload) ----------
+const T_SNAPSHOT = `${LEASING_SCHEMA}.DashboardSnapshot`;
+const SNAPSHOT_ID = 1;
+
+export async function getDashboardSnapshot(): Promise<{ payload: string; builtAt: Date } | null> {
+  const pool = await getConnection();
+  const r = await pool
+    .request()
+    .input('id', sql.Int, SNAPSHOT_ID)
+    .query(`SELECT Payload, BuiltAt FROM ${T_SNAPSHOT} WHERE Id = @id`);
+  if (r.recordset.length === 0 || r.recordset[0].Payload == null) return null;
+  return {
+    payload: String(r.recordset[0].Payload),
+    builtAt: r.recordset[0].BuiltAt as Date,
+  };
+}
+
+export async function upsertDashboardSnapshot(payloadJson: string): Promise<void> {
+  const pool = await getConnection();
+  const now = new Date();
+  await pool
+    .request()
+    .input('id', sql.Int, SNAPSHOT_ID)
+    .input('payload', sql.NVarChar(2147483647), payloadJson)
+    .input('builtAt', sql.DateTime2, now)
+    .query(`
+      MERGE ${T_SNAPSHOT} AS t
+      USING (SELECT @id AS Id) AS s ON t.Id = s.Id
+      WHEN MATCHED THEN UPDATE SET Payload = @payload, BuiltAt = @builtAt
+      WHEN NOT MATCHED THEN INSERT (Id, Payload, BuiltAt) VALUES (@id, @payload, @builtAt);
+    `);
+}
+
 // ---------- CRUD: get by id ----------
 export async function getLeasingById(id: number): Promise<Record<string, unknown> | null> {
   const pool = await getConnection();

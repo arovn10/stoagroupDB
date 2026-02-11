@@ -137,6 +137,31 @@ Then whenever Domo calls the URL, the API will fetch from Domo and run the sync.
 
 ---
 
+## Where to change request timeout (fix 15s / "request failed to complete in 15000ms")
+
+The API needs enough time to accept and process large sync bodies (e.g. pricing ~24k rows, PUD ~224k rows). **Change the timeout on the host or reverse proxy**, not only in the client script:
+
+1. **Render**  
+   Dashboard → your **Web Service** → **Settings** → **Advanced** → set **Request timeout** (e.g. **300** seconds). Save and redeploy.
+
+2. **Azure App Service**  
+   Portal → your App Service → **Configuration** → **General settings** → **Request time-out** (e.g. **300**). Save.
+
+3. **Other (nginx, load balancer)**  
+   Increase the upstream read/request timeout (e.g. `proxy_read_timeout 300s`) for the API.
+
+The Node server is also set to allow long-lived requests (see `api/src/server.ts`). If you still see 15s errors after increasing the host timeout, confirm no proxy in between is enforcing a lower limit.
+
+---
+
+## Troubleshooting
+
+- **"Timeout: Request failed to complete in 15000ms"** (or similar) on **pricing** or **portfolioUnitDetails**: The script uses a 15‑minute client timeout; a **15s limit is usually from the host or reverse proxy**. Increase the **request timeout** as above (at least 300s) for `/api/leasing/sync` and `/api/leasing/sync-from-domo`.
+- **413 "request entity too large"**: Increase the API body size limit (e.g. `JSON_BODY_LIMIT` / Express `express.json({ limit })`); the repo default is 300mb.
+- **"skipped" for a dataset**: The backend skips when it already synced that dataset today with the same data hash. That’s expected; run again another day or after Domo data changes to sync.
+
+---
+
 ## Summary
 
 | Method | When it runs | Domo config | Where it runs |

@@ -13,6 +13,8 @@ DB_PASSWORD=your-db-password
 DB_ENCRYPT=true
 DB_TRUST_SERVER_CERTIFICATE=false
 LEASING_AGGREGATION_SOURCE=api
+# Optional: allow long-lived requests (e.g. leasing sync large body). Default 300000 (5 min). See docs/leasing-sync-auto-run.md for host timeout (Render/Azure).
+# SERVER_REQUEST_TIMEOUT_MS=300000
 
 # ----- Domo → Backend sync (for Python script domo-to-backend-sync.py; optional on Render unless you run the sync there) -----
 DOMO_CLIENT_ID=8a7ba02d-e2c7-4a87-bfd5-160f8e6c2254

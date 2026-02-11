@@ -139,12 +139,16 @@ def build_payload_from_domo(
     client_id: str,
     client_secret: str,
     dataset_ids: dict[str, str],
+    skip_keys: set[str] | None = None,
 ) -> dict[str, list]:
-    """Fetch each dataset from Domo and build the sync payload."""
+    """Fetch each dataset from Domo and build the sync payload. skip_keys: do not fetch these (e.g. portfolioUnitDetails with --skip-pud)."""
+    skip_keys = skip_keys or set()
     token = get_domo_token(client_id, client_secret)
     payload: dict[str, list] = {}
     for key, ds_id in dataset_ids.items():
-        if not ds_id:
+        if not ds_id or key in skip_keys:
+            if key in skip_keys and ds_id:
+                print(f"  {key}: skipped (not fetching)", file=sys.stderr)
             continue
         try:
             rows = export_domo_dataset(ds_id, token)
@@ -223,6 +227,11 @@ def main() -> int:
         action="store_true",
         help="Build payload and print summary; do not POST.",
     )
+    parser.add_argument(
+        "--skip-pud",
+        action="store_true",
+        help="Skip portfolioUnitDetails (224k+ rows). Use cron/sync-from-domo for full sync including PUD.",
+    )
     args = parser.parse_args()
 
     base_url = os.environ.get("API_BASE_URL", "").strip()
@@ -252,7 +261,11 @@ def main() -> int:
         if not any(dataset_ids.values()):
             print("Set at least one DOMO_DATASET_* env var; see script docstring.", file=sys.stderr)
             return 1
-        payload = build_payload_from_domo(client_id, client_secret, dataset_ids)
+        skip_keys = {"portfolioUnitDetails"} if args.skip_pud else set()
+        payload = build_payload_from_domo(client_id, client_secret, dataset_ids, skip_keys=skip_keys)
+        if args.skip_pud and "portfolioUnitDetails" in payload:
+            del payload["portfolioUnitDetails"]
+            print("Skipping portfolioUnitDetails (--skip-pud).", file=sys.stderr)
 
     if not payload:
         print("No data to sync.", file=sys.stderr)

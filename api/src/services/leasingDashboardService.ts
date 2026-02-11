@@ -380,6 +380,27 @@ function getMonth(leasing: Record<string, unknown>[]): string | null {
   return `${latest.getFullYear()}-${String(latest.getMonth() + 1).padStart(2, '0')}`;
 }
 
+/** Convert Map and other non-JSON values to plain objects for storage. */
+function toSerializable(value: unknown): unknown {
+  if (value instanceof Map) {
+    const obj: Record<string, unknown> = {};
+    for (const [k, v] of value.entries()) obj[String(k)] = toSerializable(v);
+    return obj;
+  }
+  if (Array.isArray(value)) return value.map(toSerializable);
+  if (value !== null && typeof value === 'object' && value.constructor === Object) {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value)) out[k] = toSerializable(v);
+    return out;
+  }
+  return value;
+}
+
+/** Return a JSON-serializable copy of the dashboard payload (for storing in DashboardSnapshot). */
+export function dashboardPayloadToJsonSafe(payload: LeasingDashboardPayload): Record<string, unknown> {
+  return toSerializable(payload) as Record<string, unknown>;
+}
+
 export async function buildDashboardFromRaw(raw: LeasingDashboardRaw): Promise<LeasingDashboardPayload> {
   const { statusByProperty, mmrOcc, mmrUnits } = buildStatusFromMMR(raw.mmrRows);
   const lastUpdated = computeLastUpdated(raw);

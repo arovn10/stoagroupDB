@@ -13,6 +13,8 @@ import {
   syncPricing,
   syncRecentRents,
   getAllForDashboard,
+  getDashboardSnapshot,
+  upsertDashboardSnapshot,
   getAllLeasing,
   getAllMMRData,
   getAllUnitByUnitTradeout,
@@ -33,7 +35,7 @@ import {
   updateLeasing,
   deleteLeasing,
 } from '../services/leasingRepository';
-import { buildDashboardFromRaw } from '../services/leasingDashboardService';
+import { buildDashboardFromRaw, dashboardPayloadToJsonSafe } from '../services/leasingDashboardService';
 
 /**
  * Leasing API – authoritative calculations on the backend. Frontend is visual-only.
@@ -270,6 +272,7 @@ export const postSync = async (req: Request, res: Response, next: NextFunction):
       }
     }
 
+    if (synced.length > 0) rebuildDashboardSnapshot().catch(() => {});
     res.status(errors.length ? 207 : 200).json({
       success: errors.length === 0,
       synced,
@@ -402,6 +405,7 @@ export const postSyncFromDomo = async (req: Request, res: Response, next: NextFu
       }
     }
 
+    if (synced.length > 0) rebuildDashboardSnapshot().catch(() => {});
     res.status(errors.length ? 207 : 200).json({
       success: errors.length === 0,
       fetched,
@@ -415,10 +419,22 @@ export const postSyncFromDomo = async (req: Request, res: Response, next: NextFu
   }
 };
 
+/** Rebuild and store the dashboard snapshot (called after sync; fire-and-forget). */
+async function rebuildDashboardSnapshot(): Promise<void> {
+  try {
+    const raw = await getAllForDashboard();
+    const dashboard = await buildDashboardFromRaw(raw);
+    const json = JSON.stringify(dashboardPayloadToJsonSafe(dashboard));
+    await upsertDashboardSnapshot(json);
+  } catch (err) {
+    console.error('rebuildDashboardSnapshot failed:', err instanceof Error ? err.message : err);
+  }
+}
+
 /**
  * GET /api/leasing/dashboard
- * Single pre-computed dashboard payload. All authoritative calculations run on the backend;
- * frontend only renders this data (visual-only, light UI math only).
+ * Single pre-computed dashboard payload. Serves from DashboardSnapshot if present (fast);
+ * otherwise computes from raw tables and returns (slower). Frontend is visual-only.
  * Query: asOf (optional) YYYY-MM-DD.
  * When source is 'none', returns success with dashboard: null so frontend falls back to Domo + client-side calc.
  */
@@ -431,6 +447,17 @@ export const getDashboard = async (req: Request, res: Response, next: NextFuncti
         success: true,
         dashboard: null,
         _meta: { source: 'none', message: 'Set LEASING_AGGREGATION_SOURCE and implement dashboard calculation in leasingController.' },
+      });
+      return;
+    }
+
+    const snapshot = await getDashboardSnapshot();
+    if (snapshot?.payload) {
+      const dashboard = JSON.parse(snapshot.payload) as LeasingDashboardPayload;
+      res.json({
+        success: true,
+        dashboard,
+        _meta: { source: AGGREGATION_SOURCE, asOf, fromSnapshot: true, builtAt: snapshot.builtAt?.toISOString?.() },
       });
       return;
     }

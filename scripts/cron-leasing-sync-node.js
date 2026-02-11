@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 /**
- * Render cron: check for Domo changes; if changes, run sync. Needs API_BASE_URL and LEASING_SYNC_WEBHOOK_SECRET (optional).
+ * Render cron (e.g. every 15 min): call GET /api/leasing/sync-check first.
+ * Only when Domo data has changed (response.changes === true) do we run POST /api/leasing/sync-from-domo.
+ * Otherwise exit 0 immediately so we don't full-sync every run.
+ * Needs: API_BASE_URL; optional: LEASING_SYNC_WEBHOOK_SECRET.
  */
 const https = require('https');
 const http = require('http');
@@ -22,7 +25,7 @@ function get(path) {
     const req = lib.get(url, { headers }, (res) => {
       let body = '';
       res.on('data', (c) => (body += c));
-      res.on('end', () => resolve(body));
+      res.on('end', () => resolve({ statusCode: res.statusCode, body }));
     });
     req.on('error', reject);
   });
@@ -34,7 +37,7 @@ function post(path) {
     const req = lib.request(url, { method: 'POST', headers }, (res) => {
       let body = '';
       res.on('data', (c) => (body += c));
-      res.on('end', () => resolve(body));
+      res.on('end', () => resolve({ statusCode: res.statusCode, body }));
     });
     req.on('error', reject);
     req.end();
@@ -43,9 +46,29 @@ function post(path) {
 
 (async () => {
   try {
-    const check = await get('/api/leasing/sync-check');
-    if (!check.includes('"changes":true')) process.exit(0);
-    await post('/api/leasing/sync-from-domo');
+    const { statusCode, body } = await get('/api/leasing/sync-check');
+    if (statusCode !== 200) {
+      console.error('sync-check failed:', statusCode, body.slice(0, 200));
+      process.exit(1);
+    }
+    let data;
+    try {
+      data = JSON.parse(body);
+    } catch (_) {
+      console.error('sync-check response not JSON:', body.slice(0, 200));
+      process.exit(1);
+    }
+    if (data.changes !== true) {
+      console.log('No Domo changes; skipping full sync.');
+      process.exit(0);
+    }
+    console.log('Domo changes detected; running sync-from-domo...');
+    const syncRes = await post('/api/leasing/sync-from-domo');
+    if (syncRes.statusCode !== 200) {
+      console.error('sync-from-domo failed:', syncRes.statusCode, syncRes.body.slice(0, 300));
+      process.exit(1);
+    }
+    console.log('Sync completed.');
   } catch (e) {
     console.error(e);
     process.exit(1);

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run every 15 min: check for RealPage/Domo data changes; if none, exit; if changes, run sync.
+# Run every 15 min: call sync-check first; only run full sync when Domo actually changed (don't full-sync every 15 min).
 # Usage: set API_BASE_URL and optionally LEASING_SYNC_WEBHOOK_SECRET (env or .env), then:
 #   ./scripts/cron-leasing-sync.sh
 # Crontab: */15 * * * * /path/to/stoagroupDB/scripts/cron-leasing-sync.sh
@@ -33,9 +33,11 @@ else
   CHECK_RESULT=$(curl -sS "$CHECK_URL")
 fi
 if ! echo "$CHECK_RESULT" | grep -q '"changes":true'; then
+  echo "No Domo changes; skipping full sync."
   exit 0
 fi
 
+echo "Domo changes detected; running sync-from-domo..."
 # Run sync
 if [ -n "$SECRET" ]; then
   curl -sS -X POST -H "Content-Type: application/json" -H "X-Sync-Secret: $SECRET" "$SYNC_URL"

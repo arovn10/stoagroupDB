@@ -321,3 +321,15 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_leasing_Pricing_Proper
   CREATE NONCLUSTERED INDEX IX_leasing_Pricing_Property ON leasing.Pricing(Property);
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_leasing_RecentRents_Property' AND object_id = OBJECT_ID('leasing.RecentRents'))
   CREATE NONCLUSTERED INDEX IX_leasing_RecentRents_Property ON leasing.RecentRents(Property);
+
+-- ============================================================
+-- DashboardSnapshot: pre-computed dashboard payload (rows, statusByProperty, unitmixStruct, etc.)
+-- Rebuilt after each sync so GET /api/leasing/dashboard can serve from one row instead of reading all raw tables.
+-- ============================================================
+IF NOT EXISTS (SELECT 1 FROM sys.tables t JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE s.name = 'leasing' AND t.name = 'DashboardSnapshot')
+CREATE TABLE leasing.DashboardSnapshot (
+  Id       INT NOT NULL CONSTRAINT PK_leasing_DashboardSnapshot PRIMARY KEY,  -- single row: 1
+  Payload  NVARCHAR(MAX) NULL,   -- JSON: full LeasingDashboardPayload (same shape as API response)
+  BuiltAt  DATETIME2(0) NOT NULL,
+  AsOf     DATE NULL             -- optional: snapshot as-of date for point-in-time (future use)
+);
