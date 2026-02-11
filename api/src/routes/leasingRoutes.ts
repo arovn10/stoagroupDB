@@ -19,6 +19,8 @@ router.post('/sync', leasingController.postSync);
 router.get('/sync-check', leasingController.getSyncCheck);
 // Sync health: which columns are all-null per table (for check-and-fix-leasing-sync script).
 router.get('/sync-health', leasingController.getSyncHealth);
+// Domo column names: exact CSV headers Domo sends per dataset (to fix NULL column mapping).
+router.get('/domo-columns', leasingController.getDomoColumns);
 // Add a Domo CSV header as alias for a table/column (for check-and-fix-leasing-sync script).
 router.post('/sync-add-alias', leasingController.postSyncAddAlias);
 // Sync from Domo: backend fetches datasets from Domo API and syncs. For Domo alerts or cron. Optional header X-Sync-Secret. Query: ?dataset=alias to sync only that table.

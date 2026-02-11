@@ -61,6 +61,23 @@ Sync can run automatically in two ways: **on a schedule** or **when Domo data is
 
 ---
 
+## Why do so many columns end up NULL?
+
+The sync maps **Domo CSV column names** (the exact header row from Domo) to **database column names**. Each DB column is filled by trying a list of possible header names (e.g. for `UnitNumber` we try `"UnitNumber"`, `"Unit Number"`, `"Unit #"`, etc.). If **none** of those strings match the header Domo sends, we store **NULL**.
+
+So NULLs usually mean:
+
+1. **Domo sends a different name** — e.g. Domo has `"Unit Num"` or `"Unit No."` but we only look for `"Unit Number"` / `"Unit #"`. The name must match exactly (after our case-insensitive check).
+2. **Spaces or punctuation** — e.g. `"Lease ID"` vs `"LeaseID"`; we have both in the list for that column, but if Domo sends `"Lease Id"` or `"Lease  ID"` (double space), it won’t match.
+3. **Dataset was built in Magic ETL / connector** — column names come from that flow and may not match what we expect.
+
+**See what Domo actually sends:**
+
+- **GET /api/leasing/domo-columns** — returns the exact CSV header names for each configured dataset, e.g. `{ "domoColumns": { "portfolioUnitDetails": ["Property", "Unit Num", "Floor Plan", ...] } }`. Compare these to the DB column names; any name that’s not in our alias list for that column will cause NULLs.
+- Then add the missing names via **POST /api/leasing/sync-add-alias** (body: `{ "table": "portfolioUnitDetails", "column": "UnitNumber", "domoHeader": "Unit Num" }`) or run **check-and-fix-leasing-sync.js** to fix all-NULL columns automatically.
+
+---
+
 ## Option 1: Run on a schedule (recommended)
 
 Run the sync at a fixed interval (e.g. every hour). No Domo configuration required.

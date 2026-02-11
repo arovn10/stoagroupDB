@@ -137,6 +137,18 @@ async function fetchDomoDatasetCsv(datasetId: string, token: string): Promise<st
   return res.text();
 }
 
+/** Fetch only the first line (header row) of a Domo dataset CSV. Uses limit=1 to reduce payload when supported. */
+async function fetchDomoDatasetCsvHeader(datasetId: string, token: string): Promise<string> {
+  const url = `https://api.domo.com/v1/datasets/${datasetId}/data?includeHeader=true&format=csv&limit=1`;
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(`Domo dataset ${datasetId}: ${res.status}`);
+  const text = await res.text();
+  const firstLine = text.split(/\r?\n/)[0] ?? '';
+  return firstLine;
+}
+
 /** Fetch Domo dataset metadata (lightweight). Returns row count if API provides it. */
 async function fetchDomoDatasetMetadata(
   datasetId: string,
@@ -536,6 +548,38 @@ export const getSyncHealth = async (req: Request, res: Response, next: NextFunct
       tables[alias] = await getLeasingTableAllNullColumns(alias);
     }
     res.status(200).json({ success: true, tables });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * GET /api/leasing/domo-columns
+ * Returns the exact column names (CSV headers) that Domo sends for each configured dataset.
+ * Use this to see why columns are NULL: if a name here isn't in our alias list for that DB column, we store NULL.
+ * Compare with LEASING_COLUMNS_BY_ALIAS in the repo and add missing names via POST /api/leasing/sync-add-alias or run check-and-fix-leasing-sync.js.
+ */
+export const getDomoColumns = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const token = await getDomoToken();
+    const domoColumns: Record<string, string[]> = {};
+    const errors: Record<string, string> = {};
+    for (const [key, envKey] of Object.entries(DOMO_DATASET_KEYS)) {
+      const datasetId = process.env[envKey]?.trim();
+      const alias = key === 'recents' ? 'recentrents' : key;
+      if (!datasetId) {
+        domoColumns[alias] = [];
+        continue;
+      }
+      try {
+        const headerLine = await fetchDomoDatasetCsvHeader(datasetId, token);
+        domoColumns[alias] = parseCsvLine(headerLine);
+      } catch (e) {
+        domoColumns[alias] = [];
+        errors[alias] = e instanceof Error ? e.message : String(e);
+      }
+    }
+    res.status(200).json({ success: true, domoColumns, errors: Object.keys(errors).length ? errors : undefined });
   } catch (error) {
     next(error);
   }
