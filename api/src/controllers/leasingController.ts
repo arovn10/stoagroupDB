@@ -35,6 +35,10 @@ import {
   updateLeasing,
   deleteLeasing,
   wipeLeasingTables,
+  wipeLeasingTable,
+  getLeasingTableAllNullColumns,
+  addDomoAliasOverride,
+  DATASET_ALIASES,
 } from '../services/leasingRepository';
 import { buildDashboardFromRaw, dashboardPayloadToJsonSafe } from '../services/leasingDashboardService';
 
@@ -394,7 +398,18 @@ export const postSyncFromDomo = async (req: Request, res: Response, next: NextFu
     const today = new Date(now.toISOString().slice(0, 10) + 'T00:00:00.000Z');
     const fetched: string[] = [];
 
-    for (const [key, envKey] of Object.entries(DOMO_DATASET_KEYS)) {
+    let entries = Object.entries(DOMO_DATASET_KEYS);
+    const onlyDataset = (req.query.dataset as string)?.trim();
+    if (onlyDataset) {
+      const alias = onlyDataset === 'recents' ? 'recentrents' : onlyDataset;
+      entries = entries.filter(([k]) => (k === 'recents' ? 'recentrents' : k) === alias);
+      if (entries.length === 0) {
+        res.status(400).json({ success: false, error: `Unknown dataset: ${onlyDataset}` });
+        return;
+      }
+    }
+
+    for (const [key, envKey] of entries) {
       const datasetId = process.env[envKey]?.trim();
       if (!datasetId) continue;
 
@@ -493,8 +508,58 @@ export const postWipeLeasing = async (req: Request, res: Response, next: NextFun
         return;
       }
     }
-    const result = await wipeLeasingTables();
-    res.status(200).json({ success: true, ...result });
+    const tableParam = (req.query.table as string)?.trim();
+    if (tableParam) {
+      const result = await wipeLeasingTable(tableParam);
+      res.status(200).json({ success: true, ...result });
+    } else {
+      const result = await wipeLeasingTables();
+      res.status(200).json({ success: true, ...result });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * GET /api/leasing/sync-health
+ * Returns for each leasing table the list of column names that are entirely NULL (sync mapping issue).
+ * Used by check-and-fix-leasing-sync script.
+ */
+export const getSyncHealth = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const tables: Record<string, string[]> = {};
+    for (const alias of DATASET_ALIASES) {
+      tables[alias] = await getLeasingTableAllNullColumns(alias);
+    }
+    res.status(200).json({ success: true, tables });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * POST /api/leasing/sync-add-alias
+ * Add a Domo CSV header as alias for a table/column (persists to domo-alias-overrides.json).
+ * Body: { table: string, column: string, domoHeader: string }. Same auth as wipe.
+ */
+export const postSyncAddAlias = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const secret = process.env.LEASING_SYNC_WEBHOOK_SECRET?.trim();
+    if (secret) {
+      const provided = (req.headers['x-sync-secret'] as string) || (req.body && typeof req.body === 'object' && (req.body as { secret?: string }).secret);
+      if (provided !== secret) {
+        res.status(401).json({ success: false, error: 'Invalid or missing sync secret' });
+        return;
+      }
+    }
+    const { table, column, domoHeader } = req.body as { table?: string; column?: string; domoHeader?: string };
+    if (!table || !column || !domoHeader || typeof domoHeader !== 'string') {
+      res.status(400).json({ success: false, error: 'Body must include table, column, domoHeader (strings)' });
+      return;
+    }
+    addDomoAliasOverride(table.trim(), column.trim(), String(domoHeader).trim());
+    res.status(200).json({ success: true, table, column, added: domoHeader });
   } catch (error) {
     next(error);
   }

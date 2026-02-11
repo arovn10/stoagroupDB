@@ -17,9 +17,13 @@ router.post('/sync', leasingController.postSync);
 
 // Sync check: lightweight compare Domo metadata to last sync. For cron: if changes=false exit; else call sync-from-domo.
 router.get('/sync-check', leasingController.getSyncCheck);
-// Sync from Domo: backend fetches datasets from Domo API and syncs. For Domo alerts or cron. Optional header X-Sync-Secret.
+// Sync health: which columns are all-null per table (for check-and-fix-leasing-sync script).
+router.get('/sync-health', leasingController.getSyncHealth);
+// Add a Domo CSV header as alias for a table/column (for check-and-fix-leasing-sync script).
+router.post('/sync-add-alias', leasingController.postSyncAddAlias);
+// Sync from Domo: backend fetches datasets from Domo API and syncs. For Domo alerts or cron. Optional header X-Sync-Secret. Query: ?dataset=alias to sync only that table.
 router.post('/sync-from-domo', leasingController.postSyncFromDomo);
-// Wipe: truncate all leasing tables and SyncLog so next sync does full replace. Same auth as sync-from-domo.
+// Wipe: truncate all leasing tables and SyncLog. Query: ?table=alias to wipe only that table. Same auth as sync-from-domo.
 router.post('/wipe', leasingController.postWipeLeasing);
 
 // CRUD: list all rows for a dataset

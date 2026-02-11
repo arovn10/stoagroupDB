@@ -1,10 +1,35 @@
 /**
  * Leasing repository: sync (truncate + bulk insert), CRUD, and read-for-dashboard.
  * All tables live in schema [leasing].
+ * Runtime alias overrides: api/src/config/domo-alias-overrides.json (table -> column -> string[]) for Domo CSV header names.
  */
 import sql from 'mssql';
 import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
 import { getConnection } from '../config/database';
+
+const OVERRIDES_PATH = path.join(__dirname, '../config/domo-alias-overrides.json');
+
+/** Load runtime overrides for Domo column names (used by check-and-fix-leasing-sync script). Re-read on each call. */
+export function loadDomoAliasOverrides(): Record<string, Record<string, string[]>> {
+  try {
+    const raw = fs.readFileSync(OVERRIDES_PATH, 'utf8');
+    const data = JSON.parse(raw) as Record<string, Record<string, string[]>>;
+    return data && typeof data === 'object' ? data : {};
+  } catch {
+    return {};
+  }
+}
+
+/** Add a runtime alias override for a table/column. Persists to domo-alias-overrides.json. */
+export function addDomoAliasOverride(alias: string, column: string, domoHeader: string): void {
+  const o = loadDomoAliasOverrides();
+  if (!o[alias]) o[alias] = {};
+  if (!o[alias][column]) o[alias][column] = [];
+  if (!o[alias][column].includes(domoHeader)) o[alias][column].push(domoHeader);
+  fs.writeFileSync(OVERRIDES_PATH, JSON.stringify(o, null, 2), 'utf8');
+}
 
 const LEASING_SCHEMA = 'leasing';
 const SYNC_LOG = `${LEASING_SCHEMA}.SyncLog`;
@@ -21,12 +46,35 @@ export const DATASET_ALIASES = [
 ] as const;
 export type DatasetAlias = (typeof DATASET_ALIASES)[number];
 
-/** Pick value from row by trying alias, column name, or DB column name. */
+/** Pick value from row by trying alias, column name, or DB column name. Case-insensitive fallback for CSV headers. */
 function getVal(row: Record<string, unknown>, ...keys: string[]): unknown {
   for (const k of keys) {
     if (Object.prototype.hasOwnProperty.call(row, k) && row[k] !== undefined && row[k] !== '') return row[k];
   }
+  const rowKeys = Object.keys(row);
+  for (const k of keys) {
+    const want = String(k).toLowerCase();
+    for (const rk of rowKeys) {
+      if (rk.toLowerCase() === want) {
+        const v = row[rk];
+        if (v !== undefined && v !== '') return v;
+        break;
+      }
+    }
+  }
   return null;
+}
+
+/** getVal with runtime overrides from domo-alias-overrides.json (tried after column name, before defaults). */
+function getValWithOverrides(
+  alias: string,
+  column: string,
+  row: Record<string, unknown>,
+  ...defaultAliases: string[]
+): unknown {
+  const overrides = loadDomoAliasOverrides();
+  const extra = overrides[alias]?.[column] ?? [];
+  return getVal(row, column, ...extra, ...defaultAliases);
 }
 function num(v: unknown): number | null {
   if (v == null || v === '') return null;
@@ -193,6 +241,70 @@ export async function canSync(datasetAlias: string, dataHashNew: string): Promis
   return false;
 }
 
+/** Alias -> physical table name (leasing schema). */
+export const LEASING_TABLE_BY_ALIAS: Record<string, string> = {
+  leasing: 'Leasing',
+  MMRData: 'MMRData',
+  unitbyunittradeout: 'UnitByUnitTradeout',
+  portfolioUnitDetails: 'PortfolioUnitDetails',
+  units: 'Units',
+  unitmix: 'UnitMix',
+  pricing: 'Pricing',
+  recentrents: 'RecentRents',
+};
+
+/** Alias -> list of data columns to check for all-null (excludes Id, SyncedAt). */
+export const LEASING_COLUMNS_BY_ALIAS: Record<string, string[]> = {
+  leasing: ['Property', 'Units', 'LeasesNeeded', 'NewLeasesCurrentGrossRent', 'LeasingVelocity7Day', 'LeasingVelocity28Day', 'MonthOf', 'BatchTimestamp'],
+  MMRData: ['Property', 'Location', 'TotalUnits', 'OccupancyPercent', 'CurrentLeasedPercent', 'MI', 'MO', 'FirstVisit', 'Applied', 'Canceled', 'Denied', 'T12LeasesExpired', 'T12LeasesRenewed', 'Delinquent', 'OccupiedRent', 'BudgetedRent', 'CurrentMonthIncome', 'BudgetedIncome', 'MoveInRent', 'OccUnits', 'Week3EndDate', 'Week3MoveIns', 'Week3MoveOuts', 'Week3OccUnits', 'Week3OccPercent', 'Week4EndDate', 'Week4MoveIns', 'Week4MoveOuts', 'Week4OccUnits', 'Week4OccPercent', 'Week7EndDate', 'Week7MoveIns', 'Week7MoveOuts', 'Week7OccUnits', 'Week7OccPercent', 'InServiceUnits', 'T12LeaseBreaks', 'BudgetedOccupancyCurrentMonth', 'BudgetedOccupancyPercentCurrentMonth', 'BudgetedLeasedPercentCurrentMonth', 'BudgetedLeasedCurrentMonth', 'ReportDate', 'ConstructionStatus', 'Rank', 'PreviousOccupancyPercent', 'PreviousLeasedPercent', 'PreviousDelinquentUnits', 'WeekStart', 'LatestDate', 'City', 'State', 'Status', 'FinancingStatus', 'ProductType', 'Units', 'FullAddress', 'Latitude', 'Longitude', 'Region', 'LatestConstructionStatus', 'BirthOrder', 'NetLsd'],
+  unitbyunittradeout: ['FloorPlan', 'UnitDetailsUnitType', 'UnitDetailsBuilding', 'UnitDetailsUnit', 'UnitDetailsSqFt', 'CurrentLeaseRateType', 'CurrentLeaseLeaseType', 'CurrentLeaseAppSignedDate', 'CurrentLeaseLeaseStart', 'CurrentLeaseLeaseEnd', 'CurrentLeaseTerm', 'CurrentLeasePrem', 'CurrentLeaseGrossRent', 'CurrentLeaseConc', 'CurrentLeaseEffRent', 'PreviousLeaseRateType', 'PreviousLeaseLeaseStart', 'PreviousLeaseScheduledLeaseEnd', 'PreviousLeaseActualLeaseEnd', 'PreviousLeaseTerm', 'PreviousLeasePrem', 'PreviousLeaseGrossRent', 'PreviousLeaseConc', 'PreviousLeaseEffRent', 'VacantDays', 'TermVariance', 'TradeOutPercentage', 'TradeOutAmount', 'ReportDate', 'JoinDate', 'MonthOf', 'Property', 'City', 'State', 'Status', 'Units', 'FullAddress', 'Latitude', 'Longitude', 'Region', 'ConstructionStatus', 'BirthOrder'],
+  portfolioUnitDetails: ['Property', 'UnitNumber', 'FloorPlan', 'UnitDesignation', 'SQFT', 'UnitLeaseStatus', 'ResidentNameExternalTenantID', 'LeaseID', 'MoveIn', 'Notice', 'MoveOut', 'DaysVacant', 'MakeReady', 'MakeReadyDaystoComplete', 'LeaseStart', 'Leaseend', 'ApplicationDate', 'LeaseType', 'MarketRent', 'LeaseRent', 'EffectiveRent', 'Concession', 'SubsidyRent', 'Amenities', 'TotalBilling', 'UnitText', 'firstFloorDesignator', 'floor', 'ReportDate', 'BATCHLASTRUN'],
+  units: ['PropertyName', 'FloorPlan', 'UnitType', 'BldgUnit', 'SqFt', 'Features', 'Condition', 'Vacated', 'DateAvailable', 'BestPriceTerm', 'Monthlygrossrent', 'Concessions', 'MonthlyEffectiveRent', 'PreviousLeaseTerm', 'PreviousLeaseMonthlyEffectiveRent', 'GrossForecastedTradeout', 'ReportDate'],
+  unitmix: ['PropertyName', 'UnitType', 'TotalUnits', 'SquareFeet', 'PercentOccupied', 'percentLeased', 'GrossOfferedRent30days', 'GrossInPlaceRent', 'GrossRecentExecutedRent60days', 'GrossOfferedRentPSF', 'GrossRecentExecutedRentPSF', 'ReportDate', 'FloorPlan'],
+  pricing: ['Property', 'FloorPlan', 'RateType', 'PostDate', 'EndDate', 'DaysLeft', 'CapacityActualUnits', 'CapacitySustainablePercentage', 'CapacitySustainableUnits', 'CurrentInPlaceLeases', 'CurrentInPlaceOcc', 'CurrentForecastLeases', 'CurrentForecastOcc', 'RecommendedForecastLeases', 'RecommendedForecastOcc', 'RecommendedForecastChg', 'YesterdayDate', 'YesterdayRent', 'YesterdayPercentage', 'AmenityNormModelRent', 'AmenityNormAmenAdj', 'RecommendationsRecommendedEffRent', 'RecommendationsRecommendedEffPercentage', 'RecommendationsChangeRent', 'RecommendationsChangeRev', 'RecommendationsRecentAvgEffRent', 'RecommendationsRecentAvgEffPercentage'],
+  recentrents: ['Property', 'FloorPlan', 'ApplicationDate', 'EffectiveDate', 'LeaseStart', 'LeaseEnd', 'GrossRent', 'EffectiveRent', 'ReportDate'],
+};
+
+/** Return column names that are entirely NULL for a leasing table (table must have rows). */
+export async function getLeasingTableAllNullColumns(alias: string): Promise<string[]> {
+  const tableName = LEASING_TABLE_BY_ALIAS[alias];
+  const columns = LEASING_COLUMNS_BY_ALIAS[alias];
+  if (!tableName || !columns?.length) return [];
+  const fullName = `${LEASING_SCHEMA}.${tableName}`;
+  const countExprs = columns.map((c) => `COUNT([${c}]) AS [${c}]`).join(', ');
+  const pool = await getConnection();
+  const r = await pool.request().query(
+    `SELECT COUNT(*) AS total, ${countExprs} FROM ${fullName}`
+  );
+  const row = r.recordset[0] as Record<string, number>;
+  const total = row?.total ?? 0;
+  if (total === 0) return [];
+  const allNull: string[] = [];
+  for (const col of columns) {
+    if (row[col] === 0) allNull.push(col);
+  }
+  return allNull;
+}
+
+/** Truncate a single leasing table and remove its SyncLog row so next sync will run. */
+export async function wipeLeasingTable(alias: string): Promise<{ truncated: string }> {
+  const tableName = LEASING_TABLE_BY_ALIAS[alias];
+  if (!tableName) throw new Error(`Unknown leasing alias: ${alias}`);
+  const fullName = `${LEASING_SCHEMA}.${tableName}`;
+  const pool = await getConnection();
+  const tx = new sql.Transaction(pool);
+  await tx.begin();
+  try {
+    await tx.request().query(`TRUNCATE TABLE ${fullName}`);
+    await tx.request().input('alias', sql.NVarChar(64), alias).query(`DELETE FROM ${SYNC_LOG} WHERE DatasetAlias = @alias`);
+    await tx.commit();
+    return { truncated: fullName };
+  } catch (e) {
+    await tx.rollback();
+    throw e;
+  }
+}
+
 /** Truncate all leasing data tables and clear SyncLog so the next sync-from-domo does a full replace. */
 export async function wipeLeasingTables(): Promise<{ truncated: string[] }> {
   const tables = [
@@ -337,13 +449,43 @@ export async function syncUnitByUnitTradeout(rows: Record<string, unknown>[], re
 const T_PUD = `${LEASING_SCHEMA}.PortfolioUnitDetails`;
 const PUD_COLS = ['Property', 'UnitNumber', 'FloorPlan', 'UnitDesignation', 'SQFT', 'UnitLeaseStatus', 'ResidentNameExternalTenantID', 'LeaseID', 'MoveIn', 'Notice', 'MoveOut', 'DaysVacant', 'MakeReady', 'MakeReadyDaystoComplete', 'LeaseStart', 'Leaseend', 'ApplicationDate', 'LeaseType', 'MarketRent', 'LeaseRent', 'EffectiveRent', 'Concession', 'SubsidyRent', 'Amenities', 'TotalBilling', 'UnitText', 'firstFloorDesignator', 'floor', 'ReportDate', 'BATCHLASTRUN'];
 const PUD_KEYS = ['Property', 'UnitNumber', 'ReportDate'];
+const PUD_ALIAS = 'portfolioUnitDetails';
 export async function syncPortfolioUnitDetails(rows: Record<string, unknown>[], replace = true): Promise<number> {
   const pool = await getConnection();
   const tx = new sql.Transaction(pool);
   await tx.begin();
   try {
     const n = await batchInsert(tx, T_PUD, PUD_COLS, rows, (row) => [
-      str(getVal(row, 'Property')), str(getVal(row, 'UnitNumber')), str(getVal(row, 'FloorPlan')), str(getVal(row, 'UnitDesignation')), num(getVal(row, 'SQFT')), str(getVal(row, 'UnitLeaseStatus')), str(getVal(row, 'ResidentNameExternalTenantID')), str(getVal(row, 'LeaseID')), str(getVal(row, 'MoveIn')), str(getVal(row, 'Notice')), str(getVal(row, 'MoveOut')), num(getVal(row, 'DaysVacant')), str(getVal(row, 'MakeReady')), num(getVal(row, 'MakeReadyDaystoComplete')), str(getVal(row, 'LeaseStart')), str(getVal(row, 'Leaseend')), str(getVal(row, 'ApplicationDate')), str(getVal(row, 'LeaseType')), num(getVal(row, 'MarketRent')), num(getVal(row, 'LeaseRent')), num(getVal(row, 'EffectiveRent')), num(getVal(row, 'Concession')), num(getVal(row, 'SubsidyRent')), str(getVal(row, 'Amenities')), num(getVal(row, 'TotalBilling')), str(getVal(row, 'UnitText')), str(getVal(row, 'firstFloorDesignator')), str(getVal(row, 'floor')), str(getVal(row, 'ReportDate')),       str(getVal(row, 'BATCHLASTRUN')),
+      str(getValWithOverrides(PUD_ALIAS, 'Property', row, 'Property Name', 'PropertyName', 'Community', 'Asset', 'Location')),
+      str(getValWithOverrides(PUD_ALIAS, 'UnitNumber', row, 'Unit Number', 'Unit #', 'Unit', 'Bldg Unit', 'Unit No', 'UnitText')),
+      str(getValWithOverrides(PUD_ALIAS, 'FloorPlan', row, 'Floor Plan', 'FloorPlanName', 'Plan', 'Unit Type')),
+      str(getValWithOverrides(PUD_ALIAS, 'UnitDesignation', row, 'Unit Designation', 'Designation')),
+      num(getValWithOverrides(PUD_ALIAS, 'SQFT', row, 'Sq Ft', 'Square Feet', 'SqFt', 'SF')),
+      str(getValWithOverrides(PUD_ALIAS, 'UnitLeaseStatus', row, 'Unit Lease Status', 'Lease Status', 'Status', 'Unit Status')),
+      str(getValWithOverrides(PUD_ALIAS, 'ResidentNameExternalTenantID', row, 'Resident Name', 'External Tenant ID', 'Tenant ID', 'Resident', 'Tenant')),
+      str(getValWithOverrides(PUD_ALIAS, 'LeaseID', row, 'Lease ID', 'Lease Id', 'Lease Number')),
+      str(getValWithOverrides(PUD_ALIAS, 'MoveIn', row, 'Move In', 'Move-In', 'Move In Date', 'MoveIn Date')),
+      str(getValWithOverrides(PUD_ALIAS, 'Notice', row, 'Notice Date', 'Notice To Vacate', 'Notice Date To Vacate')),
+      str(getValWithOverrides(PUD_ALIAS, 'MoveOut', row, 'Move Out', 'Move-Out', 'Move Out Date', 'MoveOut Date')),
+      num(getValWithOverrides(PUD_ALIAS, 'DaysVacant', row, 'Days Vacant', 'Vacant Days', 'Days Vacancy')),
+      str(getValWithOverrides(PUD_ALIAS, 'MakeReady', row, 'Make Ready', 'Make-Ready', 'Make Ready Date')),
+      num(getValWithOverrides(PUD_ALIAS, 'MakeReadyDaystoComplete', row, 'Make Ready Days to Complete', 'Days to Complete', 'MakeReady Days')),
+      str(getValWithOverrides(PUD_ALIAS, 'LeaseStart', row, 'Lease Start', 'Lease Start Date')),
+      str(getValWithOverrides(PUD_ALIAS, 'Leaseend', row, 'Lease End', 'Lease End Date', 'Lease End')),
+      str(getValWithOverrides(PUD_ALIAS, 'ApplicationDate', row, 'Application Date', 'App Date', 'Application Signed Date')),
+      str(getValWithOverrides(PUD_ALIAS, 'LeaseType', row, 'Lease Type', 'Type')),
+      num(getValWithOverrides(PUD_ALIAS, 'MarketRent', row, 'Market Rent', 'Market')),
+      num(getValWithOverrides(PUD_ALIAS, 'LeaseRent', row, 'Lease Rent', 'Rent')),
+      num(getValWithOverrides(PUD_ALIAS, 'EffectiveRent', row, 'Effective Rent', 'Eff Rent', 'EffRent')),
+      num(getValWithOverrides(PUD_ALIAS, 'Concession', row, 'Concessions')),
+      num(getValWithOverrides(PUD_ALIAS, 'SubsidyRent', row, 'Subsidy Rent', 'Subsidy')),
+      str(getValWithOverrides(PUD_ALIAS, 'Amenities', row, 'Amenity')),
+      num(getValWithOverrides(PUD_ALIAS, 'TotalBilling', row, 'Total Billing', 'Billing')),
+      str(getValWithOverrides(PUD_ALIAS, 'UnitText', row, 'Unit Text', 'Unit', 'UnitNumber', 'Unit Number', 'Unit #')),
+      str(getValWithOverrides(PUD_ALIAS, 'firstFloorDesignator', row, 'First Floor Designator', 'Floor Designator', 'FirstFloorDesignator')),
+      str(getValWithOverrides(PUD_ALIAS, 'floor', row, 'Floor')),
+      str(getValWithOverrides(PUD_ALIAS, 'ReportDate', row, 'Report Date', 'Date', 'As Of Date')),
+      str(getValWithOverrides(PUD_ALIAS, 'BATCHLASTRUN', row, 'Batch Last Run', 'Batch Timestamp', 'Last Run')),
     ], replace, PUD_KEYS);
     await tx.commit();
     return n;
