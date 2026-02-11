@@ -351,10 +351,20 @@ export const getSyncCheck = async (req: Request, res: Response, next: NextFuncti
   }
 };
 
+/** Chunk size for sync-from-domo (one table at a time, in batches of this many rows). Default 5000. */
+const SYNC_CHUNK_SIZE = Math.max(1, parseInt(process.env.LEASING_SYNC_CHUNK_SIZE || '5000', 10));
+/** Rest (ms) between batches to avoid overloading DB/host. Default 3s. */
+const SYNC_REST_MS = Math.max(0, parseInt(process.env.LEASING_SYNC_REST_MS || '3000', 10));
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 /**
  * POST /api/leasing/sync-from-domo
- * Fetches all configured leasing datasets from Domo API and runs sync. Call from Domo (alert/webhook)
- * or a scheduler. Optional: set LEASING_SYNC_WEBHOOK_SECRET and send X-Sync-Secret header to protect.
+ * Fetches leasing datasets from Domo one table at a time, syncs each in batches (default 5000 rows)
+ * with a short rest between batches to avoid timeouts and overload. Call from cron or Domo webhook.
+ * Env: LEASING_SYNC_CHUNK_SIZE (default 5000), LEASING_SYNC_REST_MS (default 3000).
  */
 export const postSyncFromDomo = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -368,25 +378,71 @@ export const postSyncFromDomo = async (req: Request, res: Response, next: NextFu
     }
 
     const token = await getDomoToken();
-    const body: Record<string, unknown[]> = {};
-    const fetched: string[] = [];
+    const synced: string[] = [];
+    const skipped: string[] = [];
     const errors: Array<{ dataset: string; message: string }> = [];
+    const now = new Date();
+    const today = new Date(now.toISOString().slice(0, 10) + 'T00:00:00.000Z');
+    const fetched: string[] = [];
 
     for (const [key, envKey] of Object.entries(DOMO_DATASET_KEYS)) {
       const datasetId = process.env[envKey]?.trim();
       if (!datasetId) continue;
+
+      const alias = key === 'recents' ? 'recentrents' : key;
+      if (!SYNC_MAP[alias]) continue;
+
+      let rows: Record<string, unknown>[];
       try {
         const csvText = await fetchDomoDatasetCsv(datasetId, token);
-        const rows = parseCsvToRows(csvText);
-        body[key] = rows;
-        fetched.push(`${key}:${rows.length}`);
+        rows = parseCsvToRows(csvText) as Record<string, unknown>[];
+        fetched.push(`${alias}:${rows.length}`);
       } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
-        errors.push({ dataset: key, message });
+        errors.push({ dataset: alias, message });
+        continue;
+      }
+
+      const count = rows.length;
+      const hash = dataHash(rows as unknown[]);
+      try {
+        const allowed = await canSync(alias, hash);
+        if (!allowed) {
+          skipped.push(alias);
+          continue;
+        }
+      } catch (e) {
+        const message = e instanceof Error ? e.message : String(e);
+        errors.push({ dataset: alias, message });
+        continue;
+      }
+
+      const syncFn = SYNC_MAP[alias];
+      const chunks: Record<string, unknown>[][] = [];
+      for (let i = 0; i < rows.length; i += SYNC_CHUNK_SIZE) {
+        chunks.push(rows.slice(i, i + SYNC_CHUNK_SIZE));
+      }
+
+      try {
+        const t0 = Date.now();
+        for (let i = 0; i < chunks.length; i++) {
+          const replace = i === 0;
+          await syncFn(chunks[i], replace);
+          const done = (i + 1) * SYNC_CHUNK_SIZE;
+          console.log(`[leasing/sync] ${alias}: ${Math.min(done, count)}/${count} rows (batch ${i + 1}/${chunks.length}) in ${((Date.now() - t0) / 1000).toFixed(1)}s`);
+          if (i < chunks.length - 1 && SYNC_REST_MS > 0) {
+            await sleep(SYNC_REST_MS);
+          }
+        }
+        await upsertSyncLog(alias, now, today, hash, count);
+        synced.push(alias);
+      } catch (e) {
+        const message = e instanceof Error ? e.message : String(e);
+        errors.push({ dataset: alias, message });
       }
     }
 
-    if (Object.keys(body).length === 0) {
+    if (fetched.length === 0 && errors.length === 0) {
       res.status(400).json({
         success: false,
         error: 'No datasets configured. Set at least one DOMO_DATASET_* env var.',
@@ -396,34 +452,6 @@ export const postSyncFromDomo = async (req: Request, res: Response, next: NextFu
       return;
     }
 
-    const synced: string[] = [];
-    const skipped: string[] = [];
-    const now = new Date();
-    const today = new Date(now.toISOString().slice(0, 10) + 'T00:00:00.000Z');
-
-    for (const [key, rows] of Object.entries(body)) {
-      const alias = key === 'recents' ? 'recentrents' : key;
-      if (!SYNC_MAP[alias] || !Array.isArray(rows)) continue;
-      const count = rows.length;
-      const hash = dataHash(rows as unknown[]);
-      try {
-        const allowed = await canSync(alias, hash);
-        if (!allowed) {
-          skipped.push(alias);
-          continue;
-        }
-        const syncFn = SYNC_MAP[alias];
-        const t0 = Date.now();
-        await syncFn(rows as Record<string, unknown>[]);
-        console.log(`[leasing/sync] ${alias}: ${count} rows in ${((Date.now() - t0) / 1000).toFixed(1)}s`);
-        await upsertSyncLog(alias, now, today, hash, count);
-        synced.push(alias);
-      } catch (e) {
-        const message = e instanceof Error ? e.message : String(e);
-        errors.push({ dataset: alias, message });
-      }
-    }
-
     if (synced.length > 0) rebuildDashboardSnapshot().catch(() => {});
     res.status(errors.length ? 207 : 200).json({
       success: errors.length === 0,
@@ -431,7 +459,7 @@ export const postSyncFromDomo = async (req: Request, res: Response, next: NextFu
       synced,
       skipped,
       errors: errors.length ? errors : undefined,
-      _meta: { at: now.toISOString() },
+      _meta: { at: now.toISOString(), chunkSize: SYNC_CHUNK_SIZE, restMs: SYNC_REST_MS },
     });
   } catch (error) {
     next(error);

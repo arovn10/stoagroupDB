@@ -10,6 +10,8 @@ const http = require('http');
 
 const base = (process.env.API_BASE_URL || '').replace(/\/$/, '');
 const secret = process.env.LEASING_SYNC_WEBHOOK_SECRET || '';
+// Sync-from-domo can take several minutes; 10 min client timeout
+const SYNC_TIMEOUT_MS = Number(process.env.LEASING_SYNC_TIMEOUT_MS) || 600000;
 if (!base) {
   console.error('API_BASE_URL not set');
   process.exit(1);
@@ -31,7 +33,7 @@ function get(path) {
   });
 }
 
-function post(path) {
+function post(path, timeoutMs = SYNC_TIMEOUT_MS) {
   return new Promise((resolve, reject) => {
     const url = new URL(path, base);
     const req = lib.request(url, { method: 'POST', headers }, (res) => {
@@ -40,6 +42,10 @@ function post(path) {
       res.on('end', () => resolve({ statusCode: res.statusCode, body }));
     });
     req.on('error', reject);
+    req.setTimeout(timeoutMs, () => {
+      req.destroy();
+      reject(new Error(`sync-from-domo timed out after ${timeoutMs / 1000}s`));
+    });
     req.end();
   });
 }

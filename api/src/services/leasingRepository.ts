@@ -31,7 +31,11 @@ function getVal(row: Record<string, unknown>, ...keys: string[]): unknown {
 function num(v: unknown): number | null {
   if (v == null || v === '') return null;
   if (typeof v === 'number' && !Number.isNaN(v)) return v;
-  const n = Number(v);
+  let s = String(v).trim();
+  if (!s) return null;
+  // Strip currency and thousands separators ($1,234.56 -> 1234.56)
+  s = s.replace(/^[$€£]|\s/g, '').replace(/,/g, '');
+  const n = Number(s);
   return Number.isNaN(n) ? null : n;
 }
 function str(v: unknown): string | null {
@@ -150,14 +154,14 @@ export async function syncLeasing(rows: Record<string, unknown>[], replace = tru
   await tx.begin();
   try {
     const n = await batchInsert(tx, T_LEASING, LEASING_COLS, rows, (row) => [
-      str(getVal(row, 'Property')),
-      num(getVal(row, 'Units')),
-      num(getVal(row, 'LeasesNeeded')),
-      num(getVal(row, 'NewLeasesCurrentGrossRent')),
-      num(getVal(row, '7DayLeasingVelocity', '7-Day Leasing Velocity')),
-      num(getVal(row, '28DayLeasingVelocity', '28-Day Leasing Velocity')),
-      str(getVal(row, 'MonthOf')),
-      str(getVal(row, 'BatchTimestamp')),
+      str(getVal(row, 'Property', 'Property Name', 'PropertyName', 'Community', 'Asset')),
+      num(getVal(row, 'Units', 'Total Units', 'Unit Count', 'UnitsCount')),
+      num(getVal(row, 'LeasesNeeded', 'Leases Needed', 'Leases needed')),
+      num(getVal(row, 'NewLeasesCurrentGrossRent', 'New Leases Current Gross Rent', 'New Leases Gross Rent', 'NewLeasesGrossRent')),
+      num(getVal(row, 'LeasingVelocity7Day', '7DayLeasingVelocity', '7-Day Leasing Velocity', '7 Day Leasing Velocity', '7 Day Velocity', 'Leasing Velocity 7 Day')),
+      num(getVal(row, 'LeasingVelocity28Day', '28DayLeasingVelocity', '28-Day Leasing Velocity', '28 Day Leasing Velocity', '28 Day Velocity', 'Leasing Velocity 28 Day')),
+      str(getVal(row, 'MonthOf', 'Month Of', 'Month', 'Report Month', 'As Of Date', 'AsOfDate', 'ReportDate', 'Date')),
+      str(getVal(row, 'BatchTimestamp', 'Batch Timestamp', 'Timestamp', 'SyncedAt')),
     ], replace);
     await tx.commit();
     return n;
@@ -176,9 +180,11 @@ export async function syncMMRData(rows: Record<string, unknown>[], replace = tru
   await tx.begin();
   try {
     const n = await batchInsert(tx, T_MMR, MMR_COLS, rows, (row) => [
-      str(getVal(row, 'Property')), str(getVal(row, 'Location')), num(getVal(row, 'TotalUnits')), num(getVal(row, 'OccupancyPercent')), num(getVal(row, 'CurrentLeasedPercent')), num(getVal(row, 'MI')), num(getVal(row, 'MO')), num(getVal(row, 'FirstVisit', '1st Visit')), num(getVal(row, 'Applied')), num(getVal(row, 'Canceled')), num(getVal(row, 'Denied')), num(getVal(row, 'T12LeasesExpired')), num(getVal(row, 'T12LeasesRenewed')), num(getVal(row, 'Delinquent')), num(getVal(row, 'OccupiedRent')), num(getVal(row, 'BudgetedRent')), num(getVal(row, 'CurrentMonthIncome')), num(getVal(row, 'BudgetedIncome')), num(getVal(row, 'MoveInRent')), num(getVal(row, 'OccUnits')),
-      str(getVal(row, 'Week3EndDate')), num(getVal(row, 'Week3MoveIns')), num(getVal(row, 'Week3MoveOuts')), num(getVal(row, 'Week3OccUnits')), num(getVal(row, 'Week3OccPercent')), str(getVal(row, 'Week4EndDate')), num(getVal(row, 'Week4MoveIns')), num(getVal(row, 'Week4MoveOuts')), num(getVal(row, 'Week4OccUnits')), num(getVal(row, 'Week4OccPercent')), str(getVal(row, 'Week7EndDate')), num(getVal(row, 'Week7MoveIns')), num(getVal(row, 'Week7MoveOuts')), num(getVal(row, 'Week7OccUnits')), num(getVal(row, 'Week7OccPercent')), num(getVal(row, 'InServiceUnits')), num(getVal(row, 'T12LeaseBreaks')), num(getVal(row, 'BudgetedOccupancyCurrentMonth')), num(getVal(row, 'BudgetedOccupancyPercentCurrentMonth')), num(getVal(row, 'BudgetedLeasedPercentCurrentMonth')), num(getVal(row, 'BudgetedLeasedCurrentMonth')),
-      str(getVal(row, 'ReportDate')), str(getVal(row, 'ConstructionStatus')), num(getVal(row, 'Rank')), num(getVal(row, 'PreviousOccupancyPercent')), num(getVal(row, 'PreviousLeasedPercent')), num(getVal(row, 'PreviousDelinquentUnits')), str(getVal(row, 'WeekStart')), str(getVal(row, 'LatestDate')), str(getVal(row, 'City')), str(getVal(row, 'State')), str(getVal(row, 'Status')), str(getVal(row, 'FinancingStatus')), str(getVal(row, 'ProductType')), num(getVal(row, 'Units')), str(getVal(row, 'FullAddress')), num(getVal(row, 'Latitude')), num(getVal(row, 'Longitude')), str(getVal(row, 'Region')), str(getVal(row, 'LatestConstructionStatus')),       num(getVal(row, 'BirthOrder')), num(getVal(row, 'NetLsd')),
+      str(getVal(row, 'Property', 'Property Name', 'PropertyName', 'Community', 'Asset')), str(getVal(row, 'Location', 'Property Location', 'Address')),
+      num(getVal(row, 'TotalUnits', 'Total Units')), num(getVal(row, 'OccupancyPercent', 'Occupancy Percent', 'Occupancy %')), num(getVal(row, 'CurrentLeasedPercent', 'Current Leased Percent', 'Leased %')),
+      num(getVal(row, 'MI')), num(getVal(row, 'MO')), num(getVal(row, 'FirstVisit', '1st Visit', 'First Visit')), num(getVal(row, 'Applied')), num(getVal(row, 'Canceled')), num(getVal(row, 'Denied')), num(getVal(row, 'T12LeasesExpired', 'T12 Leases Expired')), num(getVal(row, 'T12LeasesRenewed', 'T12 Leases Renewed')), num(getVal(row, 'Delinquent')), num(getVal(row, 'OccupiedRent', 'Occupied Rent')), num(getVal(row, 'BudgetedRent', 'Budgeted Rent')), num(getVal(row, 'CurrentMonthIncome', 'Current Month Income')), num(getVal(row, 'BudgetedIncome', 'Budgeted Income')), num(getVal(row, 'MoveInRent', 'Move In Rent')), num(getVal(row, 'OccUnits', 'Occ Units')),
+      str(getVal(row, 'Week3EndDate', 'Week 3 End Date', 'Week3 End Date')), num(getVal(row, 'Week3MoveIns', 'Week 3 Move Ins')), num(getVal(row, 'Week3MoveOuts', 'Week 3 Move Outs')), num(getVal(row, 'Week3OccUnits', 'Week 3 Occ Units')), num(getVal(row, 'Week3OccPercent', 'Week 3 Occ Percent')), str(getVal(row, 'Week4EndDate', 'Week 4 End Date')), num(getVal(row, 'Week4MoveIns')), num(getVal(row, 'Week4MoveOuts')), num(getVal(row, 'Week4OccUnits')), num(getVal(row, 'Week4OccPercent')), str(getVal(row, 'Week7EndDate', 'Week 7 End Date')), num(getVal(row, 'Week7MoveIns')), num(getVal(row, 'Week7MoveOuts')), num(getVal(row, 'Week7OccUnits')), num(getVal(row, 'Week7OccPercent')), num(getVal(row, 'InServiceUnits', 'In Service Units')), num(getVal(row, 'T12LeaseBreaks', 'T12 Lease Breaks')), num(getVal(row, 'BudgetedOccupancyCurrentMonth')), num(getVal(row, 'BudgetedOccupancyPercentCurrentMonth')), num(getVal(row, 'BudgetedLeasedPercentCurrentMonth')), num(getVal(row, 'BudgetedLeasedCurrentMonth')),
+      str(getVal(row, 'ReportDate', 'Report Date')), str(getVal(row, 'ConstructionStatus', 'Construction Status')), num(getVal(row, 'Rank')), num(getVal(row, 'PreviousOccupancyPercent')), num(getVal(row, 'PreviousLeasedPercent')), num(getVal(row, 'PreviousDelinquentUnits')), str(getVal(row, 'WeekStart', 'Week Start')), str(getVal(row, 'LatestDate', 'Latest Date')), str(getVal(row, 'City')), str(getVal(row, 'State')), str(getVal(row, 'Status')), str(getVal(row, 'FinancingStatus', 'Financing Status')), str(getVal(row, 'ProductType', 'Product Type')), num(getVal(row, 'Units')), str(getVal(row, 'FullAddress', 'Full Address')), num(getVal(row, 'Latitude')), num(getVal(row, 'Longitude')), str(getVal(row, 'Region')), str(getVal(row, 'LatestConstructionStatus', 'Latest Construction Status')), num(getVal(row, 'BirthOrder', 'Birth Order')), num(getVal(row, 'NetLsd', 'Net LSD')),
     ], replace);
     await tx.commit();
     return n;
@@ -197,10 +203,48 @@ export async function syncUnitByUnitTradeout(rows: Record<string, unknown>[], re
   await tx.begin();
   try {
     const n = await batchInsert(tx, T_UTRADE, UTRADE_COLS, rows, (row) => [
-      str(getVal(row, 'FloorPlan')), str(getVal(row, 'UnitDetailsUnitType')), str(getVal(row, 'UnitDetailsBuilding')), str(getVal(row, 'UnitDetailsUnit')), num(getVal(row, 'UnitDetailsSqFt')),
-      str(getVal(row, 'CurrentLeaseRateType')), str(getVal(row, 'CurrentLeaseLeaseType')), str(getVal(row, 'CurrentLeaseAppSignedDate')), str(getVal(row, 'CurrentLeaseLeaseStart')), str(getVal(row, 'CurrentLeaseLeaseEnd')), num(getVal(row, 'CurrentLeaseTerm')), num(getVal(row, 'CurrentLeasePrem')), num(getVal(row, 'CurrentLeaseGrossRent')), num(getVal(row, 'CurrentLeaseConc')), num(getVal(row, 'CurrentLeaseEffRent')),
-      str(getVal(row, 'PreviousLeaseRateType')), str(getVal(row, 'PreviousLeaseLeaseStart')), str(getVal(row, 'PreviousLeaseScheduledLeaseEnd')), str(getVal(row, 'PreviousLeaseActualLeaseEnd')), num(getVal(row, 'PreviousLeaseTerm')), num(getVal(row, 'PreviousLeasePrem')), num(getVal(row, 'PreviousLeaseGrossRent')), num(getVal(row, 'PreviousLeaseConc')), num(getVal(row, 'PreviousLeaseEffRent')),
-      num(getVal(row, 'VacantDays')), num(getVal(row, 'TermVariance')), num(getVal(row, 'TradeOutPercentage')), num(getVal(row, 'TradeOutAmount')), str(getVal(row, 'ReportDate')), str(getVal(row, 'JoinDate')), str(getVal(row, 'MonthOf')), str(getVal(row, 'Property')), str(getVal(row, 'City')), str(getVal(row, 'State')), str(getVal(row, 'Status')), num(getVal(row, 'Units')), str(getVal(row, 'FullAddress')), num(getVal(row, 'Latitude')), num(getVal(row, 'Longitude')), str(getVal(row, 'Region')),       str(getVal(row, 'ConstructionStatus')), num(getVal(row, 'BirthOrder')),
+      str(getVal(row, 'FloorPlan', 'Floor Plan', 'FloorPlanName')),
+      str(getVal(row, 'UnitDetailsUnitType', 'Unit Type', 'UnitDetails UnitType', 'Unit Type Details')),
+      str(getVal(row, 'UnitDetailsBuilding', 'Building', 'UnitDetails Building', 'Unit Building')),
+      str(getVal(row, 'UnitDetailsUnit', 'Unit', 'Unit Number', 'Unit #', 'UnitDetails Unit')),
+      num(getVal(row, 'UnitDetailsSqFt', 'Sq Ft', 'Square Feet', 'UnitDetails SqFt', 'SqFt')),
+      str(getVal(row, 'CurrentLeaseRateType', 'Current Lease Rate Type', 'Rate Type', 'Lease Rate Type')),
+      str(getVal(row, 'CurrentLeaseLeaseType', 'Current Lease Lease Type', 'Lease Type', 'Current Lease Type')),
+      str(getVal(row, 'CurrentLeaseAppSignedDate', 'App Signed Date', 'Application Signed Date', 'Current Lease App Signed Date')),
+      str(getVal(row, 'CurrentLeaseLeaseStart', 'Lease Start', 'Current Lease Start', 'Current Lease Lease Start')),
+      str(getVal(row, 'CurrentLeaseLeaseEnd', 'Lease End', 'Current Lease End', 'Current Lease Lease End')),
+      num(getVal(row, 'CurrentLeaseTerm', 'Current Lease Term', 'Term', 'Lease Term')),
+      num(getVal(row, 'CurrentLeasePrem', 'Current Lease Prem', 'Premium', 'Prem')),
+      num(getVal(row, 'CurrentLeaseGrossRent', 'Current Lease Gross Rent', 'Gross Rent', 'GrossRent')),
+      num(getVal(row, 'CurrentLeaseConc', 'Current Lease Conc', 'Concession', 'Conc')),
+      num(getVal(row, 'CurrentLeaseEffRent', 'Current Lease Eff Rent', 'Effective Rent', 'Eff Rent', 'EffRent')),
+      str(getVal(row, 'PreviousLeaseRateType', 'Previous Lease Rate Type', 'Prev Rate Type')),
+      str(getVal(row, 'PreviousLeaseLeaseStart', 'Previous Lease Start', 'Previous Lease Lease Start')),
+      str(getVal(row, 'PreviousLeaseScheduledLeaseEnd', 'Previous Lease Scheduled Lease End', 'Scheduled Lease End', 'Prev Scheduled End')),
+      str(getVal(row, 'PreviousLeaseActualLeaseEnd', 'Previous Lease Actual Lease End', 'Actual Lease End', 'Prev Actual End')),
+      num(getVal(row, 'PreviousLeaseTerm', 'Previous Lease Term', 'Prev Term')),
+      num(getVal(row, 'PreviousLeasePrem', 'Previous Lease Prem', 'Prev Prem')),
+      num(getVal(row, 'PreviousLeaseGrossRent', 'Previous Lease Gross Rent', 'Prev Gross Rent')),
+      num(getVal(row, 'PreviousLeaseConc', 'Previous Lease Conc', 'Prev Conc')),
+      num(getVal(row, 'PreviousLeaseEffRent', 'Previous Lease Eff Rent', 'Prev Eff Rent')),
+      num(getVal(row, 'VacantDays', 'Vacant Days', 'Days Vacant')),
+      num(getVal(row, 'TermVariance', 'Term Variance', 'Term Var')),
+      num(getVal(row, 'TradeOutPercentage', 'Trade Out Percentage', 'Trade Out %', 'TradeOut %')),
+      num(getVal(row, 'TradeOutAmount', 'Trade Out Amount', 'Trade Out Amt')),
+      str(getVal(row, 'ReportDate', 'Report Date', 'Report date')),
+      str(getVal(row, 'JoinDate', 'Join Date', 'Join date')),
+      str(getVal(row, 'MonthOf', 'Month Of', 'Month', 'MonthOf')),
+      str(getVal(row, 'Property', 'Property Name', 'Location', 'PropertyName')),
+      str(getVal(row, 'City', 'Property City')),
+      str(getVal(row, 'State', 'Property State')),
+      str(getVal(row, 'Status', 'Property Status', 'Construction Status')),
+      num(getVal(row, 'Units', 'Total Units', 'Unit Count', 'TotalUnits')),
+      str(getVal(row, 'FullAddress', 'Full Address', 'Address')),
+      num(getVal(row, 'Latitude', 'Lat')),
+      num(getVal(row, 'Longitude', 'Long', 'Lng')),
+      str(getVal(row, 'Region', 'Property Region')),
+      str(getVal(row, 'ConstructionStatus', 'Construction Status', 'Status Construction')),
+      num(getVal(row, 'BirthOrder', 'Birth Order', 'BirthOrder')),
     ], replace);
     await tx.commit();
     return n;
@@ -238,7 +282,23 @@ export async function syncUnits(rows: Record<string, unknown>[], replace = true)
   await tx.begin();
   try {
     const n = await batchInsert(tx, T_UNITS, UNITS_COLS, rows, (row) => [
-      str(getVal(row, 'PropertyName')), str(getVal(row, 'FloorPlan')), str(getVal(row, 'UnitType')), str(getVal(row, 'BldgUnit')), num(getVal(row, 'SqFt')), str(getVal(row, 'Features')), str(getVal(row, 'Condition')), str(getVal(row, 'Vacated')), str(getVal(row, 'DateAvailable')), str(getVal(row, 'BestPriceTerm')), num(getVal(row, 'Monthlygrossrent')), str(getVal(row, 'Concessions')), num(getVal(row, 'MonthlyEffectiveRent')), num(getVal(row, 'PreviousLeaseTerm')), num(getVal(row, 'PreviousLeaseMonthlyEffectiveRent')), num(getVal(row, 'GrossForecastedTradeout')),       str(getVal(row, 'ReportDate')),
+      str(getVal(row, 'PropertyName', 'Property', 'Property Name', 'Location')),
+      str(getVal(row, 'FloorPlan', 'Floor Plan', 'FloorPlanName', 'Plan')),
+      str(getVal(row, 'UnitType', 'Unit Type', 'UnitDetailsUnitType', 'Type')),
+      str(getVal(row, 'BldgUnit', 'Bldg Unit', 'Unit', 'Unit #', 'Unit Number', 'Building Unit')),
+      num(getVal(row, 'SqFt', 'Sq Ft', 'Square Feet', 'SqFt', 'SF')),
+      str(getVal(row, 'Features', 'Unit Features', 'Feature', 'Amenities')),
+      str(getVal(row, 'Condition', 'Status', 'Unit Status', 'Unit Condition', 'Lease Status')),
+      str(getVal(row, 'Vacated', 'Vacated Date', 'Move Out', 'Move Out Date')),
+      str(getVal(row, 'DateAvailable', 'Date Available', 'Available Date', 'Available', 'Available On')),
+      str(getVal(row, 'BestPriceTerm', 'Best Price Term', 'Best Term', 'Term')),
+      num(getVal(row, 'Monthlygrossrent', 'Monthly Gross Rent', 'Gross Rent', 'Rent', 'Monthly Rent')),
+      str(getVal(row, 'Concessions', 'Concession')),
+      num(getVal(row, 'MonthlyEffectiveRent', 'Monthly Effective Rent', 'Effective Rent', 'Eff Rent')),
+      num(getVal(row, 'PreviousLeaseTerm', 'Previous Lease Term', 'Prev Lease Term')),
+      num(getVal(row, 'PreviousLeaseMonthlyEffectiveRent', 'Previous Lease Monthly Effective Rent', 'Prev Eff Rent', 'Previous Eff Rent')),
+      num(getVal(row, 'GrossForecastedTradeout', 'Gross Forecasted Tradeout', 'Forecasted Tradeout', 'Tradeout')),
+      str(getVal(row, 'ReportDate', 'Report Date', 'Report date')),
     ], replace);
     await tx.commit();
     return n;
@@ -257,7 +317,19 @@ export async function syncUnitMix(rows: Record<string, unknown>[], replace = tru
   await tx.begin();
   try {
     const n = await batchInsert(tx, T_UNITMIX, UNITMIX_COLS, rows, (row) => [
-      str(getVal(row, 'PropertyName')), str(getVal(row, 'UnitType')), num(getVal(row, 'TotalUnits')), num(getVal(row, 'SquareFeet')), num(getVal(row, 'PercentOccupied')), num(getVal(row, 'percentLeased')), num(getVal(row, 'GrossOfferedRent30days')), num(getVal(row, 'GrossInPlaceRent')), num(getVal(row, 'GrossRecentExecutedRent60days')), num(getVal(row, 'GrossOfferedRentPSF')), num(getVal(row, 'GrossRecentExecutedRentPSF')), str(getVal(row, 'ReportDate')),       str(getVal(row, 'FloorPlan')),
+      str(getVal(row, 'PropertyName', 'Property', 'Property Name', 'Location')),
+      str(getVal(row, 'UnitType', 'Unit Type', 'Floor Plan Type')),
+      num(getVal(row, 'TotalUnits', 'Total Units', 'Units')),
+      num(getVal(row, 'SquareFeet', 'Square Feet', 'Sq Ft', 'SqFt')),
+      num(getVal(row, 'PercentOccupied', 'Percent Occupied', '% Occupied', 'Occupied %')),
+      num(getVal(row, 'percentLeased', 'Percent Leased', '% Leased', 'percent Leased')),
+      num(getVal(row, 'GrossOfferedRent30days', 'Gross Offered Rent 30 days', 'Gross Offered Rent 30 Days', 'Offered Rent 30d')),
+      num(getVal(row, 'GrossInPlaceRent', 'Gross In Place Rent', 'In Place Rent', 'In-Place Rent')),
+      num(getVal(row, 'GrossRecentExecutedRent60days', 'Gross Recent Executed Rent 60 days', 'Recent Executed Rent 60d', 'Executed Rent 60d')),
+      num(getVal(row, 'GrossOfferedRentPSF', 'Gross Offered Rent PSF', 'Offered Rent PSF', 'Offered $/SF')),
+      num(getVal(row, 'GrossRecentExecutedRentPSF', 'Gross Recent Executed Rent PSF', 'Recent Executed Rent PSF', 'Executed $/SF')),
+      str(getVal(row, 'ReportDate', 'Report Date', 'Report date')),
+      str(getVal(row, 'FloorPlan', 'Floor Plan', 'FloorPlanName')),
     ], replace);
     await tx.commit();
     return n;
@@ -276,13 +348,33 @@ export async function syncPricing(rows: Record<string, unknown>[], replace = tru
   await tx.begin();
   try {
     const n = await batchInsert(tx, T_PRICING, PRICING_COLS, rows, (row) => [
-      str(getVal(row, 'Property')), str(getVal(row, 'FloorPlan')), str(getVal(row, 'RateType')), str(getVal(row, 'PostDate')), str(getVal(row, 'EndDate')),
-      num(getVal(row, 'DaysLeft')), num(getVal(row, 'CapacityActualUnits')), num(getVal(row, 'CapacitySustainablePercentage')), num(getVal(row, 'CapacitySustainableUnits')),
-      num(getVal(row, 'CurrentInPlaceLeases')), num(getVal(row, 'CurrentInPlaceOcc')), num(getVal(row, 'CurrentForecastLeases')), num(getVal(row, 'CurrentForecastOcc')),
-      num(getVal(row, 'RecommendedForecastLeases')), num(getVal(row, 'RecommendedForecastOcc')), num(getVal(row, 'RecommendedForecastChg')),
-      str(getVal(row, 'YesterdayDate')), num(getVal(row, 'YesterdayRent')), num(getVal(row, 'YesterdayPercentage')),
-      num(getVal(row, 'AmenityNormModelRent')), num(getVal(row, 'AmenityNormAmenAdj')),
-      num(getVal(row, 'RecommendationsRecommendedEffRent')), num(getVal(row, 'RecommendationsRecommendedEffPercentage')), num(getVal(row, 'RecommendationsChangeRent')), num(getVal(row, 'RecommendationsChangeRev')), num(getVal(row, 'RecommendationsRecentAvgEffRent')),       num(getVal(row, 'RecommendationsRecentAvgEffPercentage')),
+      str(getVal(row, 'Property')),
+      str(getVal(row, 'FloorPlan', 'Floor Plan')),
+      str(getVal(row, 'RateType', 'Rate Type')),
+      str(getVal(row, 'PostDate', 'Post Date')),
+      str(getVal(row, 'EndDate', 'End Date')),
+      num(getVal(row, 'DaysLeft', 'Days Left')),
+      num(getVal(row, 'CapacityActualUnits', 'Capacity - Actual Units')),
+      num(getVal(row, 'CapacitySustainablePercentage', 'Capacity - Sustainable Percentage', 'Capacity - Sustainable %')),
+      num(getVal(row, 'CapacitySustainableUnits', 'Capacity - Sustainable Units')),
+      num(getVal(row, 'CurrentInPlaceLeases', 'Current In Place Leases')),
+      num(getVal(row, 'CurrentInPlaceOcc', 'Current In Place Occ')),
+      num(getVal(row, 'CurrentForecastLeases', 'Current Forecast Leases')),
+      num(getVal(row, 'CurrentForecastOcc', 'Current Forecast Occ')),
+      num(getVal(row, 'RecommendedForecastLeases', 'Recommended Forecast Leases')),
+      num(getVal(row, 'RecommendedForecastOcc', 'Recommended Forecast Occ')),
+      num(getVal(row, 'RecommendedForecastChg', 'Recommended Forecast Chg')),
+      str(getVal(row, 'YesterdayDate', 'Yesterday Date')),
+      num(getVal(row, 'YesterdayRent', 'Yesterday Rent')),
+      num(getVal(row, 'YesterdayPercentage', 'Yesterday Percentage')),
+      num(getVal(row, 'AmenityNormModelRent', 'Amenity Norm Model Rent')),
+      num(getVal(row, 'AmenityNormAmenAdj', 'Amenity Norm Amen Adj')),
+      num(getVal(row, 'RecommendationsRecommendedEffRent', 'Recommendations - Recommended Eff Rent')),
+      num(getVal(row, 'RecommendationsRecommendedEffPercentage', 'Recommendations - Recommended Eff Percentage')),
+      num(getVal(row, 'RecommendationsChangeRent', 'Recommendations - Change Rent')),
+      num(getVal(row, 'RecommendationsChangeRev', 'Recommendations - Change Rev')),
+      num(getVal(row, 'RecommendationsRecentAvgEffRent', 'Recommendations - Recent Avg Eff Rent')),
+      num(getVal(row, 'RecommendationsRecentAvgEffPercentage', 'Recommendations - Recent Avg Eff Percentage')),
     ], replace);
     await tx.commit();
     return n;

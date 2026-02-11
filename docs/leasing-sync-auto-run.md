@@ -154,13 +154,31 @@ The Node server is also set to allow long-lived requests (see `api/src/server.ts
 
 ---
 
+## Sync-from-domo: one table at a time, batched with rest
+
+On deploy, **POST /api/leasing/sync-from-domo** runs one table at a time. For each table it fetches from Domo, then writes to the DB in **batches of 5000 rows** with a **rest** (pause) between batches. This reduces timeouts and load.
+
+- **Order:** Tables are processed in a fixed order (leasing → MMRData → unitbyunittradeout → portfolioUnitDetails → units → unitmix → pricing → recentrents; only tables with a configured `DOMO_DATASET_*` env var run).
+- **Batching:** Each table is synced in chunks of **5000 rows** (first chunk does replace/TRUNCATE, later chunks append).
+- **Rest:** After each batch (except the last), the API waits **3 seconds** by default before the next batch.
+
+**Env (optional):**
+
+- `LEASING_SYNC_CHUNK_SIZE` — Max rows per batch (default **5000**).
+- `LEASING_SYNC_REST_MS` — Rest in milliseconds between batches (default **3000**). Set to `0` to disable rest.
+
+Example: with defaults, portfolioUnitDetails (~225k rows) runs in 45 batches of 5000, with 3s rest between batches, so one table takes roughly 45 × (write time + 3s). Increase host request timeout (e.g. 600s on Render) so the full sync can complete.
+
+---
+
 ## Troubleshooting
 
+- **502 when calling sync-from-domo (cron or webhook):** The 502 comes from the **server or reverse proxy** (e.g. Render), not the client. Common causes: (1) **Request timeout** — the host kills the request (e.g. Render’s 300s limit); increase the **request timeout** as in the section above. (2) **Backend crash or OOM** during sync — check API logs at the time of the 502. The Node cron script (`cron-leasing-sync-node.js`) uses a 10‑minute client timeout by default (override with `LEASING_SYNC_TIMEOUT_MS`); if the server/proxy times out first, you still need to raise the server-side timeout or run sync in a background job.
 - **"Timeout: Request failed to complete in 15000ms"** (or similar) on **pricing** or **portfolioUnitDetails**: The script uses a 15‑minute client timeout; a **15s limit is usually from the host or reverse proxy**. Increase the **request timeout** as above (at least 300s) for `/api/leasing/sync` and `/api/leasing/sync-from-domo`.
 - **413 "request entity too large"**: Increase the API body size limit (e.g. `JSON_BODY_LIMIT` / Express `express.json({ limit })`); the repo default is 300mb.
 - **"skipped" for a dataset**: The backend skips when it already synced that dataset today with the same data hash. That’s expected; run again another day or after Domo data changes to sync.
 - **`rebuildDashboardSnapshot failed: Timeout: Request failed to complete in 15000ms`**: The DB driver (mssql) was using a 15s request timeout. The API now sets `requestTimeout: 300000` (5 min) in `api/src/config/database.ts` so dashboard/snapshot reads can finish. Optional env: `DB_REQUEST_TIMEOUT_MS=300000`.
-- **Render: sync-from-domo returns at exactly 300s**: Render may cap request duration at 5 minutes. If sync-from-domo hits that, use the Python script with `--skip-pud` from a machine or cron, or run sync-from-domo less often.
+- **Render: sync-from-domo returns at exactly 300s**: Render may cap request duration at 5 minutes. The API now runs one table at a time in 5000-row batches with rest; if the full run still exceeds the cap, increase Render’s request timeout (e.g. 600s) or use the Python script with `--skip-pud` from a machine/cron.
 
 ---
 
