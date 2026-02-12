@@ -175,6 +175,15 @@ async function main() {
     mmrKeys.forEach((k) => console.log('  ', k + ':', mmrOcc[k] + '%'));
   }
 
+  const latestReportDate = body._meta?.latestReportDate ?? dashboard?.kpis?.latestReportDate ?? null;
+  const overlayApplied = body._meta?.performanceOverviewOverlayApplied;
+  console.log('\n--- PUD report date & overlay ---');
+  console.log('  latestReportDate:', latestReportDate ? (typeof latestReportDate === 'string' ? latestReportDate : latestReportDate?.toISOString?.() ?? latestReportDate) : '—');
+  console.log('  performanceOverviewOverlayApplied:', overlayApplied ?? '—');
+  if (overlayApplied === false && (row || kpi)) {
+    console.log('  (Tip: set Performance_Overview_Properties.csv in repo scripts/ and ensure USE_PERFORMANCE_OVERVIEW_CSV is not "false" to get 90.2% / 87.8% for Millerville)');
+  }
+
   console.log('');
 }
 

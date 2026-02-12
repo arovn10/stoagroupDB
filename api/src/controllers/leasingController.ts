@@ -41,7 +41,7 @@ import {
   addDomoAliasOverride,
   DATASET_ALIASES,
 } from '../services/leasingRepository';
-import { applyPerformanceOverviewOverrides, buildDashboardFromRaw, dashboardPayloadToJsonSafe, getMmrBudgetByProperty } from '../services/leasingDashboardService';
+import { applyPerformanceOverviewOverrides, buildDashboardFromRaw, dashboardPayloadToJsonSafe, getMmrBudgetByProperty, shouldApplyPerformanceOverviewOverrides } from '../services/leasingDashboardService';
 import { buildKpis, type PortfolioKpis } from '../services/leasingKpiService';
 import { getConnection } from '../config/database';
 
@@ -805,22 +805,32 @@ export const getDashboard = async (req: Request, res: Response, next: NextFuncti
       if (!Array.isArray(dashboard.hubPropertyNames) || dashboard.hubPropertyNames.length === 0) {
         dashboard.hubPropertyNames = await getLeaseUpStabilizedProjectNames();
       }
-      if (process.env.USE_PERFORMANCE_OVERVIEW_CSV === 'true' && dashboard.kpis && typeof dashboard.kpis === 'object' && dashboard.kpis.byProperty) {
+      let performanceOverviewOverlayApplied = false;
+      if (shouldApplyPerformanceOverviewOverrides() && dashboard.kpis && typeof dashboard.kpis === 'object' && dashboard.kpis.byProperty) {
         const overridden = applyPerformanceOverviewOverrides(dashboard.kpis as unknown as PortfolioKpis);
         dashboard.kpis = overridden as unknown as LeasingDashboardPayload['kpis'];
+        performanceOverviewOverlayApplied = true;
       }
+      const meta = {
+        source: AGGREGATION_SOURCE,
+        asOf,
+        fromSnapshot: true,
+        builtAt: snapshot.builtAt?.toISOString?.(),
+        latestReportDate: (dashboard.kpis as { latestReportDate?: string | Date } | undefined)?.latestReportDate,
+        performanceOverviewOverlayApplied,
+      };
       if (payload.startsWith('{"success":') && rawInPayload !== undefined) {
         res.json({
           success: true,
           raw: rawInPayload,
           dashboard,
-          _meta: { source: AGGREGATION_SOURCE, asOf, fromSnapshot: true, builtAt: snapshot.builtAt?.toISOString?.() },
+          _meta: meta,
         });
       } else {
         res.json({
           success: true,
           dashboard,
-          _meta: { source: AGGREGATION_SOURCE, asOf, fromSnapshot: true, builtAt: snapshot.builtAt?.toISOString?.() },
+          _meta: meta,
         });
       }
       console.log('[leasing/dashboard] sent from snapshot', Date.now() - t0, 'ms');

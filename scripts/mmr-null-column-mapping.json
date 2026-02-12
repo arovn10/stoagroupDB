@@ -24,5 +24,6 @@
   "BudgetedLeasedPercentCurrentMonth": "Budgeted Leased % (Current Month)",
   "BudgetedLeasedCurrentMonth": "Budgeted Leased (Current Month)",
   "PreviousOccupancyPercent": "Previous Occupancy%",
-  "PreviousLeasedPercent": "Previous Leased%"
+  "PreviousLeasedPercent": "Previous Leased%",
+  "Report Date": "Report Date"
 }
