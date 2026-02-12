@@ -65,7 +65,13 @@ function post(path, timeoutMs = SYNC_TIMEOUT_MS) {
       process.exit(1);
     }
     if (data.changes !== true) {
-      console.log('No Domo changes; skipping full sync.');
+      console.log('No Domo changes; skipping full sync. Rebuilding snapshot from current DB...');
+      const rebuildRes = await post('/api/leasing/rebuild-snapshot', 120000);
+      if (rebuildRes.statusCode === 200) {
+        console.log('Snapshot rebuilt.');
+      } else {
+        console.warn('rebuild-snapshot:', rebuildRes.statusCode, rebuildRes.body?.slice(0, 100));
+      }
       process.exit(0);
     }
     console.log('Domo changes detected; running sync-from-domo...');

@@ -41,7 +41,9 @@ import {
   addDomoAliasOverride,
   DATASET_ALIASES,
 } from '../services/leasingRepository';
-import { buildDashboardFromRaw, dashboardPayloadToJsonSafe } from '../services/leasingDashboardService';
+import { buildDashboardFromRaw, dashboardPayloadToJsonSafe, getMmrBudgetByProperty } from '../services/leasingDashboardService';
+import { buildKpis, type PortfolioKpis } from '../services/leasingKpiService';
+import { getConnection } from '../config/database';
 
 /**
  * Leasing API – authoritative calculations on the backend. Frontend is visual-only.
@@ -75,6 +77,57 @@ const DOMO_DATASET_KEYS: Record<string, string> = {
   pricing: 'DOMO_DATASET_PRICING',
   recentrents: 'DOMO_DATASET_RECENTRENTS',
 };
+
+/** Normalize property/project name for matching (trim, remove *, uppercase). */
+function normPropName(s: string | null | undefined): string {
+  return (s ?? '').toString().trim().replace(/\*/g, '').toUpperCase();
+}
+
+/**
+ * Fetch status by property from core.Project. Matches by ProjectName (normalized).
+ * Uses Stage as status when Status column is not present. Returns map normalizedName -> LEASE-UP | STABILIZED | etc.
+ */
+async function getStatusByPropertyFromCoreProjects(): Promise<Record<string, string>> {
+  const out: Record<string, string> = {};
+  try {
+    const pool = await getConnection();
+    const result = await pool.request().query(`
+      SELECT ProjectName, COALESCE(Status, Stage) AS Status
+      FROM core.Project
+      WHERE ProjectName IS NOT NULL
+    `);
+    for (const row of result.recordset || []) {
+      const r = row as { ProjectName?: string; Status?: string };
+      const name = r.ProjectName;
+      const status = r.Status;
+      if (name != null && status != null && String(status).trim() !== '') {
+        const key = normPropName(name);
+        if (key) out[key] = String(status).trim().toUpperCase();
+      }
+    }
+  } catch {
+    try {
+      const pool = await getConnection();
+      const result = await pool.request().query(`
+        SELECT ProjectName, Stage AS Status
+        FROM core.Project
+        WHERE ProjectName IS NOT NULL
+      `);
+      for (const row of result.recordset || []) {
+        const r = row as { ProjectName?: string; Status?: string };
+        const name = r.ProjectName;
+        const status = r.Status;
+        if (name != null && status != null && String(status).trim() !== '') {
+          const key = normPropName(name);
+          if (key) out[key] = String(status).trim().toUpperCase();
+        }
+      }
+    } catch {
+      // core.Project missing or no Status/Stage column
+    }
+  }
+  return out;
+}
 
 function parseCsvToRows(csvText: string): Record<string, unknown>[] {
   const lines = csvText.trim().split(/\r?\n/).filter(Boolean);
@@ -190,6 +243,18 @@ export interface LeasingDashboardPayload {
   statusByProperty?: Record<string, string>;
   mmrOcc?: Record<string, number>;
   mmrUnits?: Record<string, number>;
+  mmrBudgetedOcc?: Record<string, number>;
+  mmrBudgetedOccPct?: Record<string, number>;
+  /** Precomputed portfolio and by-property KPIs (occupancy, leased, available, velocity, delta to budget). */
+  kpis?: Record<string, unknown>;
+  /** Portfolio occupancy breakdown: { property, totalUnits, occupied, occupancyPct }[] for overview. */
+  portfolioOccupancyBreakdown?: Array<{ property: string; totalUnits: number; occupied: number; occupancyPct: number | null }>;
+  /** Portfolio leased breakdown: { property, totalUnits, leased }[]. */
+  portfolioLeasedBreakdown?: Array<{ property: string; totalUnits: number; leased: number }>;
+  /** Available units breakdown: { property, totalUnits, available }[]. */
+  portfolioAvailableBreakdown?: Array<{ property: string; totalUnits: number; available: number }>;
+  /** 4- and 7-week occupancy projections (move-ins, move-outs, net change, projection date). */
+  projections4And7Weeks?: Record<string, unknown>;
 }
 
 /**
@@ -307,7 +372,8 @@ export const postSync = async (req: Request, res: Response, next: NextFunction):
       }
     }
 
-    if (synced.length > 0) rebuildDashboardSnapshot().catch(() => {});
+    // Always rebuild snapshot after sync so cron keeps dashboard snapshot current (uses latest DB + new logic).
+    rebuildDashboardSnapshot().catch(() => {});
     res.status(errors.length ? 207 : 200).json({
       success: errors.length === 0,
       synced,
@@ -415,7 +481,8 @@ export const postSyncFromDomo = async (req: Request, res: Response, next: NextFu
     const onlyDataset = (req.query.dataset as string)?.trim();
     if (onlyDataset) {
       const alias = onlyDataset === 'recents' ? 'recentrents' : onlyDataset;
-      entries = entries.filter(([k]) => (k === 'recents' ? 'recentrents' : k) === alias);
+      const matchKey = (k: string) => (k === 'recents' ? 'recentrents' : k).toLowerCase() === alias.toLowerCase();
+      entries = entries.filter(([k]) => matchKey(k));
       if (entries.length === 0) {
         res.status(400).json({ success: false, error: `Unknown dataset: ${onlyDataset}` });
         return;
@@ -491,8 +558,8 @@ export const postSyncFromDomo = async (req: Request, res: Response, next: NextFu
       return;
     }
 
-    // Build dashboard snapshot at end of sync so cron is the source of truth (not deploy).
-    if (synced.length > 0) rebuildDashboardSnapshot().catch(() => {});
+    // Always rebuild snapshot after sync so cron keeps dashboard snapshot current (uses latest DB + new logic).
+    rebuildDashboardSnapshot().catch(() => {});
     res.status(errors.length ? 207 : 200).json({
       success: errors.length === 0,
       fetched,
@@ -617,7 +684,8 @@ export const postSyncAddAlias = async (req: Request, res: Response, next: NextFu
 export async function rebuildDashboardSnapshot(): Promise<void> {
   try {
     const raw = await getAllForDashboard();
-    const dashboard = await buildDashboardFromRaw(raw);
+    const statusByPropertyFromCore = await getStatusByPropertyFromCoreProjects();
+    const dashboard = await buildDashboardFromRaw(raw, { statusByPropertyFromCore });
     const safe = dashboardPayloadToJsonSafe(dashboard);
     const now = new Date();
     const fullResponse = JSON.stringify({
@@ -674,7 +742,8 @@ export const getDashboard = async (req: Request, res: Response, next: NextFuncti
     console.log('[leasing/dashboard] building from raw...');
     const raw = await getAllForDashboard();
     console.log('[leasing/dashboard] raw fetch', Date.now() - t0, 'ms');
-    const dashboard = await buildDashboardFromRaw(raw);
+    const statusByPropertyFromCore = await getStatusByPropertyFromCoreProjects();
+    const dashboard = await buildDashboardFromRaw(raw, { statusByPropertyFromCore });
     console.log('[leasing/dashboard] build done', Date.now() - t0, 'ms');
     const safe = dashboardPayloadToJsonSafe(dashboard);
     const fullResponse = JSON.stringify({
@@ -709,14 +778,254 @@ export const getDashboard = async (req: Request, res: Response, next: NextFuncti
 /**
  * POST /api/leasing/rebuild-snapshot
  * Force rebuild and store the dashboard snapshot. Next GET /dashboard will be instant.
+ * Optional: X-Sync-Secret (same as sync-from-domo) when LEASING_SYNC_WEBHOOK_SECRET is set.
  */
 export const postRebuildSnapshot = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
+    const secret = process.env.LEASING_SYNC_WEBHOOK_SECRET?.trim();
+    if (secret) {
+      const provided = (req.headers['x-sync-secret'] as string) || (req.body && typeof req.body === 'object' && (req.body as { secret?: string }).secret);
+      if (provided !== secret) {
+        res.status(401).json({ success: false, error: 'Invalid or missing sync secret' });
+        return;
+      }
+    }
     await rebuildDashboardSnapshot();
     const snapshot = await getDashboardSnapshot();
     res.json({
       success: true,
       builtAt: snapshot?.builtAt?.toISOString?.() ?? new Date().toISOString(),
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ---------- KPI endpoints (portfolio and by-property; precalculated in snapshot when available) ----------
+/** Resolve KPIs from snapshot or build from raw. Query: asOf (YYYY-MM-DD), property (single property filter). */
+async function resolveKpis(asOf?: string, property?: string): Promise<{ kpis: PortfolioKpis; fromSnapshot: boolean }> {
+  const snapshot = await getDashboardSnapshot();
+  if (snapshot?.payload && snapshot.payload.startsWith('{"success":')) {
+    try {
+      const parsed = JSON.parse(snapshot.payload) as { dashboard?: { kpis?: PortfolioKpis } };
+      const kpis = parsed.dashboard?.kpis;
+      if (kpis && typeof kpis === 'object') {
+        if (property && kpis.byProperty) {
+          const pNorm = property.trim().toUpperCase().replace(/\*/g, '');
+          const match = Object.entries(kpis.byProperty).find(([k]) => k.toUpperCase().replace(/\*/g, '') === pNorm);
+          if (match) {
+            const [, propKpis] = match;
+            return {
+              kpis: {
+                ...kpis,
+                properties: 1,
+                totalUnits: propKpis.totalUnits,
+                occupied: propKpis.occupied,
+                leased: propKpis.leased,
+                available: propKpis.available,
+                occupancyPct: propKpis.occupancyPct,
+                leases7d: propKpis.leases7d,
+                leases28d: propKpis.leases28d,
+                deltaToBudget: propKpis.deltaToBudget,
+                byProperty: { [match[0]]: propKpis },
+              },
+              fromSnapshot: true,
+            };
+          }
+        }
+        return { kpis: kpis as PortfolioKpis, fromSnapshot: true };
+      }
+    } catch {
+      /* fall through to build from raw */
+    }
+  }
+  const raw = await getAllForDashboard();
+  const { mmrBudgetedOcc, mmrBudgetedOccPct } = getMmrBudgetByProperty(raw);
+  const kpis = buildKpis(raw, { asOf, property, mmrBudgetedOcc, mmrBudgetedOccPct });
+  return { kpis, fromSnapshot: false };
+}
+
+/**
+ * GET /api/leasing/kpis
+ * Portfolio and by-property KPIs (occupancy, leased, available, 7d/28d leases, delta to budget).
+ * Query: asOf (YYYY-MM-DD), property (optional – scope to one property).
+ */
+export const getKpis = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const asOf = typeof req.query.asOf === 'string' ? req.query.asOf : undefined;
+    const property = typeof req.query.property === 'string' ? req.query.property : undefined;
+    const { kpis, fromSnapshot } = await resolveKpis(asOf, property);
+    res.json({ success: true, kpis, _meta: { fromSnapshot } });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * GET /api/leasing/kpis/occupancy
+ * Portfolio overall occupancy (most recent report date from unit details, occupied units / total).
+ */
+export const getKpisOccupancy = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const asOf = typeof req.query.asOf === 'string' ? req.query.asOf : undefined;
+    const property = typeof req.query.property === 'string' ? req.query.property : undefined;
+    const { kpis, fromSnapshot } = await resolveKpis(asOf, property);
+    res.json({
+      success: true,
+      occupancy: kpis.occupied,
+      totalUnits: kpis.totalUnits,
+      occupancyPct: kpis.occupancyPct,
+      byProperty: Object.fromEntries(
+        Object.entries(kpis.byProperty).map(([p, v]) => [p, { occupied: v.occupied, totalUnits: v.totalUnits, occupancyPct: v.occupancyPct }])
+      ),
+      _meta: { fromSnapshot, latestReportDate: kpis.latestReportDate },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * GET /api/leasing/kpis/leased
+ * Portfolio leased units (occupied + vacant leased from unit details).
+ */
+export const getKpisLeased = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const asOf = typeof req.query.asOf === 'string' ? req.query.asOf : undefined;
+    const property = typeof req.query.property === 'string' ? req.query.property : undefined;
+    const { kpis, fromSnapshot } = await resolveKpis(asOf, property);
+    res.json({
+      success: true,
+      leased: kpis.leased,
+      totalUnits: kpis.totalUnits,
+      byProperty: Object.fromEntries(
+        Object.entries(kpis.byProperty).map(([p, v]) => [p, { leased: v.leased, totalUnits: v.totalUnits }])
+      ),
+      _meta: { fromSnapshot },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * GET /api/leasing/kpis/occupancy-and-budget
+ * By-property occupancy and budgeted occupancy (same PUD/unit-status and MMR logic as dashboard).
+ */
+export const getKpisOccupancyAndBudget = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const asOf = typeof req.query.asOf === 'string' ? req.query.asOf : undefined;
+    const property = typeof req.query.property === 'string' ? req.query.property : undefined;
+    const { kpis, fromSnapshot } = await resolveKpis(asOf, property);
+    res.json({
+      success: true,
+      occupancy: kpis.occupied,
+      totalUnits: kpis.totalUnits,
+      occupancyPct: kpis.occupancyPct,
+      byProperty: Object.fromEntries(
+        Object.entries(kpis.byProperty).map(([p, v]) => [
+          p,
+          {
+            occupied: v.occupied,
+            leased: v.leased,
+            totalUnits: v.totalUnits,
+            occupancyPct: v.occupancyPct,
+            budgetedOccupancyUnits: v.budgetedOccupancyUnits ?? null,
+            budgetedOccupancyPct: v.budgetedOccupancyPct ?? null,
+          },
+        ])
+      ),
+      _meta: { fromSnapshot, latestReportDate: kpis.latestReportDate },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * GET /api/leasing/kpis/available
+ * Portfolio available units (controllable availability: total - leased).
+ */
+export const getKpisAvailable = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const asOf = typeof req.query.asOf === 'string' ? req.query.asOf : undefined;
+    const property = typeof req.query.property === 'string' ? req.query.property : undefined;
+    const { kpis, fromSnapshot } = await resolveKpis(asOf, property);
+    res.json({
+      success: true,
+      available: kpis.available,
+      totalUnits: kpis.totalUnits,
+      byProperty: Object.fromEntries(
+        Object.entries(kpis.byProperty).map(([p, v]) => [p, { available: v.available, totalUnits: v.totalUnits }])
+      ),
+      _meta: { fromSnapshot },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * GET /api/leasing/kpis/velocity
+ * 7-day and 28-day lease counts (from leasing summary).
+ */
+export const getKpisVelocity = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const asOf = typeof req.query.asOf === 'string' ? req.query.asOf : undefined;
+    const property = typeof req.query.property === 'string' ? req.query.property : undefined;
+    const { kpis, fromSnapshot } = await resolveKpis(asOf, property);
+    res.json({
+      success: true,
+      leases7d: kpis.leases7d,
+      leases28d: kpis.leases28d,
+      byProperty: Object.fromEntries(
+        Object.entries(kpis.byProperty).map(([p, v]) => [p, { leases7d: v.leases7d, leases28d: v.leases28d }])
+      ),
+      _meta: { fromSnapshot },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * GET /api/leasing/kpis/delta-budget
+ * Delta to budget (current occupied vs budgeted occupancy target).
+ */
+export const getKpisDeltaBudget = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const asOf = typeof req.query.asOf === 'string' ? req.query.asOf : undefined;
+    const property = typeof req.query.property === 'string' ? req.query.property : undefined;
+    const { kpis, fromSnapshot } = await resolveKpis(asOf, property);
+    res.json({
+      success: true,
+      deltaToBudget: kpis.deltaToBudget,
+      byProperty: Object.fromEntries(
+        Object.entries(kpis.byProperty).map(([p, v]) => [p, { deltaToBudget: v.deltaToBudget }])
+      ),
+      _meta: { fromSnapshot },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * GET /api/leasing/kpis/avg-leased-rent
+ * Avg leased rent (weighted by base plan type) from portfolio unit details – same logic as frontend weightedOccupiedAvgRent.
+ */
+export const getKpisAvgLeasedRent = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const asOf = typeof req.query.asOf === 'string' ? req.query.asOf : undefined;
+    const property = typeof req.query.property === 'string' ? req.query.property : undefined;
+    const { kpis, fromSnapshot } = await resolveKpis(asOf, property);
+    res.json({
+      success: true,
+      avgLeasedRent: kpis.avgLeasedRent,
+      byProperty: Object.fromEntries(
+        Object.entries(kpis.byProperty).map(([p, v]) => [p, { avgLeasedRent: v.avgLeasedRent }])
+      ),
+      _meta: { fromSnapshot },
     });
   } catch (error) {
     next(error);

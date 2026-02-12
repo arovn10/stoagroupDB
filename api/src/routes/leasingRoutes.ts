@@ -14,6 +14,16 @@ router.get('/dashboard', leasingController.getDashboard);
 // Force rebuild and store dashboard snapshot (so next GET /dashboard is instant).
 router.post('/rebuild-snapshot', leasingController.postRebuildSnapshot);
 
+// KPI endpoints: portfolio and by-property (optional ?property=&asOf=). Precalculated in snapshot when available.
+router.get('/kpis', leasingController.getKpis);
+router.get('/kpis/occupancy', leasingController.getKpisOccupancy);
+router.get('/kpis/occupancy-and-budget', leasingController.getKpisOccupancyAndBudget);
+router.get('/kpis/leased', leasingController.getKpisLeased);
+router.get('/kpis/available', leasingController.getKpisAvailable);
+router.get('/kpis/velocity', leasingController.getKpisVelocity);
+router.get('/kpis/delta-budget', leasingController.getKpisDeltaBudget);
+router.get('/kpis/avg-leased-rent', leasingController.getKpisAvgLeasedRent);
+
 // Sync: accept Domo dataset payloads; store once per day per dataset, or when data hash changes.
 router.post('/sync', leasingController.postSync);
 

@@ -4,6 +4,7 @@
  */
 import type { LeasingDashboardPayload } from '../controllers/leasingController';
 import type { LeasingDashboardRaw } from './leasingRepository';
+import { buildKpis, type PortfolioKpis } from './leasingKpiService';
 
 function parseDate(v: unknown): Date | null {
   if (v == null || v === '') return null;
@@ -78,12 +79,16 @@ function buildStatusFromMMR(mmrRows: Record<string, unknown>[]): {
   statusByProperty: Record<string, string>;
   mmrOcc: Record<string, number>;
   mmrUnits: Record<string, number>;
+  mmrBudgetedOcc: Record<string, number>;
+  mmrBudgetedOccPct: Record<string, number>;
 } {
   const statusByProperty: Record<string, string> = {};
   const mmrOcc: Record<string, number> = {};
   const mmrUnits: Record<string, number> = {};
+  const mmrBudgetedOcc: Record<string, number> = {};
+  const mmrBudgetedOccPct: Record<string, number> = {};
   if (!Array.isArray(mmrRows) || mmrRows.length === 0)
-    return { statusByProperty, mmrOcc, mmrUnits };
+    return { statusByProperty, mmrOcc, mmrUnits, mmrBudgetedOcc, mmrBudgetedOccPct };
 
   let latestGlobal: Date | null = null;
   for (const r of mmrRows) {
@@ -123,8 +128,44 @@ function buildStatusFromMMR(mmrRows: Record<string, unknown>[]): {
     const units = (r as Record<string, unknown>).Units ?? (r as Record<string, unknown>).TotalUnits;
     if (occ != null) mmrOcc[k] = Number(occ);
     if (units != null) mmrUnits[k] = Number(units);
+    const budgeted = (r as Record<string, unknown>).BudgetedOccupancyCurrentMonth ?? (r as Record<string, unknown>)['Budgeted Occupancy Current Month'];
+    const budgetedPct = (r as Record<string, unknown>).BudgetedOccupancyPercentCurrentMonth ?? (r as Record<string, unknown>)['BudgetedOccupancyPercentCurrentMonth'] ?? (r as Record<string, unknown>)['Budgeted Occupancy % Current Month'];
+    if (budgeted != null) mmrBudgetedOcc[k] = Number(budgeted);
+    if (budgetedPct != null) mmrBudgetedOccPct[k] = Number(budgetedPct);
   }
-  return { statusByProperty, mmrOcc, mmrUnits };
+  return { statusByProperty, mmrOcc, mmrUnits, mmrBudgetedOcc, mmrBudgetedOccPct };
+}
+
+// ---------- unit mix: most recent report date only + deduplicate ----------
+function filterUnitMixToMostRecentReportDateAndDedupe(rows: Record<string, unknown>[]): Record<string, unknown>[] {
+  if (!Array.isArray(rows) || rows.length === 0) return [];
+  const reportDate = 'ReportDate';
+  const propertyName = 'PropertyName';
+  const unitType = 'UnitType';
+  const floorPlan = 'FloorPlan';
+  let latestDate: Date | null = null;
+  for (const r of rows) {
+    const d = parseDate((r as Record<string, unknown>)[reportDate]);
+    if (d && (!latestDate || d > latestDate)) latestDate = d;
+  }
+  if (!latestDate) return [];
+  const onLatest = rows.filter((r) => {
+    const d = parseDate((r as Record<string, unknown>)[reportDate]);
+    return d && d.getTime() === latestDate!.getTime();
+  });
+  const seen = new Set<string>();
+  const out: Record<string, unknown>[] = [];
+  for (const r of onLatest) {
+    const row = r as Record<string, unknown>;
+    const prop = normProp(row[propertyName] ?? row['Property'] ?? '');
+    const ut = (row[unitType] ?? '').toString().trim();
+    const plan = normPlan(row[floorPlan] ?? '');
+    const key = `${prop}|${ut}|${plan}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(row);
+  }
+  return out;
 }
 
 // ---------- buildUnitMixStructure ----------
@@ -396,15 +437,391 @@ function toSerializable(value: unknown): unknown {
   return value;
 }
 
+/** Pick first defined value from row using candidate keys (DB vs Domo/manifest names). */
+function pick(row: Record<string, unknown>, ...candidates: string[]): unknown {
+  for (const k of candidates) {
+    if (Object.prototype.hasOwnProperty.call(row, k) && row[k] !== undefined && row[k] !== '') return row[k];
+  }
+  return undefined;
+}
+
+/** Allowed status values for dashboard rows (lease-up and stabilized only). Normalized for comparison. */
+const LEASING_DASHBOARD_STATUSES = new Set(['LEASE UP', 'LEASE-UP', 'STABILIZED']);
+
+function isLeaseUpOrStabilized(status: string | undefined): boolean {
+  if (!status || typeof status !== 'string') return false;
+  const s = status.trim().toUpperCase().replace(/\s+/g, ' ');
+  return LEASING_DASHBOARD_STATUSES.has(s) || LEASING_DASHBOARD_STATUSES.has(s.replace(/\s/g, '-'));
+}
+
+/** Calendar day (midnight UTC) for a date - for same-day comparison. */
+function toDayKey(d: Date): number {
+  return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+/** Year-month key for same-month comparison (leasing is often monthly). */
+function toMonthKey(d: Date): number {
+  return d.getFullYear() * 12 + d.getMonth();
+}
+
+/** Get the most recent report date (by day) from portfolioUnitDetails. ReportDate is the canonical source. */
+function getMostRecentReportDayKeyFromPud(pudRows: Record<string, unknown>[]): number | null {
+  if (!Array.isArray(pudRows) || pudRows.length === 0) return null;
+  let latest: number | null = null;
+  for (const r of pudRows) {
+    const d = parseDate(pick(r as Record<string, unknown>, 'ReportDate', 'reportDate', 'Report Date'));
+    if (d) {
+      const dayKey = toDayKey(d);
+      if (latest == null || dayKey > latest) latest = dayKey;
+    }
+  }
+  return latest;
+}
+
+/**
+ * Deduplicate portfolio unit details by (building/property name, unit number), keeping only rows from the most recent report date.
+ * For each unit key (property + unit number), keeps one row: the one with the latest ReportDate.
+ */
+function filterPortfolioUnitDetailsToMostRecentReportDateDedupeByUnit(
+  pudRows: Record<string, unknown>[]
+): Record<string, unknown>[] {
+  if (!Array.isArray(pudRows) || pudRows.length === 0) return [];
+  const reportDateCandidates = ['ReportDate', 'reportDate', 'Report Date'];
+  const propertyCandidates = ['Property', 'PropertyName', 'property', 'propertyName', 'Building', 'UnitDetailsBuilding'];
+  const unitCandidates = ['UnitNumber', 'Unit #', 'UnitDesignation', 'Unit Designation', 'Unit'];
+  const latestDayKey = getMostRecentReportDayKeyFromPud(pudRows);
+  if (latestDayKey == null) return [];
+  const onLatestDay = pudRows.filter((r) => {
+    const d = parseDate(pick(r as Record<string, unknown>, ...reportDateCandidates));
+    return d && toDayKey(d) === latestDayKey;
+  });
+  const byUnitKey = new Map<string, Record<string, unknown>>();
+  for (const r of onLatestDay) {
+    const row = r as Record<string, unknown>;
+    const building = String(pick(row, ...propertyCandidates) ?? '').trim().replace(/\*/g, '').toUpperCase();
+    const unitNum = String(pick(row, ...unitCandidates) ?? '').trim().toLowerCase();
+    const key = `${building}|${unitNum}`;
+    if (building && unitNum && !byUnitKey.has(key)) byUnitKey.set(key, row);
+  }
+  return [...byUnitKey.values()];
+}
+
+/**
+ * Filter leasing rows to: (1) same month as PUD's most recent report date (leasing is monthly), (2) one row per property (dedupe), (3) only Lease Up / Stabilized.
+ * Uses portfolioUnitDetails.ReportDate for the report month; leasing rows in that month are kept (one per property, latest in month wins).
+ */
+function filterLeasingRowsToMostRecentReportDateDedupeAndStatus(
+  leasingRows: Record<string, unknown>[],
+  statusByProperty: Record<string, string>,
+  reportDayKeyFromPud: number | null
+): Record<string, unknown>[] {
+  if (!Array.isArray(leasingRows) || leasingRows.length === 0) return [];
+  const dateCandidates = ['ReportDate', 'reportDate', 'BatchTimestamp', 'MonthOf'];
+  const targetMonthKey: number | null =
+    reportDayKeyFromPud != null ? toMonthKey(new Date(reportDayKeyFromPud)) : null;
+  let useMonthKey = targetMonthKey;
+  if (useMonthKey == null) {
+    let latestDayKey: number | null = null;
+    for (const r of leasingRows) {
+      const row = r as Record<string, unknown>;
+      const d = parseDate(pick(row, ...dateCandidates));
+      if (d) {
+        const dayKey = toDayKey(d);
+        if (latestDayKey == null || dayKey > latestDayKey) latestDayKey = dayKey;
+      }
+    }
+    useMonthKey = latestDayKey != null ? toMonthKey(new Date(latestDayKey)) : null;
+  }
+  if (useMonthKey == null) return [];
+  const inTargetMonth = leasingRows.filter((r) => {
+    const row = r as Record<string, unknown>;
+    const d = parseDate(pick(row, ...dateCandidates));
+    return d && toMonthKey(d) === useMonthKey;
+  });
+  const byProp = new Map<string, Record<string, unknown>>();
+  for (const r of inTargetMonth) {
+    const row = r as Record<string, unknown>;
+    const propRaw = pick(row, 'Property', 'property', 'PropertyName');
+    const prop = normProp(propRaw);
+    if (!prop) continue;
+    if (!isLeaseUpOrStabilized(statusByProperty[prop])) continue;
+    const existing = byProp.get(prop);
+    const rowDate = parseDate(pick(row, ...dateCandidates));
+    if (!existing || !rowDate || (parseDate(pick(existing, ...dateCandidates)) ?? new Date(0)) < rowDate) {
+      byProp.set(prop, row);
+    }
+  }
+  return [...byProp.values()];
+}
+
+/**
+ * Normalize a raw leasing row to frontend field names so the home page displays the same as with Domo.
+ * DB columns may be LeasingVelocity7Day / LeasingVelocity28Day; frontend expects 7DayLeasingVelocity / 28DayLeasingVelocity.
+ * Injects Occupancy from mmrOcc (from MMR) so r[L.occupancy] works in the UI.
+ */
+function normalizeLeasingRowToFrontend(
+  raw: Record<string, unknown>,
+  mmrOcc: Record<string, number>
+): Record<string, unknown> {
+  const prop = String(pick(raw, 'Property', 'property', 'PropertyName') ?? '').trim();
+  const pKey = normProp(prop);
+  const occ = mmrOcc[pKey];
+  const unitsVal = num(pick(raw, 'Units', 'TotalUnits'));
+  const v7Val = num(pick(raw, '7DayLeasingVelocity', 'LeasingVelocity7Day'));
+  const v28Val = num(pick(raw, '28DayLeasingVelocity', 'LeasingVelocity28Day'));
+  const leasesNeededVal = num(pick(raw, 'LeasesNeeded', 'Leases Needed'));
+  return {
+    ...raw,
+    Property: prop || (raw.Property ?? raw.property),
+    Units: unitsVal ?? (raw.Units ?? raw.TotalUnits),
+    LeasesNeeded: leasesNeededVal ?? raw.LeasesNeeded,
+    '7DayLeasingVelocity': v7Val ?? raw['7DayLeasingVelocity'] ?? raw.LeasingVelocity7Day,
+    '28DayLeasingVelocity': v28Val ?? raw['28DayLeasingVelocity'] ?? raw.LeasingVelocity28Day,
+    Occupancy: occ != null ? (occ <= 1 ? occ : occ / 100) : undefined,
+    MonthOf: raw.MonthOf ?? raw.BatchTimestamp ?? raw.monthOf,
+    BatchTimestamp: raw.BatchTimestamp ?? raw.MonthOf,
+  };
+}
+
+/** Return MMR budget-by-property maps for use in buildKpis (same logic as dashboard). */
+export function getMmrBudgetByProperty(raw: LeasingDashboardRaw): {
+  mmrBudgetedOcc: Record<string, number>;
+  mmrBudgetedOccPct: Record<string, number>;
+} {
+  const { mmrBudgetedOcc, mmrBudgetedOccPct } = buildStatusFromMMR(raw.mmrRows ?? []);
+  return { mmrBudgetedOcc, mmrBudgetedOccPct };
+}
+
+/** Build map: normalized property key -> display name (first from rows). */
+function displayNamesByNormalizedKey(rows: Array<Record<string, unknown>>): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const r of rows) {
+    const p = (r.Property ?? r.property ?? '').toString().trim();
+    if (!p) continue;
+    const nkey = normProp(p);
+    if (!map.has(nkey)) map.set(nkey, p);
+  }
+  return map;
+}
+
+/** Add display-name keys to unitmixStruct, utradeIndex, leasingTS so frontend can look up by Property as shown in UI. */
+function addDisplayNameKeysToPayloadMaps(
+  rows: Array<Record<string, unknown>>,
+  unitmixStruct: Record<string, unknown>,
+  utradeIndex: Record<string, unknown>,
+  leasingTS: Record<string, unknown>
+): void {
+  for (const r of rows) {
+    const displayName = (r.Property ?? r.property ?? '').toString().trim();
+    if (!displayName) continue;
+    const nkey = normProp(displayName);
+    if (unitmixStruct[nkey] != null && unitmixStruct[displayName] == null) unitmixStruct[displayName] = unitmixStruct[nkey];
+    if (utradeIndex[nkey] != null && utradeIndex[displayName] == null) utradeIndex[displayName] = utradeIndex[nkey];
+    if (leasingTS[nkey] != null && leasingTS[displayName] == null) leasingTS[displayName] = leasingTS[nkey];
+  }
+}
+
+/** Compute all-time average 7d and 28d velocity per property from leasingTS; merge into kpis.byProperty. */
+function addVelocityAllTimeAvgToKpis(kpis: PortfolioKpis, leasingTS: Record<string, unknown>): PortfolioKpis {
+  const byProp = kpis.byProperty ?? {};
+  const out: PortfolioKpis = { ...kpis, byProperty: { ...byProp } };
+  for (const [prop, points] of Object.entries(leasingTS)) {
+    const arr = Array.isArray(points) ? points : [];
+    let sum7 = 0;
+    let sum28 = 0;
+    let count7 = 0;
+    let count28 = 0;
+    for (const p of arr) {
+      const pt = p as Record<string, unknown>;
+      const v7 = num(pt.v7);
+      const v28 = num(pt.v28);
+      if (v7 != null) {
+        sum7 += v7;
+        count7 += 1;
+      }
+      if (v28 != null) {
+        sum28 += v28;
+        count28 += 1;
+      }
+    }
+    const avg7 = count7 > 0 ? Math.round((sum7 / count7) * 100) / 100 : null;
+    const avg28 = count28 > 0 ? Math.round((sum28 / count28) * 100) / 100 : null;
+    const existing = out.byProperty[prop];
+    const byPropUnknown = out.byProperty as unknown as Record<string, Record<string, unknown>>;
+    if (existing) {
+      byPropUnknown[prop] = { ...existing, velocityAllTimeAvg7d: avg7, velocityAllTimeAvg28d: avg28 };
+    } else {
+      byPropUnknown[prop] = { property: prop, velocityAllTimeAvg7d: avg7, velocityAllTimeAvg28d: avg28 };
+    }
+  }
+  return out;
+}
+
+function buildPortfolioOccupancyBreakdown(
+  kpis: { byProperty?: Record<string, { property?: string; totalUnits?: number; occupied?: number; occupancyPct?: number | null }> },
+  propDisplayByNorm: Map<string, string>
+): Array<{ property: string; totalUnits: number; occupied: number; occupancyPct: number | null }> {
+  const byProp = kpis.byProperty ?? {};
+  return Object.entries(byProp).map(([nkey, k]) => ({
+    property: propDisplayByNorm.get(nkey) ?? k.property ?? nkey,
+    totalUnits: k.totalUnits ?? 0,
+    occupied: k.occupied ?? 0,
+    occupancyPct: k.occupancyPct ?? null,
+  }));
+}
+
+function buildPortfolioLeasedBreakdown(
+  kpis: { byProperty?: Record<string, { property?: string; totalUnits?: number; leased?: number }> },
+  propDisplayByNorm: Map<string, string>
+): Array<{ property: string; totalUnits: number; leased: number }> {
+  const byProp = kpis.byProperty ?? {};
+  return Object.entries(byProp).map(([nkey, k]) => ({
+    property: propDisplayByNorm.get(nkey) ?? k.property ?? nkey,
+    totalUnits: k.totalUnits ?? 0,
+    leased: k.leased ?? 0,
+  }));
+}
+
+function buildPortfolioAvailableBreakdown(
+  kpis: { byProperty?: Record<string, { property?: string; totalUnits?: number; available?: number }> },
+  propDisplayByNorm: Map<string, string>
+): Array<{ property: string; totalUnits: number; available: number }> {
+  const byProp = kpis.byProperty ?? {};
+  return Object.entries(byProp).map(([nkey, k]) => ({
+    property: propDisplayByNorm.get(nkey) ?? k.property ?? nkey,
+    totalUnits: k.totalUnits ?? 0,
+    available: k.available ?? 0,
+  }));
+}
+
+/** Portfolio 4- and 7-week projections from PUD (same logic as app.js: move-ins/move-outs by date, new-lease only for move-ins). */
+function buildProjections4And7Weeks(
+  pud: Record<string, unknown>[],
+  kpis: { totalUnits?: number; occupied?: number; byProperty?: Record<string, { totalUnits?: number; occupied?: number }> }
+): {
+  fourWeek: { moveIns: number; moveOuts: number; netChange: number; projectedOccupied: number | null; totalUnits: number; projectionDate: string };
+  sevenWeek: { moveIns: number; moveOuts: number; netChange: number; projectedOccupied: number | null; totalUnits: number; projectionDate: string };
+} {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const fourWeekEnd = new Date(today);
+  fourWeekEnd.setDate(fourWeekEnd.getDate() + 28);
+  const sevenWeekEnd = new Date(today);
+  sevenWeekEnd.setDate(sevenWeekEnd.getDate() + 49);
+  const totalUnits = kpis.totalUnits ?? 0;
+  const currentOccupied = kpis.occupied ?? 0;
+
+  function parseD(d: unknown): Date | null {
+    const v = parseDate(d);
+    if (!v) return null;
+    v.setHours(0, 0, 0, 0);
+    return v;
+  }
+  function inRange(d: Date | null, start: Date, end: Date): boolean {
+    return d != null && d.getTime() >= start.getTime() && d.getTime() <= end.getTime();
+  }
+  function isNewLease(leaseType: unknown): boolean {
+    const s = (leaseType ?? '').toString().toUpperCase();
+    return s.includes('NEW') && !s.includes('RENEW');
+  }
+
+  let moveIns4 = 0;
+  let moveOuts4 = 0;
+  let moveIns7 = 0;
+  let moveOuts7 = 0;
+  const moveOutUnits4 = new Set<string>();
+  const moveOutUnits7 = new Set<string>();
+  const moveInUnits4 = new Set<string>();
+  const moveInUnits7 = new Set<string>();
+
+  for (const r of pud) {
+    const row = r as Record<string, unknown>;
+    const prop = normProp(row.Property ?? row.propertyName ?? '');
+    const unitNum = (row.UnitNumber ?? row['Unit #'] ?? '').toString().trim();
+    if (!unitNum) continue;
+    const unitKey = `${prop}|${unitNum}`;
+    const leaseStart = parseD(row.LeaseStart ?? row.LeaseStartDate);
+    const moveIn = parseD(row.MoveIn ?? row.MoveInDate);
+    const notice = parseD(row.Notice ?? row.NoticeDate);
+    const moveOut = parseD(row.MoveOut ?? row.MoveOutDate);
+    const leaseType = row.LeaseType ?? row['Lease Type'];
+
+    const moveInDate = leaseStart ?? moveIn;
+    if (moveInDate && isNewLease(leaseType)) {
+      if (inRange(moveInDate, today, fourWeekEnd)) {
+        moveInUnits4.add(unitKey);
+      }
+      if (inRange(moveInDate, today, sevenWeekEnd)) {
+        moveInUnits7.add(unitKey);
+      }
+    }
+    const moveOutDate = notice ?? moveOut;
+    if (moveOutDate) {
+      if (inRange(moveOutDate, today, fourWeekEnd)) {
+        moveOutUnits4.add(unitKey);
+      }
+      if (inRange(moveOutDate, today, sevenWeekEnd)) {
+        moveOutUnits7.add(unitKey);
+      }
+    }
+  }
+
+  // Turnover/wash: units with both move-in and move-out in period don't change occupancy; exclude from move-outs count (same as app.js)
+  const washed4 = [...moveInUnits4].filter((u) => moveOutUnits4.has(u)).length;
+  const washed7 = [...moveInUnits7].filter((u) => moveOutUnits7.has(u)).length;
+  moveIns4 = moveInUnits4.size;
+  moveOuts4 = Math.max(0, moveOutUnits4.size - washed4);
+  moveIns7 = moveInUnits7.size;
+  moveOuts7 = Math.max(0, moveOutUnits7.size - washed7);
+
+  const net4 = moveIns4 - moveOuts4;
+  const net7 = moveIns7 - moveOuts7;
+  const projected4 = currentOccupied + net4;
+  const projected7 = currentOccupied + net7;
+
+  return {
+    fourWeek: {
+      moveIns: moveIns4,
+      moveOuts: moveOuts4,
+      netChange: net4,
+      projectedOccupied: totalUnits > 0 ? Math.max(0, Math.min(totalUnits, projected4)) : null,
+      totalUnits,
+      projectionDate: fourWeekEnd.toISOString().slice(0, 10),
+    },
+    sevenWeek: {
+      moveIns: moveIns7,
+      moveOuts: moveOuts7,
+      netChange: net7,
+      projectedOccupied: totalUnits > 0 ? Math.max(0, Math.min(totalUnits, projected7)) : null,
+      totalUnits,
+      projectionDate: sevenWeekEnd.toISOString().slice(0, 10),
+    },
+  };
+}
+
 /** Return a JSON-serializable copy of the dashboard payload (for storing in DashboardSnapshot). */
 export function dashboardPayloadToJsonSafe(payload: LeasingDashboardPayload): Record<string, unknown> {
   return toSerializable(payload) as Record<string, unknown>;
 }
 
-export async function buildDashboardFromRaw(raw: LeasingDashboardRaw): Promise<LeasingDashboardPayload> {
-  const { statusByProperty, mmrOcc, mmrUnits } = buildStatusFromMMR(raw.mmrRows);
+export type BuildDashboardOptions = {
+  /** Status by property from core.Project (match by ProjectName). Overrides MMR status when set. */
+  statusByPropertyFromCore?: Record<string, string>;
+};
+
+export async function buildDashboardFromRaw(
+  raw: LeasingDashboardRaw,
+  options?: BuildDashboardOptions
+): Promise<LeasingDashboardPayload> {
+  const { statusByProperty, mmrOcc, mmrUnits, mmrBudgetedOcc, mmrBudgetedOccPct } = buildStatusFromMMR(raw.mmrRows);
+  if (options?.statusByPropertyFromCore && Object.keys(options.statusByPropertyFromCore).length > 0) {
+    for (const [k, v] of Object.entries(options.statusByPropertyFromCore)) {
+      if (v != null && String(v).trim() !== '') statusByProperty[k] = String(v).trim().toUpperCase();
+    }
+  }
   const lastUpdated = computeLastUpdated(raw);
-  const unitmixStruct = buildUnitMixStructure(raw.unitmix);
+  const unitmixFiltered = filterUnitMixToMostRecentReportDateAndDedupe(raw.unitmix ?? []);
+  const unitmixStruct = buildUnitMixStructure(unitmixFiltered);
   const recentsByPlan = buildRecentsByPlan(raw.recents);
   const { pricingByPlan, pricingTS } = buildPricingIndexAndTimeseries(raw.pricing);
   const utradeIndex = buildUnitTradeoutIndex(raw.utradeRows);
@@ -413,16 +830,43 @@ export async function buildDashboardFromRaw(raw: LeasingDashboardRaw): Promise<L
   const unitsIndex = buildUnitsIndex(raw.units);
   const month = getMonth(raw.leasing);
 
-  // rows: leasing sorted by Property (same as app)
-  const rows = [...(raw.leasing || [])].sort((a, b) =>
-    String((a as Record<string, unknown>).Property ?? '').localeCompare(String((b as Record<string, unknown>).Property ?? ''))
+  // PUD: deduplicate by (building/property name, unit number), most recent report date only
+  const pudFiltered = filterPortfolioUnitDetailsToMostRecentReportDateDedupeByUnit(raw.portfolioUnitDetails ?? []);
+  const rawWithDedupedPud = { ...raw, portfolioUnitDetails: pudFiltered };
+  const kpis = buildKpis(rawWithDedupedPud, { mmrBudgetedOcc, mmrBudgetedOccPct });
+
+  // rows: leasing filtered to most recent report DATE from portfolioUnitDetails, deduped by property, Lease Up/Stabilized only
+  const reportDayKeyFromPud = getMostRecentReportDayKeyFromPud(raw.portfolioUnitDetails ?? []);
+  const leasingFiltered = filterLeasingRowsToMostRecentReportDateDedupeAndStatus(
+    raw.leasing ?? [],
+    statusByProperty,
+    reportDayKeyFromPud
   );
+  const sorted = [...leasingFiltered].sort((a, b) =>
+    String((a as Record<string, unknown>).Property ?? (a as Record<string, unknown>).property ?? '').localeCompare(
+      String((b as Record<string, unknown>).Property ?? (b as Record<string, unknown>).property ?? '')
+    )
+  );
+  const rows = sorted.map((r) => normalizeLeasingRowToFrontend(r as Record<string, unknown>, mmrOcc));
+
+  // Add display-name keys so frontend can look up by Property as shown in UI (e.g. "The Waters at Millerville")
+  addDisplayNameKeysToPayloadMaps(rows, unitmixStruct, utradeIndex, leasingTS);
+
+  // Velocity all-time avg (7d and 28d) per property from leasingTS; merge into kpis.byProperty
+  const kpisWithVelocityAvg = addVelocityAllTimeAvgToKpis(kpis, leasingTS);
+
+  // Portfolio breakdown arrays (use display names from rows for property field)
+  const propDisplayByNorm = displayNamesByNormalizedKey(rows);
+  const portfolioOccupancyBreakdown = buildPortfolioOccupancyBreakdown(kpisWithVelocityAvg, propDisplayByNorm);
+  const portfolioLeasedBreakdown = buildPortfolioLeasedBreakdown(kpisWithVelocityAvg, propDisplayByNorm);
+  const portfolioAvailableBreakdown = buildPortfolioAvailableBreakdown(kpisWithVelocityAvg, propDisplayByNorm);
+  const projections4And7Weeks = buildProjections4And7Weeks(pudFiltered, kpisWithVelocityAvg);
 
   const payload: LeasingDashboardPayload = {
     rows,
     leasing: raw.leasing ?? [],
     unitmixStruct,
-    unitmixRows: raw.unitmix ?? [],
+    unitmixRows: unitmixFiltered,
     recentsByPlan,
     pricingByPlan,
     pricingTS,
@@ -437,11 +881,18 @@ export async function buildDashboardFromRaw(raw: LeasingDashboardRaw): Promise<L
     month,
     utradeRows: raw.utradeRows ?? [],
     lastUpdated,
-    portfolioUnitDetails: raw.portfolioUnitDetails ?? [],
+    portfolioUnitDetails: pudFiltered,
     tradeoutLeaseTypeLookup,
     statusByProperty,
     mmrOcc,
     mmrUnits,
+    mmrBudgetedOcc,
+    mmrBudgetedOccPct,
+    kpis: kpisWithVelocityAvg as unknown as Record<string, unknown>,
+    portfolioOccupancyBreakdown,
+    portfolioLeasedBreakdown,
+    portfolioAvailableBreakdown,
+    projections4And7Weeks,
   };
   return payload;
 }

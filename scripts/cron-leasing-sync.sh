@@ -25,6 +25,7 @@ fi
 BASE="${API_BASE_URL%/}"
 CHECK_URL="$BASE/api/leasing/sync-check"
 SYNC_URL="$BASE/api/leasing/sync-from-domo"
+REBUILD_URL="$BASE/api/leasing/rebuild-snapshot"
 
 # Check for changes (lightweight: Domo metadata vs last sync)
 if [ -n "$SECRET" ]; then
@@ -33,7 +34,12 @@ else
   CHECK_RESULT=$(curl -sS "$CHECK_URL")
 fi
 if ! echo "$CHECK_RESULT" | grep -q '"changes":true'; then
-  echo "No Domo changes; skipping full sync."
+  echo "No Domo changes; skipping full sync. Rebuilding snapshot from current DB..."
+  if [ -n "$SECRET" ]; then
+    curl -sS -X POST -H "Content-Type: application/json" -H "X-Sync-Secret: $SECRET" "$REBUILD_URL" || true
+  else
+    curl -sS -X POST -H "Content-Type: application/json" "$REBUILD_URL" || true
+  fi
   exit 0
 fi
 

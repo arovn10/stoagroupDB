@@ -42,14 +42,15 @@ app.use((req: express.Request, res: express.Response, next: express.NextFunction
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Sync-Secret, Cache-Control, Pragma');
   }
-  if (req.method === 'OPTIONS') {
-    return res.status(204).end();
-  }
+  // Do not short-circuit OPTIONS here: let cors() below handle preflight so non-Domo origins (e.g. localhost:8765) get Access-Control-Allow-Origin
   next();
 });
+// Allow local dev (Leasing Analytics Hub on port 8765) even when CORS_ORIGINS is set
+const LOCAL_DEV_ORIGINS = ['http://localhost:8765', 'http://127.0.0.1:8765'];
 app.use(cors({
   origin: (origin, cb) => {
     if (isDomoOrigin(origin)) return cb(null, origin);
+    if (origin && LOCAL_DEV_ORIGINS.includes(origin)) return cb(null, origin);
     const allowed = process.env.CORS_ORIGINS?.split(',').map((s) => s.trim()).filter(Boolean) || [];
     if (allowed.length === 0) return cb(null, true);
     if (origin && allowed.includes(origin)) return cb(null, origin);

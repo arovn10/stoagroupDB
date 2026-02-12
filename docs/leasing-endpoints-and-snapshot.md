@@ -27,8 +27,14 @@ The dashboard snapshot is stored in the database so the UI can load instantly in
 |--------|------|--------------|--------|
 | GET | `/api/leasing/aggregates/available` | No | List available aggregate types |
 | GET | `/api/leasing/aggregates` | No | Aggregates with query params |
-| **GET** | **`/api/leasing/dashboard`** | **Yes (primary)** | **App load.** Returns `{ success, dashboard }` with `dashboard.rows` and related structures. Served from snapshot when present. |
+| **GET** | **`/api/leasing/dashboard`** | **Yes (primary)** | **App load.** Returns `{ success, dashboard }` with `dashboard.rows`, `dashboard.kpis`, and related structures. Served from snapshot when present. |
 | POST | `/api/leasing/rebuild-snapshot` | No | Cron/manual; rebuilds snapshot and upserts to `leasing.DashboardSnapshot` |
+| GET | `/api/leasing/kpis` | Yes | All KPIs (portfolio + byProperty). Query: `?asOf=YYYY-MM-DD`, `?property=Name` to scope to one property. From snapshot when available. |
+| GET | `/api/leasing/kpis/occupancy` | Yes | Portfolio occupancy (most recent unit details date, occupied/total). Same query params. |
+| GET | `/api/leasing/kpis/leased` | Yes | Portfolio leased units. Same query params. |
+| GET | `/api/leasing/kpis/available` | Yes | Portfolio available units. Same query params. |
+| GET | `/api/leasing/kpis/velocity` | Yes | 7-day and 28-day lease counts. Same query params. |
+| GET | `/api/leasing/kpis/delta-budget` | Yes | Delta to budget (occupied vs target). Same query params. |
 | **POST** | **`/api/leasing/sync`** | **Optional** | Only when app uses Domo data: push leasing/MMRData to API (fire-and-forget) |
 | GET | `/api/leasing/sync-check` | No | Admin/sync |
 | GET | `/api/leasing/sync-health` | No | Admin/sync |

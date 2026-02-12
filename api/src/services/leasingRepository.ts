@@ -62,7 +62,18 @@ export const DATASET_ALIASES = [
 ] as const;
 export type DatasetAlias = (typeof DATASET_ALIASES)[number];
 
-/** Pick value from row by trying alias, column name, or DB column name. Case-insensitive fallback for CSV headers. */
+/** Normalize header for fuzzy match: lowercase, collapse spaces, %→percent, strip $ , - */
+function normalizeHeader(s: string): string {
+  return String(s)
+    .toLowerCase()
+    .replace(/%/g, 'percent')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\s/g, '')
+    .replace(/[$,\-\|]/g, '');
+}
+
+/** Pick value from row by trying alias, column name, or DB column name. Case-insensitive fallback for CSV headers; then normalized-key match so "Report Date" and "ReportDate" both match. */
 function getVal(row: Record<string, unknown>, ...keys: string[]): unknown {
   for (const k of keys) {
     if (Object.prototype.hasOwnProperty.call(row, k) && row[k] !== undefined && row[k] !== '') return row[k];
@@ -77,6 +88,38 @@ function getVal(row: Record<string, unknown>, ...keys: string[]): unknown {
         break;
       }
     }
+  }
+  // Fallback: match by normalized key (no spaces, no punctuation) so "Report Date" and "ReportDate" both match
+  for (const k of keys) {
+    const wantNorm = normalizeHeader(k);
+    if (!wantNorm) continue;
+    for (const rk of rowKeys) {
+      if (normalizeHeader(rk) === wantNorm) {
+        const v = row[rk];
+        if (v !== undefined && v !== '') return v;
+        break;
+      }
+    }
+  }
+  return null;
+}
+
+/** Find first row key whose name (lowercase) contains all includeSubstrings and none of excludeSubstrings; return that key's value. Used as last resort for Domo columns with varying names (e.g. budgeted occupancy). */
+function getValBySubstrings(
+  row: Record<string, unknown>,
+  includeSubstrings: string[],
+  excludeSubstrings: string[] = []
+): unknown {
+  const rowKeys = Object.keys(row);
+  const inc = includeSubstrings.map((s) => s.toLowerCase());
+  const exc = excludeSubstrings.map((s) => s.toLowerCase());
+  for (const rk of rowKeys) {
+    const low = rk.toLowerCase();
+    if (exc.some((e) => low.includes(e))) continue;
+    if (!inc.every((i) => low.includes(i))) continue;
+    const v = row[rk];
+    if (v !== undefined && v !== '') return v;
+    break;
   }
   return null;
 }
@@ -348,9 +391,17 @@ export async function getLeasingTableAllNullColumns(alias: string): Promise<stri
   return allNull;
 }
 
+/** Normalize dataset alias (case-insensitive) so wipe?table=mmrdata works. */
+function normalizeTableAlias(alias: string): string | null {
+  const a = alias.trim().toLowerCase();
+  const key = (Object.keys(LEASING_TABLE_BY_ALIAS) as string[]).find((k) => k.toLowerCase() === a);
+  return key ?? null;
+}
+
 /** Truncate a single leasing table and remove its SyncLog row so next sync will run. */
 export async function wipeLeasingTable(alias: string): Promise<{ truncated: string }> {
-  const tableName = LEASING_TABLE_BY_ALIAS[alias];
+  const normalized = normalizeTableAlias(alias) ?? alias;
+  const tableName = LEASING_TABLE_BY_ALIAS[normalized];
   if (!tableName) throw new Error(`Unknown leasing alias: ${alias}`);
   const fullName = `${LEASING_SCHEMA}.${tableName}`;
   const pool = await getConnection();
@@ -358,7 +409,7 @@ export async function wipeLeasingTable(alias: string): Promise<{ truncated: stri
   await tx.begin();
   try {
     await tx.request().query(`TRUNCATE TABLE ${fullName}`);
-    await tx.request().input('alias', sql.NVarChar(64), alias).query(`DELETE FROM ${SYNC_LOG} WHERE DatasetAlias = @alias`);
+    await tx.request().input('alias', sql.NVarChar(64), normalized).query(`DELETE FROM ${SYNC_LOG} WHERE DatasetAlias = @alias`);
     await tx.commit();
     return { truncated: fullName };
   } catch (e) {
@@ -435,6 +486,13 @@ const T_MMR = `${LEASING_SCHEMA}.MMRData`;
 const MMR_COLS = ['Property', 'Location', 'TotalUnits', 'OccupancyPercent', 'CurrentLeasedPercent', 'MI', 'MO', 'FirstVisit', 'Applied', 'Canceled', 'Denied', 'T12LeasesExpired', 'T12LeasesRenewed', 'Delinquent', 'OccupiedRent', 'BudgetedRent', 'CurrentMonthIncome', 'BudgetedIncome', 'MoveInRent', 'OccUnits', 'Week3EndDate', 'Week3MoveIns', 'Week3MoveOuts', 'Week3OccUnits', 'Week3OccPercent', 'Week4EndDate', 'Week4MoveIns', 'Week4MoveOuts', 'Week4OccUnits', 'Week4OccPercent', 'Week7EndDate', 'Week7MoveIns', 'Week7MoveOuts', 'Week7OccUnits', 'Week7OccPercent', 'InServiceUnits', 'T12LeaseBreaks', 'BudgetedOccupancyCurrentMonth', 'BudgetedOccupancyPercentCurrentMonth', 'BudgetedLeasedPercentCurrentMonth', 'BudgetedLeasedCurrentMonth', 'ReportDate', 'ConstructionStatus', 'Rank', 'PreviousOccupancyPercent', 'PreviousLeasedPercent', 'PreviousDelinquentUnits', 'WeekStart', 'LatestDate', 'City', 'State', 'Status', 'FinancingStatus', 'ProductType', 'Units', 'FullAddress', 'Latitude', 'Longitude', 'Region', 'LatestConstructionStatus', 'BirthOrder', 'NetLsd'];
 const MMR_KEYS = ['Property', 'ReportDate'];
 export async function syncMMRData(rows: Record<string, unknown>[], replace = true): Promise<number> {
+  // TEMPORARY: Log Domo column names so you can align with DB (add missing names to sync mapper or domo-alias-overrides.json). Remove after fixing NULLs.
+  if (rows.length > 0) {
+    const first = rows[0] as Record<string, unknown>;
+    const domoKeys = Object.keys(first).sort();
+    console.warn('[MMR sync] Domo first-row column names:', JSON.stringify(domoKeys));
+  }
+
   const keyFn = (r: Record<string, unknown>) =>
     [
       str(getValWithOverrides(MMR_ALIAS, 'Property', r, 'Property Name', 'PropertyName', 'Community', 'Asset')),
@@ -447,10 +505,10 @@ export async function syncMMRData(rows: Record<string, unknown>[], replace = tru
   try {
     const n = await batchInsert(tx, T_MMR, MMR_COLS, rows, (row) => [
       str(getValWithOverrides(MMR_ALIAS, 'Property', row, 'Property Name', 'PropertyName', 'Community', 'Asset')), str(getValWithOverrides(MMR_ALIAS, 'Location', row, 'Property Location', 'Address')),
-      num(getValWithOverrides(MMR_ALIAS, 'TotalUnits', row, 'Total Units')), num(getValWithOverrides(MMR_ALIAS, 'OccupancyPercent', row, 'Occupancy Percent', 'Occupancy %')), num(getValWithOverrides(MMR_ALIAS, 'CurrentLeasedPercent', row, 'Current Leased Percent', 'Leased %')),
-      num(getValWithOverrides(MMR_ALIAS, 'MI', row)), num(getValWithOverrides(MMR_ALIAS, 'MO', row)), num(getValWithOverrides(MMR_ALIAS, 'FirstVisit', row, '1st Visit', 'First Visit')), num(getValWithOverrides(MMR_ALIAS, 'Applied', row)), num(getValWithOverrides(MMR_ALIAS, 'Canceled', row)), num(getValWithOverrides(MMR_ALIAS, 'Denied', row)), num(getValWithOverrides(MMR_ALIAS, 'T12LeasesExpired', row, 'T12 Leases Expired')), num(getValWithOverrides(MMR_ALIAS, 'T12LeasesRenewed', row, 'T12 Leases Renewed')), num(getValWithOverrides(MMR_ALIAS, 'Delinquent', row)), num(getValWithOverrides(MMR_ALIAS, 'OccupiedRent', row, 'Occupied Rent')), num(getValWithOverrides(MMR_ALIAS, 'BudgetedRent', row, 'Budgeted Rent')), num(getValWithOverrides(MMR_ALIAS, 'CurrentMonthIncome', row, 'Current Month Income')), num(getValWithOverrides(MMR_ALIAS, 'BudgetedIncome', row, 'Budgeted Income')), num(getValWithOverrides(MMR_ALIAS, 'MoveInRent', row, 'Move In Rent')), num(getValWithOverrides(MMR_ALIAS, 'OccUnits', row, 'Occ Units')),
-      str(getValWithOverrides(MMR_ALIAS, 'Week3EndDate', row, 'Week 3 End Date', 'Week3 End Date')), num(getValWithOverrides(MMR_ALIAS, 'Week3MoveIns', row, 'Week 3 Move Ins')), num(getValWithOverrides(MMR_ALIAS, 'Week3MoveOuts', row, 'Week 3 Move Outs')), num(getValWithOverrides(MMR_ALIAS, 'Week3OccUnits', row, 'Week 3 Occ Units')), num(getValWithOverrides(MMR_ALIAS, 'Week3OccPercent', row, 'Week 3 Occ Percent')), str(getValWithOverrides(MMR_ALIAS, 'Week4EndDate', row, 'Week 4 End Date')), num(getValWithOverrides(MMR_ALIAS, 'Week4MoveIns', row)), num(getValWithOverrides(MMR_ALIAS, 'Week4MoveOuts', row)), num(getValWithOverrides(MMR_ALIAS, 'Week4OccUnits', row)), num(getValWithOverrides(MMR_ALIAS, 'Week4OccPercent', row)), str(getValWithOverrides(MMR_ALIAS, 'Week7EndDate', row, 'Week 7 End Date')), num(getValWithOverrides(MMR_ALIAS, 'Week7MoveIns', row)), num(getValWithOverrides(MMR_ALIAS, 'Week7MoveOuts', row)), num(getValWithOverrides(MMR_ALIAS, 'Week7OccUnits', row)), num(getValWithOverrides(MMR_ALIAS, 'Week7OccPercent', row)), num(getValWithOverrides(MMR_ALIAS, 'InServiceUnits', row, 'In Service Units')), num(getValWithOverrides(MMR_ALIAS, 'T12LeaseBreaks', row, 'T12 Lease Breaks')), num(getValWithOverrides(MMR_ALIAS, 'BudgetedOccupancyCurrentMonth', row)), num(getValWithOverrides(MMR_ALIAS, 'BudgetedOccupancyPercentCurrentMonth', row)), num(getValWithOverrides(MMR_ALIAS, 'BudgetedLeasedPercentCurrentMonth', row)), num(getValWithOverrides(MMR_ALIAS, 'BudgetedLeasedCurrentMonth', row)),
-      str(getValWithOverrides(MMR_ALIAS, 'ReportDate', row, 'Report Date')), str(getValWithOverrides(MMR_ALIAS, 'ConstructionStatus', row, 'Construction Status')), num(getValWithOverrides(MMR_ALIAS, 'Rank', row)), num(getValWithOverrides(MMR_ALIAS, 'PreviousOccupancyPercent', row)), num(getValWithOverrides(MMR_ALIAS, 'PreviousLeasedPercent', row)), num(getValWithOverrides(MMR_ALIAS, 'PreviousDelinquentUnits', row)), str(getValWithOverrides(MMR_ALIAS, 'WeekStart', row, 'Week Start')), str(getValWithOverrides(MMR_ALIAS, 'LatestDate', row, 'Latest Date')), str(getValWithOverrides(MMR_ALIAS, 'City', row)), str(getValWithOverrides(MMR_ALIAS, 'State', row)), str(getValWithOverrides(MMR_ALIAS, 'Status', row)), str(getValWithOverrides(MMR_ALIAS, 'FinancingStatus', row, 'Financing Status')), str(getValWithOverrides(MMR_ALIAS, 'ProductType', row, 'Product Type')), num(getValWithOverrides(MMR_ALIAS, 'Units', row)), str(getValWithOverrides(MMR_ALIAS, 'FullAddress', row, 'Full Address')), num(getValWithOverrides(MMR_ALIAS, 'Latitude', row)), num(getValWithOverrides(MMR_ALIAS, 'Longitude', row)), str(getValWithOverrides(MMR_ALIAS, 'Region', row)), str(getValWithOverrides(MMR_ALIAS, 'LatestConstructionStatus', row, 'Latest Construction Status')), num(getValWithOverrides(MMR_ALIAS, 'BirthOrder', row, 'Birth Order')), num(getValWithOverrides(MMR_ALIAS, 'NetLsd', row, 'Net LSD')),
+      num(getValWithOverrides(MMR_ALIAS, 'TotalUnits', row, 'Total Units')), num(getValWithOverrides(MMR_ALIAS, 'OccupancyPercent', row, 'Occupancy Percent', 'Occupancy %')), num(getValWithOverrides(MMR_ALIAS, 'CurrentLeasedPercent', row, 'Current Leased Percent', 'Leased %', 'Current Leased %', 'Leased Percent')),
+      num(getValWithOverrides(MMR_ALIAS, 'MI', row, 'Move Ins', 'Move-Ins', 'MoveIns', 'MI')), num(getValWithOverrides(MMR_ALIAS, 'MO', row, 'Move Outs', 'Move-Outs', 'MoveOuts', 'MO')), num(getValWithOverrides(MMR_ALIAS, 'FirstVisit', row, '1st Visit', 'First Visit')), num(getValWithOverrides(MMR_ALIAS, 'Applied', row, 'Applications', 'App')), num(getValWithOverrides(MMR_ALIAS, 'Canceled', row, 'Cancelled', 'Cancelled Applications')), num(getValWithOverrides(MMR_ALIAS, 'Denied', row, 'Denied Applications')), num(getValWithOverrides(MMR_ALIAS, 'T12LeasesExpired', row, 'T-12 Leases Expired', 'T12 Leases Expired', 'T12 Leases Expired Count')), num(getValWithOverrides(MMR_ALIAS, 'T12LeasesRenewed', row, 'T-12 Leases Renewed', 'T12 Leases Renewed', 'T12 Leases Renewed Count')), num(getValWithOverrides(MMR_ALIAS, 'Delinquent', row, 'Delinquent Units', 'Delinquent Count')), num(getValWithOverrides(MMR_ALIAS, 'OccupiedRent', row, 'Occupied Rent')), num(getValWithOverrides(MMR_ALIAS, 'BudgetedRent', row, 'Budgeted Rent')), num(getValWithOverrides(MMR_ALIAS, 'CurrentMonthIncome', row, 'Current Month Income')), num(getValWithOverrides(MMR_ALIAS, 'BudgetedIncome', row, 'Budgeted Income')), num(getValWithOverrides(MMR_ALIAS, 'MoveInRent', row, 'Move In Rent')), num(getValWithOverrides(MMR_ALIAS, 'OccUnits', row, 'Occ Units')),
+      str(getValWithOverrides(MMR_ALIAS, 'Week3EndDate', row, 'Week3 End Date', 'Week 3 End Date')), num(getValWithOverrides(MMR_ALIAS, 'Week3MoveIns', row, 'Week3: Move Ins', 'Week 3 Move Ins')), num(getValWithOverrides(MMR_ALIAS, 'Week3MoveOuts', row, 'Week3: Move Outs', 'Week 3 Move Outs')), num(getValWithOverrides(MMR_ALIAS, 'Week3OccUnits', row, 'Week3: Occ Units', 'Week 3 Occ Units')), num(getValWithOverrides(MMR_ALIAS, 'Week3OccPercent', row, 'Week3: Occ %', 'Week 3 Occ Percent')), str(getValWithOverrides(MMR_ALIAS, 'Week4EndDate', row, 'Week 4 End Date', 'Week4 End Date')), num(getValWithOverrides(MMR_ALIAS, 'Week4MoveIns', row, 'Week 4 Move Ins', 'Week 4 Move-Ins')), num(getValWithOverrides(MMR_ALIAS, 'Week4MoveOuts', row, 'Week 4 Move Outs', 'Week 4 Move-Outs')), num(getValWithOverrides(MMR_ALIAS, 'Week4OccUnits', row, 'Week 4 Occ Units')), num(getValWithOverrides(MMR_ALIAS, 'Week4OccPercent', row, 'Week 4 Occ Percent', 'Week 4 Occ %')), str(getValWithOverrides(MMR_ALIAS, 'Week7EndDate', row, 'Week 7 End Date', 'Week7 End Date')), num(getValWithOverrides(MMR_ALIAS, 'Week7MoveIns', row, 'Week 7 Move Ins', 'Week 7 Move-Ins')), num(getValWithOverrides(MMR_ALIAS, 'Week7MoveOuts', row, 'Week 7 Move Outs', 'Week 7 Move-Outs')), num(getValWithOverrides(MMR_ALIAS, 'Week7OccUnits', row, 'Week 7 Occ Units')), num(getValWithOverrides(MMR_ALIAS, 'Week7OccPercent', row, 'Week 7 Occ Percent', 'Week 7 Occ %')),       num(getValWithOverrides(MMR_ALIAS, 'InServiceUnits', row, 'In Service Units', 'In-Service Units')), num(getValWithOverrides(MMR_ALIAS, 'T12LeaseBreaks', row, 'T-12 Lease Breaks', 'T12 Lease Breaks', 'T12 Leases Break')), num(getValWithOverrides(MMR_ALIAS, 'BudgetedOccupancyCurrentMonth', row, 'Budgeted Occupancy (Current Month)', 'Budgeted Occupancy Current Month', 'Budgeted Occupancy (This Month)', 'BudgetedOccupancyCurrentMonth', 'Budgeted Occ Current Month') ?? getValBySubstrings(row, ['budgeted', 'occupancy', 'current month'], ['%']) ?? getValBySubstrings(row, ['budgeted', 'occupancy', 'this month'], ['%'])), num(getValWithOverrides(MMR_ALIAS, 'BudgetedOccupancyPercentCurrentMonth', row, 'Budgeted Occupancy % (Current Month)', 'Budgeted Occupancy % Current Month', 'Budgeted Occupancy Percent Current Month', 'BudgetedOccupancyPercentCurrentMonth', 'Budgeted Occ % Current Month') ?? getValBySubstrings(row, ['budgeted', 'occupancy', '%']) ?? getValBySubstrings(row, ['budgeted', 'occupancy', 'percent'])), num(getValWithOverrides(MMR_ALIAS, 'BudgetedLeasedPercentCurrentMonth', row, 'Budgeted Leased % (Current Month)', 'Budgeted Leased % Current Month', 'Budgeted Leased Percent Current Month') ?? getValBySubstrings(row, ['budgeted', 'leased', '%']) ?? getValBySubstrings(row, ['budgeted', 'leased', 'percent'])), num(getValWithOverrides(MMR_ALIAS, 'BudgetedLeasedCurrentMonth', row, 'Budgeted Leased (Current Month)', 'Budgeted Leased Current Month', 'Budgeted Leased (This Month)', 'BudgetedLeasedCurrentMonth') ?? getValBySubstrings(row, ['budgeted', 'leased', 'current month'], ['%']) ?? getValBySubstrings(row, ['budgeted', 'leased', 'this month'], ['%'])),
+      str(getValWithOverrides(MMR_ALIAS, 'ReportDate', row, 'Report Date', 'As Of Date', 'AsOfDate')), str(getValWithOverrides(MMR_ALIAS, 'ConstructionStatus', row, 'Construction Status')), num(getValWithOverrides(MMR_ALIAS, 'Rank', row, 'Property Rank')), num(getValWithOverrides(MMR_ALIAS, 'PreviousOccupancyPercent', row, 'PreviousOccupancy%', 'Previous Occupancy Percent', 'Previous Occupancy %')), num(getValWithOverrides(MMR_ALIAS, 'PreviousLeasedPercent', row, 'PreviousLeased%', 'Previous Leased Percent', 'Previous Leased %')), num(getValWithOverrides(MMR_ALIAS, 'PreviousDelinquentUnits', row, 'Previous Delinquent Units')), str(getValWithOverrides(MMR_ALIAS, 'WeekStart', row, 'Week Start', 'WeekStart')), str(getValWithOverrides(MMR_ALIAS, 'LatestDate', row, 'Latest Date', 'LatestDate')), str(getValWithOverrides(MMR_ALIAS, 'City', row)), str(getValWithOverrides(MMR_ALIAS, 'State', row)), str(getValWithOverrides(MMR_ALIAS, 'Status', row)), str(getValWithOverrides(MMR_ALIAS, 'FinancingStatus', row, 'Financing Status')), str(getValWithOverrides(MMR_ALIAS, 'ProductType', row, 'Product Type')), num(getValWithOverrides(MMR_ALIAS, 'Units', row, 'Total Units', 'Units')), str(getValWithOverrides(MMR_ALIAS, 'FullAddress', row, 'Full Address')), num(getValWithOverrides(MMR_ALIAS, 'Latitude', row, 'Lat', 'Latitude')), num(getValWithOverrides(MMR_ALIAS, 'Longitude', row, 'Long', 'Lng', 'Longitude')), str(getValWithOverrides(MMR_ALIAS, 'Region', row)), str(getValWithOverrides(MMR_ALIAS, 'LatestConstructionStatus', row, 'Latest Construction Status')), num(getValWithOverrides(MMR_ALIAS, 'BirthOrder', row, 'Birth Order')), num(getValWithOverrides(MMR_ALIAS, 'NetLsd', row, 'Net Lsd', 'Net LSD', 'NetLSD')),
     ], replace, MMR_KEYS);
     await tx.commit();
     return n;
@@ -868,16 +926,18 @@ export async function getAllForDashboard(): Promise<LeasingDashboardRaw> {
 
 // ---------- DashboardSnapshot (pre-computed payload) ----------
 const T_SNAPSHOT = `${LEASING_SCHEMA}.DashboardSnapshot`;
-const SNAPSHOT_ID = 1;
+/** Keep at most this many snapshots (oldest deleted after each insert). */
+const SNAPSHOT_RETENTION_COUNT = 50;
 
 export async function getDashboardSnapshot(): Promise<{ payload: string; builtAt: Date } | null> {
   const pool = await getConnection();
-  let r = await pool
-    .request()
-    .input('id', sql.Int, SNAPSHOT_ID)
-    .query(`SELECT Payload, BuiltAt FROM ${T_SNAPSHOT} WHERE Id = @id`);
+  // Prefer latest by BuiltAt (multiple snapshots); fallback to single row Id=1 or orphan
+  let r = await pool.request().query(`
+    SELECT TOP 1 Payload, BuiltAt FROM ${T_SNAPSHOT}
+    WHERE Payload IS NOT NULL AND LEN(CAST(Payload AS NVARCHAR(MAX))) > 0
+    ORDER BY BuiltAt DESC
+  `);
   if (r.recordset.length === 0 || r.recordset[0].Payload == null) {
-    // Fallback: row may have Payload but Id/BuiltAt NULL (orphan from bad write)
     r = await pool.request().query(`
       SELECT TOP 1 Payload, BuiltAt FROM ${T_SNAPSHOT} WHERE Id IS NULL AND Payload IS NOT NULL AND LEN(CAST(Payload AS NVARCHAR(MAX))) > 0
     `);
@@ -891,49 +951,62 @@ export async function getDashboardSnapshot(): Promise<{ payload: string; builtAt
 }
 
 export async function upsertDashboardSnapshot(payloadJson: string): Promise<void> {
+  if (!payloadJson || typeof payloadJson !== 'string' || payloadJson.length === 0) {
+    console.warn('[leasing] DashboardSnapshot: skipping upsert (empty payload)');
+    return;
+  }
   const pool = await getConnection();
   const now = new Date();
   const stored = compressSnapshotPayload(payloadJson);
-  // Migrate orphan row (Payload full but Id/BuiltAt NULL) to Id=1 only if no row with Id=1 exists
-  const hasId1 = await pool.request().input('id', sql.Int, SNAPSHOT_ID).query(`SELECT 1 AS n FROM ${T_SNAPSHOT} WHERE Id = @id`);
-  if (hasId1.recordset.length === 0) {
-    const migrate = await pool.request().query(`
-      UPDATE TOP (1) ${T_SNAPSHOT} SET Id = ${SNAPSHOT_ID}, BuiltAt = SYSDATETIME() WHERE Id IS NULL AND Payload IS NOT NULL AND LEN(CAST(Payload AS NVARCHAR(MAX))) > 0
-    `);
-    const migrated = (migrate as { rowsAffected?: number[] }).rowsAffected?.[0] ?? 0;
-    if (migrated > 0) console.log('[leasing] DashboardSnapshot: migrated one orphan row (Id NULL) to Id=1');
-  }
-  // Remove any other stray rows with NULL Id
-  await pool.request().query(`DELETE FROM ${T_SNAPSHOT} WHERE Id IS NULL;`);
 
-  const req = pool
-    .request()
-    .input('id', sql.Int, SNAPSHOT_ID)
-    .input('payload', sql.NVarChar(sql.MAX), stored)
-    .input('builtAt', sql.DateTime2, now);
+  const transaction = new sql.Transaction(pool);
+  try {
+    await transaction.begin();
+    // Clean orphan rows (Id IS NULL)
+    await transaction.request().query(`DELETE FROM ${T_SNAPSHOT} WHERE Id IS NULL;`);
 
-  // UPDATE first; if no row exists, INSERT. Avoids MERGE parameter-binding quirks on some drivers.
-  const updateResult = await req.query(`
-    UPDATE ${T_SNAPSHOT} SET Payload = @payload, BuiltAt = @builtAt WHERE Id = @id;
-  `);
-  const rowsUpdated = (updateResult as { rowsAffected?: number[] }).rowsAffected?.[0] ?? 0;
-  if (rowsUpdated === 0) {
-    await pool
+    // Next Id: max+1 with UPDLOCK so concurrent rebuilds get distinct ids
+    const nextIdResult = await transaction.request().query(
+      `SELECT ISNULL(MAX(Id), 0) + 1 AS NextId FROM ${T_SNAPSHOT} WITH (UPDLOCK);`
+    );
+    const nextId = (nextIdResult.recordset[0] as { NextId: number }).NextId;
+
+    await transaction
       .request()
-      .input('id', sql.Int, SNAPSHOT_ID)
+      .input('id', sql.Int, nextId)
       .input('payload', sql.NVarChar(sql.MAX), stored)
       .input('builtAt', sql.DateTime2, now)
       .query(`INSERT INTO ${T_SNAPSHOT} (Id, Payload, BuiltAt) VALUES (@id, @payload, @builtAt);`);
+
+    // Prune: keep only the most recent SNAPSHOT_RETENTION_COUNT rows
+    const pruneResult = await transaction.request().query(`
+      DELETE FROM ${T_SNAPSHOT} WHERE Id NOT IN (
+        SELECT TOP (${SNAPSHOT_RETENTION_COUNT}) Id FROM ${T_SNAPSHOT} ORDER BY BuiltAt DESC
+      );
+    `);
+    const pruned = (pruneResult as { rowsAffected?: number[] }).rowsAffected?.[0] ?? 0;
+
+    await transaction.commit();
+    console.log(
+      '[leasing] DashboardSnapshot: inserted Id=',
+      nextId,
+      ', BuiltAt=',
+      now.toISOString(),
+      'payloadLen=',
+      stored.length,
+      pruned > 0 ? `, pruned ${pruned} old row(s)` : ''
+    );
+  } catch (err) {
+    await transaction.rollback().catch(() => {});
+    throw err;
   }
 
-  // Verify the row was written (same DB the API uses)
-  const check = await pool
-    .request()
-    .input('id', sql.Int, SNAPSHOT_ID)
-    .query(`SELECT Id, CASE WHEN Payload IS NULL THEN 0 ELSE 1 END AS HasPayload, BuiltAt FROM ${T_SNAPSHOT} WHERE Id = @id`);
-  const row = check.recordset[0];
-  if (!row || !(row as { HasPayload?: number }).HasPayload) {
-    console.warn('[leasing] DashboardSnapshot verify: row missing or Payload NULL after upsert. Check that the API .env points to the same DB you query in SSMS.');
+  const check = await pool.request().query(`
+    SELECT COUNT(*) AS Cnt FROM ${T_SNAPSHOT} WHERE Payload IS NOT NULL AND LEN(CAST(Payload AS NVARCHAR(MAX))) > 0
+  `);
+  const cnt = (check.recordset[0] as { Cnt: number }).Cnt;
+  if (cnt === 0) {
+    console.warn('[leasing] DashboardSnapshot verify: no valid row after insert. Check that the API .env points to the same DB you query in SSMS.');
   }
 }
 
