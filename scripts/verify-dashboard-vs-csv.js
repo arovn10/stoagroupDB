@@ -1,10 +1,14 @@
 #!/usr/bin/env node
 /**
- * Verify local API dashboard KPIs match Performance_Overview_Properties.csv.
+ * Verify local API dashboard KPIs match Performance_Overview_Properties.csv (reference values).
+ * The backend computes occupancy, budgeted occ, and leased % from MMR + PUD/unit mix (see app.js).
+ * This script checks that API output matches the reference CSV (e.g. same-day export from report).
+ *
  * Run with API started: cd api && npm run dev
  * Then: node scripts/verify-dashboard-vs-csv.js
  * Or: API_BASE_URL=http://localhost:3000 node scripts/verify-dashboard-vs-csv.js
  *
+ * Optional: USE_PERFORMANCE_OVERVIEW_CSV=true makes the API overlay CSV values (for testing).
  * Exits 0 if all CSV properties match; 1 if any mismatch or API/CSV error.
  */
 const path = require('path');
@@ -115,6 +119,18 @@ function eqUnits(a, b) {
 async function main() {
   const csvRows = loadCsv();
   console.log('CSV properties:', csvRows.length, csvRows.map((r) => r.property).join(', '));
+
+  const doRebuild = process.argv.includes('--rebuild');
+  if (doRebuild) {
+    console.log('POST', base + '/api/leasing/rebuild-snapshot');
+    const rebuildRes = await fetch(`${base}/api/leasing/rebuild-snapshot`, { method: 'POST', headers: { Accept: 'application/json' } });
+    const rebuildBody = await rebuildRes.json().catch(() => ({}));
+    if (!rebuildRes.ok) {
+      console.error('Rebuild failed:', rebuildRes.status, rebuildBody);
+      process.exit(1);
+    }
+    console.log('Rebuild done. builtAt:', rebuildBody.builtAt ?? '');
+  }
 
   const res = await fetch(`${base}/api/leasing/dashboard`, {
     headers: { Accept: 'application/json' },

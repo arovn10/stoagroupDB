@@ -79,20 +79,23 @@ function computeLastUpdated(raw: LeasingDashboardRaw): Record<string, string | n
 }
 
 // ---------- buildStatusFromMMR ----------
+// Matches app.js: OccupancyPercent, BudgetedOccupancyCurrentMonth, BudgetedOccupancyPercentCurrentMonth, CurrentLeasedPercent.
 function buildStatusFromMMR(mmrRows: Record<string, unknown>[]): {
   statusByProperty: Record<string, string>;
   mmrOcc: Record<string, number>;
   mmrUnits: Record<string, number>;
   mmrBudgetedOcc: Record<string, number>;
   mmrBudgetedOccPct: Record<string, number>;
+  mmrCurrentLeasedPct: Record<string, number>;
 } {
   const statusByProperty: Record<string, string> = {};
   const mmrOcc: Record<string, number> = {};
   const mmrUnits: Record<string, number> = {};
   const mmrBudgetedOcc: Record<string, number> = {};
   const mmrBudgetedOccPct: Record<string, number> = {};
+  const mmrCurrentLeasedPct: Record<string, number> = {};
   if (!Array.isArray(mmrRows) || mmrRows.length === 0)
-    return { statusByProperty, mmrOcc, mmrUnits, mmrBudgetedOcc, mmrBudgetedOccPct };
+    return { statusByProperty, mmrOcc, mmrUnits, mmrBudgetedOcc, mmrBudgetedOccPct, mmrCurrentLeasedPct };
 
   let latestGlobal: Date | null = null;
   for (const r of mmrRows) {
@@ -128,7 +131,7 @@ function buildStatusFromMMR(mmrRows: Record<string, unknown>[]): {
   for (const [k, r] of byProp.entries()) {
     const status = r.Status;
     if (status != null) statusByProperty[k] = String(status).trim().toUpperCase();
-    const occ = (r as Record<string, unknown>).OccupancyPercent ?? (r as Record<string, unknown>)['Occupancy %'];
+    const occ = (r as Record<string, unknown>).OccupancyPercent ?? (r as Record<string, unknown>)['Occupancy %'] ?? (r as Record<string, unknown>).Occupancy;
     const units = (r as Record<string, unknown>).Units ?? (r as Record<string, unknown>).TotalUnits;
     if (occ != null) mmrOcc[k] = Number(occ);
     if (units != null) mmrUnits[k] = Number(units);
@@ -143,8 +146,11 @@ function buildStatusFromMMR(mmrRows: Record<string, unknown>[]): {
       ?? (r as Record<string, unknown>)['Budgeted Occupancy % (Current Month)'];
     if (budgeted != null) mmrBudgetedOcc[k] = Number(budgeted);
     if (budgetedPct != null) mmrBudgetedOccPct[k] = Number(budgetedPct);
+    // Current leased % from MMR (app.js: CurrentLeasedPercent / Current Leased %)
+    const currentLeasedPct = (r as Record<string, unknown>).CurrentLeasedPercent ?? (r as Record<string, unknown>)['Current Leased %'];
+    if (currentLeasedPct != null) mmrCurrentLeasedPct[k] = Number(currentLeasedPct);
   }
-  return { statusByProperty, mmrOcc, mmrUnits, mmrBudgetedOcc, mmrBudgetedOccPct };
+  return { statusByProperty, mmrOcc, mmrUnits, mmrBudgetedOcc, mmrBudgetedOccPct, mmrCurrentLeasedPct };
 }
 
 // ---------- unit mix: most recent report date only + deduplicate ----------
@@ -594,13 +600,15 @@ function normalizeLeasingRowToFrontend(
   };
 }
 
-/** Return MMR budget-by-property maps for use in buildKpis (same logic as dashboard). */
+/** Return MMR maps for use in buildKpis (occupancy, budgeted, current leased % — matches app.js source of truth). */
 export function getMmrBudgetByProperty(raw: LeasingDashboardRaw): {
+  mmrOcc: Record<string, number>;
   mmrBudgetedOcc: Record<string, number>;
   mmrBudgetedOccPct: Record<string, number>;
+  mmrCurrentLeasedPct: Record<string, number>;
 } {
-  const { mmrBudgetedOcc, mmrBudgetedOccPct } = buildStatusFromMMR(raw.mmrRows ?? []);
-  return { mmrBudgetedOcc, mmrBudgetedOccPct };
+  const { mmrOcc, mmrBudgetedOcc, mmrBudgetedOccPct, mmrCurrentLeasedPct } = buildStatusFromMMR(raw.mmrRows ?? []);
+  return { mmrOcc, mmrBudgetedOcc, mmrBudgetedOccPct, mmrCurrentLeasedPct };
 }
 
 /** Build map: normalized property key -> display name (first from rows). */
@@ -865,7 +873,7 @@ export async function buildDashboardFromRaw(
   raw: LeasingDashboardRaw,
   options?: BuildDashboardOptions
 ): Promise<LeasingDashboardPayload> {
-  const { statusByProperty, mmrOcc, mmrUnits, mmrBudgetedOcc, mmrBudgetedOccPct } = buildStatusFromMMR(raw.mmrRows);
+  const { statusByProperty, mmrOcc, mmrUnits, mmrBudgetedOcc, mmrBudgetedOccPct, mmrCurrentLeasedPct } = buildStatusFromMMR(raw.mmrRows ?? []);
   if (options?.statusByPropertyFromCore && Object.keys(options.statusByPropertyFromCore).length > 0) {
     for (const [k, v] of Object.entries(options.statusByPropertyFromCore)) {
       if (v != null && String(v).trim() !== '') statusByProperty[k] = String(v).trim().toUpperCase();
@@ -885,7 +893,7 @@ export async function buildDashboardFromRaw(
   // PUD: deduplicate by (building/property name, unit number), most recent report date only
   const pudFiltered = filterPortfolioUnitDetailsToMostRecentReportDateDedupeByUnit(raw.portfolioUnitDetails ?? []);
   const rawWithDedupedPud = { ...raw, portfolioUnitDetails: pudFiltered };
-  const kpis = buildKpis(rawWithDedupedPud, { mmrBudgetedOcc, mmrBudgetedOccPct });
+  const kpis = buildKpis(rawWithDedupedPud, { mmrOcc, mmrBudgetedOcc, mmrBudgetedOccPct, mmrCurrentLeasedPct });
 
   // rows: leasing filtered to most recent report DATE from portfolioUnitDetails, deduped by property, Lease Up/Stabilized only
   const reportDayKeyFromPud = getMostRecentReportDayKeyFromPud(raw.portfolioUnitDetails ?? []);
@@ -906,7 +914,9 @@ export async function buildDashboardFromRaw(
 
   // Velocity all-time avg (7d and 28d) per property from leasingTS; merge into kpis.byProperty
   let kpisWithVelocityAvg = addVelocityAllTimeAvgToKpis(kpis, leasingTS);
-  kpisWithVelocityAvg = applyPerformanceOverviewOverrides(kpisWithVelocityAvg);
+  if (process.env.USE_PERFORMANCE_OVERVIEW_CSV === 'true') {
+    kpisWithVelocityAvg = applyPerformanceOverviewOverrides(kpisWithVelocityAvg);
+  }
 
   // Portfolio breakdown arrays (use display names from rows for property field)
   const propDisplayByNorm = displayNamesByNormalizedKey(rows);

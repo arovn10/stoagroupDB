@@ -791,7 +791,14 @@ function getDeltaToBudgetFromLeasing(
  */
 export function buildKpis(
   raw: LeasingDashboardRaw,
-  options?: { asOf?: string; property?: string; mmrBudgetedOcc?: Record<string, number>; mmrBudgetedOccPct?: Record<string, number> }
+  options?: {
+    asOf?: string;
+    property?: string;
+    mmrOcc?: Record<string, number>;
+    mmrBudgetedOcc?: Record<string, number>;
+    mmrBudgetedOccPct?: Record<string, number>;
+    mmrCurrentLeasedPct?: Record<string, number>;
+  }
 ): PortfolioKpis {
   const asOfDate = options?.asOf ? parseDate(options.asOf) ?? undefined : undefined;
   const propertyFilter = options?.property?.trim() || undefined;
@@ -881,8 +888,10 @@ export function buildKpis(
     }
   }
 
+  const mmrOcc = options?.mmrOcc ?? {};
   const mmrBudgetedOcc = options?.mmrBudgetedOcc ?? {};
   const mmrBudgetedOccPct = options?.mmrBudgetedOccPct ?? {};
+  const mmrCurrentLeasedPct = options?.mmrCurrentLeasedPct ?? {};
   for (const prop of propertyKeys) {
     const um = unitmixOcc.byProperty[prop];
     const occResult = getOccupancyAndLeasedForProperty(prop, pud, asOfDate);
@@ -897,17 +906,31 @@ export function buildKpis(
 
     const usePud = occResult != null;
     const tot = usePud ? occResult.totalUnits : (um?.totalUnits ?? 0);
-    const occ = usePud ? occResult.occupied : (um ? Math.round(um.occupied) : 0);
-    const leas = usePud ? occResult.leased : (um ? Math.round(um.leased) : 0);
-    const occPct = tot > 0 ? Math.round((occ / tot) * 10000) / 100 : null;
+    let occ = usePud ? occResult.occupied : (um ? Math.round(um.occupied) : 0);
+    let leas = usePud ? occResult.leased : (um ? Math.round(um.leased) : 0);
     const displayKey = displayKeyByCanonical[prop] ?? prop;
     const propKeyNorm = (prop ?? '').toString().trim().replace(/\*/g, '').toUpperCase();
+    // Prefer MMR occupancy % when available (matches app.js: occupancy from MMR as source of truth)
+    const mmrOccVal = mmrOcc[displayKey] ?? mmrOcc[prop] ?? mmrOcc[propKeyNorm] ?? null;
+    let occPct: number | null = tot > 0 ? Math.round((occ / tot) * 10000) / 100 : null;
+    if (mmrOccVal != null) {
+      occPct = mmrOccVal <= 1 ? Math.round(mmrOccVal * 10000) / 100 : Math.round(mmrOccVal * 100) / 100;
+      if (tot > 0) occ = Math.round((occPct / 100) * tot);
+    }
+    // Prefer MMR current leased % when available (matches app.js currentLeasedMap)
+    const mmrLeasedVal = mmrCurrentLeasedPct[displayKey] ?? mmrCurrentLeasedPct[prop] ?? mmrCurrentLeasedPct[propKeyNorm] ?? null;
+    if (mmrLeasedVal != null && tot > 0) {
+      const leasedPctNorm = mmrLeasedVal <= 1 ? mmrLeasedVal * 100 : mmrLeasedVal;
+      leas = Math.round((leasedPctNorm / 100) * tot);
+    }
     const av = usePud
       ? (avResult?.availableUnits ?? Math.max(0, tot - leas))
       : (um ? Math.max(0, um.totalUnits - Math.round(um.leased)) : (avResult?.availableUnits ?? Math.max(0, tot - leas)));
 
     const budgetedUnits = mmrBudgetedOcc[displayKey] ?? mmrBudgetedOcc[prop] ?? mmrBudgetedOcc[propKeyNorm] ?? null;
-    const budgetedPct = mmrBudgetedOccPct[displayKey] ?? mmrBudgetedOccPct[prop] ?? mmrBudgetedOccPct[propKeyNorm] ?? null;
+    const budgetedPctRaw = mmrBudgetedOccPct[displayKey] ?? mmrBudgetedOccPct[prop] ?? mmrBudgetedOccPct[propKeyNorm] ?? null;
+    // Normalize to 0-100 for display (app.js: budgetedOccPct <= 1 ? * 100 : as-is)
+    const budgetedPct = budgetedPctRaw != null ? (budgetedPctRaw <= 1 ? budgetedPctRaw * 100 : budgetedPctRaw) : null;
     byProperty[prop] = {
       property: displayKey,
       occupied: occ,
@@ -916,7 +939,7 @@ export function buildKpis(
       totalUnits: tot,
       occupancyPct: occPct,
       budgetedOccupancyUnits: budgetedUnits != null ? budgetedUnits : null,
-      budgetedOccupancyPct: budgetedPct != null ? budgetedPct : null,
+      budgetedOccupancyPct: budgetedPct,
       avgLeasedRent: avgRent ?? null,
       leases7d: vel.leases7d,
       leases28d: vel.leases28d,

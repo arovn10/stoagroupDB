@@ -800,7 +800,7 @@ export const getDashboard = async (req: Request, res: Response, next: NextFuncti
       if (!Array.isArray(dashboard.hubPropertyNames) || dashboard.hubPropertyNames.length === 0) {
         dashboard.hubPropertyNames = await getLeaseUpStabilizedProjectNames();
       }
-      if (dashboard.kpis && typeof dashboard.kpis === 'object' && dashboard.kpis.byProperty) {
+      if (process.env.USE_PERFORMANCE_OVERVIEW_CSV === 'true' && dashboard.kpis && typeof dashboard.kpis === 'object' && dashboard.kpis.byProperty) {
         const overridden = applyPerformanceOverviewOverrides(dashboard.kpis as unknown as PortfolioKpis);
         dashboard.kpis = overridden as unknown as LeasingDashboardPayload['kpis'];
       }
@@ -915,15 +915,18 @@ async function resolveKpis(asOf?: string, property?: string): Promise<{ kpis: Po
             };
           }
         }
-        return { kpis: applyPerformanceOverviewOverrides(out), fromSnapshot: true };
+        return { kpis: process.env.USE_PERFORMANCE_OVERVIEW_CSV === 'true' ? applyPerformanceOverviewOverrides(out) : out, fromSnapshot: true };
       }
     } catch {
       /* fall through to build from raw */
     }
   }
   const raw = await getAllForDashboard();
-  const { mmrBudgetedOcc, mmrBudgetedOccPct } = getMmrBudgetByProperty(raw);
-  const kpis = applyPerformanceOverviewOverrides(buildKpis(raw, { asOf, property, mmrBudgetedOcc, mmrBudgetedOccPct }));
+  const { mmrOcc, mmrBudgetedOcc, mmrBudgetedOccPct, mmrCurrentLeasedPct } = getMmrBudgetByProperty(raw);
+  let kpis = buildKpis(raw, { asOf, property, mmrOcc, mmrBudgetedOcc, mmrBudgetedOccPct, mmrCurrentLeasedPct });
+  if (process.env.USE_PERFORMANCE_OVERVIEW_CSV === 'true') {
+    kpis = applyPerformanceOverviewOverrides(kpis);
+  }
   return { kpis, fromSnapshot: false };
 }
 
