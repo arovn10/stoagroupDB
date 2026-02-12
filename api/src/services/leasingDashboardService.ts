@@ -128,13 +128,13 @@ function buildStatusFromMMR(mmrRows: Record<string, unknown>[]): {
     const units = (r as Record<string, unknown>).Units ?? (r as Record<string, unknown>).TotalUnits;
     if (occ != null) mmrOcc[k] = Number(occ);
     if (units != null) mmrUnits[k] = Number(units);
+    // Budgeted occupancy for current month: unit count from BudgetedOccupancyCurrentMonth, % from BudgetedOccupancyPercentCurrentMonth
     const budgeted =
       (r as Record<string, unknown>).BudgetedOccupancyCurrentMonth
       ?? (r as Record<string, unknown>)['Budgeted Occupancy Current Month']
       ?? (r as Record<string, unknown>)['Budgeted Occupancy (Current Month)'];
     const budgetedPct =
       (r as Record<string, unknown>).BudgetedOccupancyPercentCurrentMonth
-      ?? (r as Record<string, unknown>)['BudgetedOccupancyPercentCurrentMonth']
       ?? (r as Record<string, unknown>)['Budgeted Occupancy % Current Month']
       ?? (r as Record<string, unknown>)['Budgeted Occupancy % (Current Month)'];
     if (budgeted != null) mmrBudgetedOcc[k] = Number(budgeted);
