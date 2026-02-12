@@ -529,6 +529,8 @@ export interface PropertyKpis {
   deltaToBudget: number | null;
   /** When velocity is computed from PUD (app-signed date), New/Renewal breakdown. */
   velocityBreakdown?: VelocityBreakdown | null;
+  /** 4-week look-ahead occupancy % (optional override, e.g. from Performance Overview). */
+  projectedOccupancy4WeeksPct?: number | null;
 }
 
 export interface PortfolioKpis {

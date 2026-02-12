@@ -41,7 +41,7 @@ import {
   addDomoAliasOverride,
   DATASET_ALIASES,
 } from '../services/leasingRepository';
-import { applyPerformanceOverviewOverrides, buildDashboardFromRaw, dashboardPayloadToJsonSafe, getMmrBudgetByProperty, shouldApplyPerformanceOverviewOverrides } from '../services/leasingDashboardService';
+import { buildDashboardFromRaw, dashboardPayloadToJsonSafe, getMmrBudgetByProperty } from '../services/leasingDashboardService';
 import { buildKpis, type PortfolioKpis } from '../services/leasingKpiService';
 import { getConnection } from '../config/database';
 
@@ -805,19 +805,13 @@ export const getDashboard = async (req: Request, res: Response, next: NextFuncti
       if (!Array.isArray(dashboard.hubPropertyNames) || dashboard.hubPropertyNames.length === 0) {
         dashboard.hubPropertyNames = await getLeaseUpStabilizedProjectNames();
       }
-      let performanceOverviewOverlayApplied = false;
-      if (shouldApplyPerformanceOverviewOverrides() && dashboard.kpis && typeof dashboard.kpis === 'object' && dashboard.kpis.byProperty) {
-        const overridden = applyPerformanceOverviewOverrides(dashboard.kpis as unknown as PortfolioKpis);
-        dashboard.kpis = overridden as unknown as LeasingDashboardPayload['kpis'];
-        performanceOverviewOverlayApplied = true;
-      }
       const meta = {
         source: AGGREGATION_SOURCE,
         asOf,
         fromSnapshot: true,
         builtAt: snapshot.builtAt?.toISOString?.(),
         latestReportDate: (dashboard.kpis as { latestReportDate?: string | Date } | undefined)?.latestReportDate,
-        performanceOverviewOverlayApplied,
+        performanceOverviewOverlayApplied: false,
       };
       if (payload.startsWith('{"success":') && rawInPayload !== undefined) {
         res.json({
@@ -930,7 +924,7 @@ async function resolveKpis(asOf?: string, property?: string): Promise<{ kpis: Po
             };
           }
         }
-        return { kpis: process.env.USE_PERFORMANCE_OVERVIEW_CSV === 'true' ? applyPerformanceOverviewOverrides(out) : out, fromSnapshot: true };
+        return { kpis: out, fromSnapshot: true };
       }
     } catch {
       /* fall through to build from raw */
@@ -938,10 +932,7 @@ async function resolveKpis(asOf?: string, property?: string): Promise<{ kpis: Po
   }
   const raw = await getAllForDashboard();
   const { mmrOcc, mmrBudgetedOcc, mmrBudgetedOccPct, mmrCurrentLeasedPct } = getMmrBudgetByProperty(raw);
-  let kpis = buildKpis(raw, { asOf, property, mmrOcc, mmrBudgetedOcc, mmrBudgetedOccPct, mmrCurrentLeasedPct });
-  if (process.env.USE_PERFORMANCE_OVERVIEW_CSV === 'true') {
-    kpis = applyPerformanceOverviewOverrides(kpis);
-  }
+  const kpis = buildKpis(raw, { asOf, property, mmrOcc, mmrBudgetedOcc, mmrBudgetedOccPct, mmrCurrentLeasedPct });
   return { kpis, fromSnapshot: false };
 }
 

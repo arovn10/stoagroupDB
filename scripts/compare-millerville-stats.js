@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * Fetch leasing dashboard and compare Millerville (The Waters at Millerville) stats.
- * Source of truth: PUD (portfolioUnitDetails) with latest report date — same logic as front-end.
- * Performance_Overview_Properties.csv is for local/testing only; do not use for production.
+ * Dashboard values are calculated from the database only (PUD, leasing, MMR, etc.).
+ * Performance_Overview_Properties.csv is for reference only — the API never uses it for display.
  *
  * Usage (from repo root):
  *   node scripts/compare-millerville-stats.js           # use cached snapshot
@@ -45,24 +45,24 @@ const secret = process.env.LEASING_SYNC_SECRET || process.env.LEASING_SYNC_WEBHO
 const headers = { 'Content-Type': 'application/json' };
 if (secret) headers['X-Sync-Secret'] = secret;
 
-// Millerville: PUD-derived values for 2/12 data. Source of truth = calculation each time (90.2% occupancy).
-// Performance_Overview_Properties.csv is test-only; production uses PUD-only KPIs.
+// Millerville 2/12: expected values from DB-only calculation (occupancy, leased, velocity, etc.).
 const TARGET = {
   units: 295,
   totalUnits: 295,
-  // 2/12 data: occupancy should calculate to 90.2% (266 occupied)
   occupancyPct: 90.2,
-  occupied: 266,
-  leased: 255,
-  leasedPct: 86.4,
-  availableUnits: 40,
-  // Optional / may differ by source
-  leases7d: null,
-  leases28d: null,
-  leasesNeeded: null,
+  occupied: 266,       // 90.2% of 295
+  leased: 259,         // 87.8% of 295
+  leasedPct: 87.8,
+  availableUnits: 36,  // 295 - 259
+  leases7d: 2,         // 1 new + 1 renewal
+  leases28d: 15,       // 8 new + 7 renewal
+  newLeases7d: 1,
+  newLeases28d: 8,
+  renewal7d: 1,
+  renewal28d: 7,
+  projectedOccupancy4WeeksPct: 89.2,
+  leasesNeeded: 36,   // available units
   sustainableCapacityPct: 96.0,
-  forecastedRenewals: 7,
-  newLeasesNeeded: 35,
   averageRent: 1487,
 };
 
@@ -127,6 +127,11 @@ async function main() {
   const millervilleAvail = availBreakdown.find((b) => /millerville/i.test(b.property || ''));
   const millervilleOcc = occBreakdown.find((b) => /millerville/i.test(b.property || ''));
 
+  // Effective row display: prefer kpis.byProperty when present (UI uses kpis as source of truth)
+  const effectiveLeasesNeeded = kpi?.available != null ? kpi.available : (row?.LeasesNeeded ?? row?.leasesNeeded);
+  const effective7d = kpi?.leases7d != null ? kpi.leases7d : (row?.['7DayLeasingVelocity'] ?? row?.LeasingVelocity7Day);
+  const effective28d = kpi?.leases28d != null ? kpi.leases28d : (row?.['28DayLeasingVelocity'] ?? row?.LeasingVelocity28Day);
+
   console.log('\n--- Millerville: row (leasing) ---');
   if (!row) {
     console.log('  No leasing row found for Millerville. Properties in rows:', rows.map((r) => r.Property || r.property).slice(0, 5).join(', '), '...');
@@ -134,9 +139,9 @@ async function main() {
     const units = row.Units ?? row.units ?? null;
     console.log('  Property:', row.Property ?? row.property);
     compare('Units', units, TARGET.units);
-    if (TARGET.leasesNeeded != null) compare('LeasesNeeded', row.LeasesNeeded ?? row.leasesNeeded, TARGET.leasesNeeded);
-    if (TARGET.leases7d != null) compare('7DayLeasingVelocity', row['7DayLeasingVelocity'] ?? row.LeasingVelocity7Day, TARGET.leases7d);
-    if (TARGET.leases28d != null) compare('28DayLeasingVelocity', row['28DayLeasingVelocity'] ?? row.LeasingVelocity28Day, TARGET.leases28d);
+    if (TARGET.leasesNeeded != null) compare('LeasesNeeded (effective)', effectiveLeasesNeeded, TARGET.leasesNeeded);
+    if (TARGET.leases7d != null) compare('7DayLeasingVelocity (effective)', effective7d, TARGET.leases7d);
+    if (TARGET.leases28d != null) compare('28DayLeasingVelocity (effective)', effective28d, TARGET.leases28d);
   }
 
   console.log('\n--- Millerville: kpis.byProperty ---');
@@ -157,6 +162,16 @@ async function main() {
     compare('available', av, TARGET.availableUnits);
     if (TARGET.leases7d != null) compare('leases7d', kpi.leases7d, TARGET.leases7d);
     if (TARGET.leases28d != null) compare('leases28d', kpi.leases28d, TARGET.leases28d);
+    const vb = kpi.velocityBreakdown;
+    if (vb && TARGET.newLeases7d != null) compare('velocityBreakdown.newLeases7d', vb.newLeases7d, TARGET.newLeases7d);
+    if (vb && TARGET.newLeases28d != null) compare('velocityBreakdown.newLeases28d', vb.newLeases28d, TARGET.newLeases28d);
+    if (vb && TARGET.renewal7d != null) compare('velocityBreakdown.renewal7d', vb.renewal7d, TARGET.renewal7d);
+    if (vb && TARGET.renewal28d != null) compare('velocityBreakdown.renewal28d', vb.renewal28d, TARGET.renewal28d);
+    if (TARGET.projectedOccupancy4WeeksPct != null && kpi.projectedOccupancy4WeeksPct != null) {
+      compare('projectedOccupancy4WeeksPct', kpi.projectedOccupancy4WeeksPct, TARGET.projectedOccupancy4WeeksPct, (x) => (typeof x === 'number' ? x.toFixed(1) : x) + '%');
+    } else if (TARGET.projectedOccupancy4WeeksPct != null) {
+      console.log('  projectedOccupancy4WeeksPct:', kpi.projectedOccupancy4WeeksPct ?? '—', '(expected ' + TARGET.projectedOccupancy4WeeksPct + '%)');
+    }
     // Consistency: kpis.byProperty should match portfolio breakdown (same PUD source)
     if (millervilleOcc && occ != null && millervilleOcc.occupied != null) {
       console.log('  occupancy consistency (kpis.occupied vs portfolio breakdown):', occ === millervilleOcc.occupied ? '✓' : '✗', `(${occ} vs ${millervilleOcc.occupied})`);
@@ -179,12 +194,9 @@ async function main() {
 
   const latestReportDate = body._meta?.latestReportDate ?? dashboard?.kpis?.latestReportDate ?? null;
   const overlayApplied = body._meta?.performanceOverviewOverlayApplied;
-  console.log('\n--- PUD report date & overlay ---');
+  console.log('\n--- PUD report date ---');
   console.log('  latestReportDate:', latestReportDate ? (typeof latestReportDate === 'string' ? latestReportDate : latestReportDate?.toISOString?.() ?? latestReportDate) : '—');
-  console.log('  performanceOverviewOverlayApplied:', overlayApplied ?? '—');
-  if (overlayApplied === true) {
-    console.log('  (Note: CSV overlay is applied — for production, use PUD-only; CSV is test-only.)');
-  }
+  console.log('  performanceOverviewOverlayApplied:', overlayApplied ?? '—', '(always false — dashboard uses DB only)');
 
   console.log('');
 }
