@@ -872,15 +872,21 @@ const SNAPSHOT_ID = 1;
 
 export async function getDashboardSnapshot(): Promise<{ payload: string; builtAt: Date } | null> {
   const pool = await getConnection();
-  const r = await pool
+  let r = await pool
     .request()
     .input('id', sql.Int, SNAPSHOT_ID)
     .query(`SELECT Payload, BuiltAt FROM ${T_SNAPSHOT} WHERE Id = @id`);
+  if (r.recordset.length === 0 || r.recordset[0].Payload == null) {
+    // Fallback: row may have Payload but Id/BuiltAt NULL (orphan from bad write)
+    r = await pool.request().query(`
+      SELECT TOP 1 Payload, BuiltAt FROM ${T_SNAPSHOT} WHERE Id IS NULL AND Payload IS NOT NULL AND LEN(CAST(Payload AS NVARCHAR(MAX))) > 0
+    `);
+  }
   if (r.recordset.length === 0 || r.recordset[0].Payload == null) return null;
   const raw = String(r.recordset[0].Payload);
   return {
     payload: decompressSnapshotPayload(raw),
-    builtAt: r.recordset[0].BuiltAt as Date,
+    builtAt: (r.recordset[0].BuiltAt as Date) || new Date(0),
   };
 }
 
@@ -888,7 +894,16 @@ export async function upsertDashboardSnapshot(payloadJson: string): Promise<void
   const pool = await getConnection();
   const now = new Date();
   const stored = compressSnapshotPayload(payloadJson);
-  // Remove any stray row with NULL Id (leftover from bad MERGE or manual insert)
+  // Migrate orphan row (Payload full but Id/BuiltAt NULL) to Id=1 only if no row with Id=1 exists
+  const hasId1 = await pool.request().input('id', sql.Int, SNAPSHOT_ID).query(`SELECT 1 AS n FROM ${T_SNAPSHOT} WHERE Id = @id`);
+  if (hasId1.recordset.length === 0) {
+    const migrate = await pool.request().query(`
+      UPDATE TOP (1) ${T_SNAPSHOT} SET Id = ${SNAPSHOT_ID}, BuiltAt = SYSDATETIME() WHERE Id IS NULL AND Payload IS NOT NULL AND LEN(CAST(Payload AS NVARCHAR(MAX))) > 0
+    `);
+    const migrated = (migrate as { rowsAffected?: number[] }).rowsAffected?.[0] ?? 0;
+    if (migrated > 0) console.log('[leasing] DashboardSnapshot: migrated one orphan row (Id NULL) to Id=1');
+  }
+  // Remove any other stray rows with NULL Id
   await pool.request().query(`DELETE FROM ${T_SNAPSHOT} WHERE Id IS NULL;`);
 
   const req = pool
