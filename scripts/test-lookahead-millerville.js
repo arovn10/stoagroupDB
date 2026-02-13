@@ -34,27 +34,45 @@ async function main() {
   const kpis = dashboard.kpis && dashboard.kpis.byProperty ? dashboard.kpis.byProperty : {};
   const keys = Object.keys(kpis).filter((k) => !k.startsWith('THE ')); // prefer display names
 
-  const millervilleKey = keys.find((k) => k.toUpperCase().includes('MILLERVILLE'));
-  if (millervilleKey) {
-    const m = kpis[millervilleKey];
-    console.log('\n--- Millerville (target: current 90.2%, lookahead to 3/12 = 89.0%) ---');
-    console.log('occupancyPct (displayed):', m.occupancyPct);
-    console.log('projectedOccupancy4WeeksPct:', m.projectedOccupancy4WeeksPct);
-    console.log('totalUnits:', m.totalUnits, 'occupied:', m.occupied, 'leased:', m.leased, 'available:', m.available);
-    console.log('');
-  } else {
-    console.log('\nNo Millerville in kpis.byProperty. Keys:', keys.join(', '));
+  const targets = [
+    { name: 'Millerville', occ: 266, leas: 259 },
+    { name: 'Picardy', occ: 151, leas: 153 },
+    { name: 'Bluebonnet', occ: 292, leas: 294 },
+    { name: 'Crestview', occ: 155, leas: 162 },
+    { name: 'McGowin', occ: 129, leas: 133 },
+    { name: 'Redstone', occ: 206, leas: 202 },
+  ];
+  console.log('\n--- Target check: occupied / leased ---');
+  let allOk = true;
+  for (const t of targets) {
+    const key = keys.find((k) => k.toUpperCase().includes(t.name.toUpperCase()));
+    if (!key) {
+      console.log(t.name + ': NOT FOUND');
+      allOk = false;
+      continue;
+    }
+    const p = kpis[key];
+    const occOk = p.occupied === t.occ;
+    const leasOk = p.leased === t.leas;
+    const status = (occOk && leasOk) ? 'OK' : (occOk ? 'leased off' : leasOk ? 'occupied off' : 'both off');
+    if (!occOk || !leasOk) allOk = false;
+    console.log(
+      key + ': occupied=' + p.occupied + (occOk ? '' : ' (target ' + t.occ + ')') +
+      ', leased=' + p.leased + (leasOk ? '' : ' (target ' + t.leas + ')') +
+      ' ' + status
+    );
   }
+  console.log('');
+  if (allOk) console.log('All targets met.');
+  else console.log('Some targets not met (see above).');
 
-  console.log('--- All properties: occupancyPct ---');
+  console.log('\n--- All properties: occupancyPct ---');
   keys.sort((a, b) => a.localeCompare(b));
   for (const k of keys) {
     const pct = kpis[k].occupancyPct;
     const proj = kpis[k].projectedOccupancy4WeeksPct;
-    console.log(k + ':', 'occ%=' + pct, proj != null ? 'proj4w%=' + proj : '');
+    console.log(k + ':', 'occ%=' + pct, 'occ=' + (kpis[k].occupied ?? '—') + ' leas=' + (kpis[k].leased ?? '—'), proj != null ? 'proj4w%=' + proj : '');
   }
-  console.log('\nTo tune: run API with DEBUG_LOOKAHEAD=1 to see move-ins/move-outs for Millerville.');
-  console.log('Try USE_NOTICE_FIRST_FOR_LOOKAHEAD=1 if lookahead is far from 89%.');
 }
 
 main().catch((e) => {

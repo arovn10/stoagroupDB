@@ -42,7 +42,7 @@ import {
   DATASET_ALIASES,
 } from '../services/leasingRepository';
 import { buildDashboardFromRaw, dashboardPayloadToJsonSafe, ensureDashboardRowsFromKpis, getMmrBudgetByProperty } from '../services/leasingDashboardService';
-import { buildKpis, type PortfolioKpis } from '../services/leasingKpiService';
+import { buildKpis, getOccupancyCompareForProperty, type PortfolioKpis } from '../services/leasingKpiService';
 import { getConnection } from '../config/database';
 
 /**
@@ -796,6 +796,25 @@ export async function rebuildDashboardSnapshot(): Promise<void> {
     console.error('rebuildDashboardSnapshot failed:', err instanceof Error ? err.message : err);
   }
 }
+
+/**
+ * GET /api/leasing/debug/compare-millerville
+ * Compare backend vs frontend occupancy logic for Millerville (same PUD). Returns diff of units where backend occupied !== frontend occupied.
+ */
+export const getCompareMillerville = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const raw = await getAllForDashboard();
+    const pud = raw.portfolioUnitDetails ?? [];
+    const compare = getOccupancyCompareForProperty('The Waters at Millerville', pud as Record<string, unknown>[]);
+    if (!compare) {
+      res.status(404).json({ success: false, error: 'No Millerville PUD or no report date' });
+      return;
+    }
+    res.json({ success: true, compare });
+  } catch (error) {
+    next(error);
+  }
+};
 
 /**
  * GET /api/leasing/dashboard

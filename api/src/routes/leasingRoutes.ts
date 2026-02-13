@@ -13,6 +13,8 @@ router.get('/aggregates', leasingController.getAggregates);
 router.get('/dashboard', leasingController.getDashboard);
 // Diagnostic: raw DB counts and built dashboard row/kpi counts (no snapshot stored).
 router.get('/dashboard-diag', leasingController.getDashboardDiag);
+// Debug: compare backend vs frontend occupancy for Millerville (same PUD).
+router.get('/debug/compare-millerville', leasingController.getCompareMillerville);
 // Force rebuild and store dashboard snapshot (so next GET /dashboard is instant).
 router.post('/rebuild-snapshot', leasingController.postRebuildSnapshot);
 

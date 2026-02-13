@@ -999,15 +999,13 @@ export async function buildDashboardFromRaw(
   const unitsIndex = buildUnitsIndex(raw.units);
   const month = getMonth(raw.leasing);
 
-  // PUD: deduplicate by (building/property name, unit number), most recent report date only
+  // Full PUD for buildKpis so lookahead sees all report dates (app.js logic); deduped PUD for payload/projections.
   const pudFiltered = filterPortfolioUnitDetailsToMostRecentReportDateDedupeByUnit(raw.portfolioUnitDetails ?? []);
-  const rawWithDedupedPud = { ...raw, portfolioUnitDetails: pudFiltered };
-  // Lookahead to next March 12 to match RealPage "on 3/12 occupancy will be 89.0%" (e.g. Millerville)
   const now = new Date();
   const year = now.getFullYear();
   const march12 = new Date(year, 2, 12); // month 2 = March
   const lookaheadEndDate = now <= march12 ? `${year}-03-12` : `${year + 1}-03-12`;
-  const kpis = buildKpis(rawWithDedupedPud, {
+  const kpis = buildKpis(raw, {
     mmrOcc,
     mmrBudgetedOcc,
     mmrBudgetedOccPct,

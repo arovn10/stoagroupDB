@@ -50,15 +50,11 @@ Sync can run automatically in two ways: **on a schedule** or **when Domo data is
    ```bash
    API_BASE_URL=http://localhost:3000 node scripts/test-lookahead-millerville.js
    ```
-   The script uses `?rebuild=1` when targeting localhost so the dashboard is built fresh (not from snapshot). To see move-ins/move-outs in the API console, start the API with:
+   The script uses `?rebuild=1` when targeting localhost so the dashboard is built fresh (not from snapshot). Lookahead uses the same rules as the leasing velocity report app.js (full PUD, MM/DD/YYYY date parsing, today → March 12 window). To see move-ins/notices/washed counts in the API console, start the API with:
    ```bash
    cd api && DEBUG_LOOKAHEAD=1 npm start
    ```
-   To try **Notice-first** move-out rule (tune toward RealPage 89%):
-   ```bash
-   cd api && USE_NOTICE_FIRST_FOR_LOOKAHEAD=1 DEBUG_LOOKAHEAD=1 npm start
-   ```
-   Then run the test script again and check Millerville `occupancyPct` and `projectedOccupancy4WeeksPct`.
+   Then hit the dashboard (e.g. run the test script or open the UI with `?rebuild=1`); the server log will show Millerville counts. Restart the API after changing leasingKpiService so new logic is used.
 
 7. **Force dashboard snapshot rebuild**: The dashboard is served from a prebuilt snapshot (so GET /api/leasing/dashboard is fast). The cron runs sync-from-domo (async), waits 2 minutes, then rebuilds the snapshot every run so the snapshot stays current. To **force** a rebuild on demand (e.g. after deploy or to pick up new logic):
    ```bash
