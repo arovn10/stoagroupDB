@@ -374,10 +374,16 @@ export const postSync = async (req: Request, res: Response, next: NextFunction):
     const now = new Date();
     const today = new Date(now.toISOString().slice(0, 10) + 'T00:00:00.000Z');
 
+    const emptyFromClient: string[] = [];
     for (const [key, rows] of Object.entries(body)) {
       const alias = key === 'recents' ? 'recentrents' : key;
       if (!SYNC_MAP[alias] || !Array.isArray(rows)) continue;
       const count = rows.length;
+      // Skip applying when client sent 0 rows so we don't update SyncLog with 0 (preserves existing DB data).
+      if (count === 0) {
+        emptyFromClient.push(alias);
+        continue;
+      }
       const hash = replace ? dataHash(rows as unknown[]) : (dataHashHeader || '');
       try {
         if (replace) {
@@ -403,6 +409,9 @@ export const postSync = async (req: Request, res: Response, next: NextFunction):
         errors.push({ dataset: alias, message });
       }
     }
+    if (emptyFromClient.length > 0) {
+      console.log(`[leasing/sync] Client sent 0 rows for: ${emptyFromClient.join(', ')}. Use POST /api/leasing/sync-from-domo with DOMO_DATASET_* env vars set on the server to populate these.`);
+    }
 
     // Always rebuild snapshot after sync so cron keeps dashboard snapshot current (uses latest DB + new logic).
     rebuildDashboardSnapshot().catch(() => {});
@@ -410,6 +419,7 @@ export const postSync = async (req: Request, res: Response, next: NextFunction):
       success: errors.length === 0,
       synced,
       skipped,
+      emptyFromClient: emptyFromClient.length ? emptyFromClient : undefined,
       errors: errors.length ? errors : undefined,
       _meta: { at: now.toISOString() },
     });
@@ -490,6 +500,7 @@ async function runSyncFromDomoCore(query: Record<string, unknown>): Promise<{ st
   const forceSync = String(query.force || '').toLowerCase() === 'true';
   let entries = Object.entries(DOMO_DATASET_KEYS);
   const onlyDataset = (query.dataset as string)?.trim();
+  const skippedNoEnv: string[] = [];
   if (onlyDataset) {
     const alias = onlyDataset === 'recents' ? 'recentrents' : onlyDataset;
     const matchKey = (k: string) => (k === 'recents' ? 'recentrents' : k).toLowerCase() === (alias as string).toLowerCase();
@@ -501,7 +512,11 @@ async function runSyncFromDomoCore(query: Record<string, unknown>): Promise<{ st
 
   for (const [key, envKey] of entries) {
     const datasetId = process.env[envKey]?.trim();
-    if (!datasetId) continue;
+    if (!datasetId) {
+      skippedNoEnv.push(key);
+      console.warn(`[leasing/sync-from-domo] ${key}: skipped (missing env ${envKey}). Set ${envKey} on the server to sync this dataset.`);
+      continue;
+    }
 
     const alias = key === 'recents' ? 'recentrents' : key;
     if (!SYNC_MAP[alias]) continue;
@@ -511,6 +526,9 @@ async function runSyncFromDomoCore(query: Record<string, unknown>): Promise<{ st
       const csvText = await fetchDomoDatasetCsv(datasetId, token);
       rows = parseCsvToRows(csvText) as Record<string, unknown>[];
       fetched.push(`${alias}:${rows.length}`);
+      if (rows.length === 0) {
+        console.warn(`[leasing/sync-from-domo] ${alias}: Domo API returned 0 rows for dataset ${envKey}=${datasetId}. Check dataset ID and that the dataset has data in Domo.`);
+      }
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
       errors.push({ dataset: alias, message });
@@ -586,6 +604,7 @@ async function runSyncFromDomoCore(query: Record<string, unknown>): Promise<{ st
       fetched,
       synced,
       skipped,
+      skippedNoEnv: skippedNoEnv.length ? skippedNoEnv : undefined,
       errors: errors.length ? errors : undefined,
       _meta: { at: now.toISOString(), chunkSize: SYNC_CHUNK_SIZE, restMs: SYNC_REST_MS, force: forceSync },
     },
