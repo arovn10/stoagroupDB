@@ -462,6 +462,21 @@ function pick(row: Record<string, unknown>, ...candidates: string[]): unknown {
   return undefined;
 }
 
+/** Case-insensitive pick so DB columns like "monthof" or "MonthOf" both match. */
+function pickInsensitive(row: Record<string, unknown>, ...candidates: string[]): unknown {
+  const v = pick(row, ...candidates);
+  if (v !== undefined && v !== '') return v;
+  const keys = Object.keys(row);
+  for (const c of candidates) {
+    const k = keys.find((x) => x.toLowerCase() === c.toLowerCase());
+    if (k != null) {
+      const val = row[k];
+      if (val !== undefined && val !== '') return val;
+    }
+  }
+  return undefined;
+}
+
 /** Allowed status values for dashboard rows. Includes Lease Up, Stabilized, and report statuses (Critical, Warning). DEAD is never displayed. */
 const LEASING_DASHBOARD_STATUSES = new Set([
   'LEASE UP',
@@ -495,8 +510,9 @@ function toMonthKey(d: Date): number {
 function getMostRecentReportDayKeyFromPud(pudRows: Record<string, unknown>[]): number | null {
   if (!Array.isArray(pudRows) || pudRows.length === 0) return null;
   let latest: number | null = null;
+  const dateCandidates = ['ReportDate', 'reportDate', 'Report Date'];
   for (const r of pudRows) {
-    const d = parseDate(pick(r as Record<string, unknown>, 'ReportDate', 'reportDate', 'Report Date'));
+    const d = parseDate(pickInsensitive(r as Record<string, unknown>, ...dateCandidates));
     if (d) {
       const dayKey = toDayKey(d);
       if (latest == null || dayKey > latest) latest = dayKey;
@@ -551,7 +567,7 @@ function filterLeasingRowsToMostRecentReportDateDedupeAndStatus(
     let latestDayKey: number | null = null;
     for (const r of leasingRows) {
       const row = r as Record<string, unknown>;
-      const d = parseDate(pick(row, ...dateCandidates));
+      const d = parseDate(pickInsensitive(row, ...dateCandidates));
       if (d) {
         const dayKey = toDayKey(d);
         if (latestDayKey == null || dayKey > latestDayKey) latestDayKey = dayKey;
@@ -562,13 +578,13 @@ function filterLeasingRowsToMostRecentReportDateDedupeAndStatus(
   if (useMonthKey == null) return [];
   const inTargetMonth = leasingRows.filter((r) => {
     const row = r as Record<string, unknown>;
-    const d = parseDate(pick(row, ...dateCandidates));
+    const d = parseDate(pickInsensitive(row, ...dateCandidates));
     return d && toMonthKey(d) === useMonthKey;
   });
   const byProp = new Map<string, Record<string, unknown>>();
   for (const r of inTargetMonth) {
     const row = r as Record<string, unknown>;
-    const propRaw = pick(row, 'Property', 'property', 'PropertyName');
+    const propRaw = pickInsensitive(row, 'Property', 'property', 'PropertyName');
     const prop = normProp(propRaw);
     if (!prop) continue;
     const status = statusByProperty[prop];
@@ -576,8 +592,8 @@ function filterLeasingRowsToMostRecentReportDateDedupeAndStatus(
     // Include if status is Lease Up/Stabilized/Critical/Warning, or if no MMR status (missing properties like Freeport, Crestview, McGowin, Promenade when MMR has no row)
     if (status !== undefined && status !== '' && !isLeaseUpOrStabilized(status)) continue;
     const existing = byProp.get(prop);
-    const rowDate = parseDate(pick(row, ...dateCandidates));
-    if (!existing || !rowDate || (parseDate(pick(existing, ...dateCandidates)) ?? new Date(0)) < rowDate) {
+    const rowDate = parseDate(pickInsensitive(row, ...dateCandidates));
+    if (!existing || !rowDate || (parseDate(pickInsensitive(existing, ...dateCandidates)) ?? new Date(0)) < rowDate) {
       byProp.set(prop, row);
     }
   }
@@ -1044,14 +1060,15 @@ export async function buildDashboardFromRaw(
   // Velocity all-time avg (7d and 28d) per property from leasingTS; merge into kpis.byProperty
   let kpisWithVelocityAvg = addVelocityAllTimeAvgToKpis(kpis, leasingTS);
 
-  // Do not display properties with status DEAD or 0 total units in PUD
+  // Do not display properties with status DEAD or 0 total units in PUD (unless they have a leasing row – then keep them visible)
   const hiddenNormKeys = new Set<string>();
+  const normKeysFromRows = new Set(rows.map((r) => normProp(String(r.Property ?? r.property ?? '').trim())));
   for (const [normKey, status] of Object.entries(statusByProperty)) {
     if (isStatusDead(status)) hiddenNormKeys.add(normKey);
   }
   for (const [displayName, data] of Object.entries(kpisWithVelocityAvg.byProperty ?? {})) {
     const nkey = normProp(displayName);
-    if (nkey && (data.totalUnits == null || data.totalUnits === 0)) hiddenNormKeys.add(nkey);
+    if (nkey && (data.totalUnits == null || data.totalUnits === 0) && !normKeysFromRows.has(nkey)) hiddenNormKeys.add(nkey);
   }
   rows = rows.filter((r) => !hiddenNormKeys.has(normProp(String(r.Property ?? r.property ?? '').trim())));
   const filteredByProperty = { ...kpisWithVelocityAvg.byProperty };

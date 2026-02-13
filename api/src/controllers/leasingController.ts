@@ -890,8 +890,61 @@ export const getDashboard = async (req: Request, res: Response, next: NextFuncti
 };
 
 /**
+ * GET /api/leasing/dashboard-diag
+ * Returns raw DB row counts and built dashboard row/kpi counts (does not store snapshot).
+ * Use to see where the pipeline drops to 0 (e.g. raw.leasing vs built rows).
+ */
+export const getDashboardDiag = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const raw = await getAllForDashboard();
+    const statusByPropertyFromCore = await getStatusByPropertyFromCoreProjects();
+    const dashboard = await buildDashboardFromRaw(raw, { statusByPropertyFromCore });
+    const byProperty = (dashboard.kpis as { byProperty?: Record<string, unknown> } | undefined)?.byProperty ?? {};
+    const leasing = raw.leasing ?? [];
+    const pud = raw.portfolioUnitDetails ?? [];
+    const sampleLeasingKeys = leasing.length > 0 ? Object.keys(leasing[0] as Record<string, unknown>).slice(0, 25) : [];
+    const samplePudKeys = pud.length > 0 ? Object.keys(pud[0] as Record<string, unknown>).slice(0, 25) : [];
+    const dateCandidates = ['ReportDate', 'reportDate', 'BatchTimestamp', 'MonthOf'];
+    const leasingWithDate = leasing.filter((r) => {
+      const row = r as Record<string, unknown>;
+      for (const k of dateCandidates) {
+        const v = row[k];
+        if (v != null && v !== '' && !Number.isNaN(Date.parse(String(v)))) return true;
+      }
+      return false;
+    }).length;
+    const leasingWithProperty = leasing.filter((r) => {
+      const v = (r as Record<string, unknown>).Property ?? (r as Record<string, unknown>).property;
+      return v != null && String(v).trim() !== '';
+    }).length;
+    res.json({
+      raw: {
+        leasing: leasing.length,
+        mmrRows: (raw.mmrRows ?? []).length,
+        utradeRows: (raw.utradeRows ?? []).length,
+        portfolioUnitDetails: pud.length,
+        units: (raw.units ?? []).length,
+        unitmix: (raw.unitmix ?? []).length,
+        pricing: (raw.pricing ?? []).length,
+        recents: (raw.recents ?? []).length,
+      },
+      built: {
+        rows: (dashboard.rows ?? []).length,
+        byPropertyKeys: Object.keys(byProperty).length,
+      },
+      sampleLeasingKeys,
+      samplePudKeys,
+      leasingWithParseableDate: leasingWithDate,
+      leasingWithProperty,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * POST /api/leasing/rebuild-snapshot
- * Force rebuild and store the dashboard snapshot. Next GET /dashboard will be instant.
+ * Force rebuild and store the dashboard snapshot. Next GET /dashboard is instant.
  * Optional: X-Sync-Secret (same as sync-from-domo) when LEASING_SYNC_WEBHOOK_SECRET is set.
  */
 export const postRebuildSnapshot = async (req: Request, res: Response, next: NextFunction): Promise<void> => {

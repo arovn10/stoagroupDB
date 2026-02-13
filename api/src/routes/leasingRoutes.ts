@@ -11,6 +11,8 @@ router.get('/aggregates', leasingController.getAggregates);
 
 // Single dashboard payload: all calculations done on backend; frontend is visual-only.
 router.get('/dashboard', leasingController.getDashboard);
+// Diagnostic: raw DB counts and built dashboard row/kpi counts (no snapshot stored).
+router.get('/dashboard-diag', leasingController.getDashboardDiag);
 // Force rebuild and store dashboard snapshot (so next GET /dashboard is instant).
 router.post('/rebuild-snapshot', leasingController.postRebuildSnapshot);
 
