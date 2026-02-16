@@ -2396,6 +2396,7 @@ export const updateDealPipeline = async (req: Request, res: Response, next: Next
       return;
     }
 
+    let pipelineRowsUpdated = 0;
     if (fields.length > 0) {
       fields.push('UpdatedAt = SYSDATETIME()');
       const updateResult = await request.query(`
@@ -2403,8 +2404,8 @@ export const updateDealPipeline = async (req: Request, res: Response, next: Next
         SET ${fields.join(', ')}
         WHERE DealPipelineId = @id
       `);
-      const rowsUpdated = (updateResult && Array.isArray(updateResult.rowsAffected) && updateResult.rowsAffected[0]) ? updateResult.rowsAffected[0] : 0;
-      if (rowsUpdated === 0) {
+      pipelineRowsUpdated = (updateResult && Array.isArray(updateResult.rowsAffected) && updateResult.rowsAffected[0]) ? updateResult.rowsAffected[0] : 0;
+      if (pipelineRowsUpdated === 0) {
         res.status(404).json({ success: false, error: { message: 'No deal pipeline record was updated (DealPipelineId may be invalid or record not found).' } });
         return;
       }
@@ -2479,7 +2480,13 @@ export const updateDealPipeline = async (req: Request, res: Response, next: Next
       return;
     }
 
-    res.json({ success: true, data: normalizeStateInPayload(updated.recordset[0]) });
+    const payload = normalizeStateInPayload(updated.recordset[0]);
+    res.json({
+      success: true,
+      data: payload,
+      rowsUpdated: pipelineRowsUpdated,
+      message: pipelineRowsUpdated > 0 ? `Deal pipeline updated (${pipelineRowsUpdated} row(s)).` : 'No pipeline row updated; core-only update.'
+    });
   } catch (error: any) {
     if (error.number === 547) {
       res.status(400).json({ success: false, error: { message: 'Invalid ProjectId or PreConManagerId' } });
