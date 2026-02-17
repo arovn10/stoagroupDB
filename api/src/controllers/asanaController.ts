@@ -264,7 +264,7 @@ async function fetchProject(token: string, projectGid: string): Promise<AsanaPro
 async function fetchTasksForProject(
   token: string,
   projectGid: string,
-  today: string,
+  startDateWindow: string,
   endDate: string
 ): Promise<UpcomingTask[]> {
   const tasks: UpcomingTask[] = [];
@@ -286,8 +286,9 @@ async function fetchTasksForProject(
     const gidToKey = getGidToFieldKeyMap();
     for (const t of batch) {
       const startDate = getStartDateFromCustomFields(t.custom_fields);
-      const dueInRange = t.due_on != null && t.due_on >= today && t.due_on <= endDate;
-      const include = dueInRange || t.due_on == null || startDate != null;
+      const dueInRange = t.due_on != null && t.due_on >= startDateWindow && t.due_on <= endDate;
+      const startInRange = startDate != null && startDate >= startDateWindow && startDate <= endDate;
+      const include = dueInRange || startInRange || t.due_on == null || startDate != null;
       if (!include) continue;
       const otherFields = getOtherFieldsFromCustomFields(t.custom_fields, gidToKey);
       tasks.push({
@@ -307,7 +308,8 @@ async function fetchTasksForProject(
 
 /**
  * GET /api/asana/upcoming-tasks
- * Query: workspace (optional), project (optional), daysAhead (optional, default 90).
+ * Query: workspace (optional), project (optional), daysAhead (optional, default 90), daysBack (optional, default 0).
+ * When daysBack is set, tasks with due_on or start_date in the past daysBack days are also included (for DB/Asana matching of past deals).
  * When workspace is set (query or ASANA_WORKSPACE_GID): list projects in workspace, fetch tasks per project with start_date from custom field.
  * Otherwise: single Deal Pipeline project (ASANA_PROJECT_GID). Each task includes due_on, start_date (custom "Start Date"), permalink_url.
  */
@@ -322,17 +324,21 @@ export async function getUpcomingTasks(req: Request, res: Response): Promise<voi
     const workspace = (req.query.workspace as string)?.trim() || getDefaultWorkspace();
     const projectGid = (req.query.project as string)?.trim();
     const daysAhead = Math.min(365, Math.max(1, parseInt(String(req.query.daysAhead), 10) || DEFAULT_DAYS_AHEAD));
+    const daysBack = Math.min(730, Math.max(0, parseInt(String(req.query.daysBack), 10) || 0));
     const today = new Date().toISOString().slice(0, 10);
     const end = new Date();
     end.setDate(end.getDate() + daysAhead);
     const endDate = end.toISOString().slice(0, 10);
+    const start = new Date();
+    start.setDate(start.getDate() - daysBack);
+    const startDateWindow = start.toISOString().slice(0, 10);
 
     const result: ProjectWithTasks[] = [];
 
     if (workspace) {
       const projects = await fetchAllProjects(token, workspace);
       for (const proj of projects) {
-        const tasks = await fetchTasksForProject(token, proj.gid, today, endDate);
+        const tasks = await fetchTasksForProject(token, proj.gid, startDateWindow, endDate);
         tasks.sort((a, b) => {
           const aDate = a.start_date || a.due_on || '9999-12-31';
           const bDate = b.start_date || b.due_on || '9999-12-31';
@@ -347,11 +353,11 @@ export async function getUpcomingTasks(req: Request, res: Response): Promise<voi
         res.json({ success: true, data: [] });
         return;
       }
-      const tasks = await fetchTasksForProject(token, proj.gid, today, endDate);
+      const tasks = await fetchTasksForProject(token, proj.gid, startDateWindow, endDate);
       tasks.sort((a, b) => {
         const aDate = a.start_date || a.due_on || '9999-12-31';
         const bDate = b.start_date || b.due_on || '9999-12-31';
-        return aDate.localeCompare(bDate);
+      return aDate.localeCompare(bDate);
       });
       result.push({ projectGid: proj.gid, projectName: proj.name, tasks });
     }
