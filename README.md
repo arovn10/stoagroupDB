@@ -50,9 +50,12 @@ Utility scripts and guides:
 - **`06_azure_firewall_setup_simple.sql`** - Script to configure Azure SQL Database firewall rules
 - **`06_azure_firewall_instructions.md`** - Step-by-step guide for firewall configuration
 
+### **`api-client.js`** (repo root – universal client)
+Single source of truth for all dashboard repos. Use this file for every app that talks to the STOA API (banking dashboard, deal pipeline, leasing velocity report, reviews dashboard, etc.). After updating it, run **`npm run distribute`** to copy it into the other repos; then commit and push from each dashboard repo as needed.
+
 ### `/scripts/`
 Utility scripts:
-- **`api-client.js`** - Complete API client for use in Domo or browser
+- **`copy-api-client-to-dashboards.js`** – Copies root `api-client.js` to sibling dashboard folders (run via `npm run distribute`)
 - **`domo-resolve-ims-ids.js`** - Script to resolve IMS investor IDs
 
 ### `/stoa_seed_csvs/`

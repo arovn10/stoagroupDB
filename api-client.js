@@ -1424,33 +1424,56 @@
   return apiRequest('/api/leasing/aggregates' + (qs ? '?' + qs : ''));
 }
 
+  // Session cache for leasing dashboard: part=dashboard (smaller payload) and 2 min TTL for faster load and less server strain.
+  var _leasingDashboardCache = null;
+  var _leasingDashboardCacheKey = '';
+  var _leasingDashboardCacheExpiry = 0;
+  var _leasingDashboardCacheEtag = '';
+  var LEASING_DASHBOARD_CACHE_TTL_MS = 120000;
+
 /**
- * Get full pre-computed dashboard payload. All authoritative calculations run on the backend; frontend is visual-only.
- * Uses mode: 'cors', cache: 'no-store' and a long timeout so it works from Domo (HTTPS, CSP).
- * @param {object} opts - { asOf?: 'YYYY-MM-DD', timeoutMs?: number }
- * @returns {Promise<{ success: boolean, dashboard: object|null, _meta? }>}
+ * Get pre-computed dashboard payload. Use part='dashboard' (default) for smaller, faster load on mobile; part='full' for raw + dashboard.
+ * Caches for 2 min to reduce server load and speed up navigation. Server supports Cache-Control and ETag for 304.
+ * @param {object} opts - { asOf?: 'YYYY-MM-DD', timeoutMs?: number, skipCache?: boolean, part?: 'dashboard'|'raw'|'full' }
+ * @returns {Promise<{ success: boolean, dashboard: object|null, raw?: object, _meta? }>}
  */
   async function getLeasingDashboard(opts = {}) {
+  const part = opts.part || 'dashboard';
+  const cacheKey = (opts.asOf || '') + '|' + part;
+  if (!opts.skipCache && _leasingDashboardCache != null && _leasingDashboardCacheKey === cacheKey && Date.now() < _leasingDashboardCacheExpiry) {
+    return _leasingDashboardCache;
+  }
   const params = new URLSearchParams();
   if (opts.asOf) params.set('asOf', opts.asOf);
+  if (part !== 'full') params.set('part', part);
   const qs = params.toString();
   const url = API_BASE_URL.replace(/\/$/, '') + '/api/leasing/dashboard' + (qs ? '?' + qs : '');
   const timeoutMs = opts.timeoutMs || 120000;
   const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
   const timeoutId = controller ? setTimeout(function() { controller.abort(); }, timeoutMs) : null;
+  const headers = {};
+  if (_leasingDashboardCacheEtag) headers['If-None-Match'] = _leasingDashboardCacheEtag;
   try {
     const res = await fetch(url, {
       method: 'GET',
       mode: 'cors',
-      cache: 'no-store',
       credentials: 'omit',
       signal: controller ? controller.signal : undefined,
-      headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+      headers: headers
     });
     if (timeoutId) clearTimeout(timeoutId);
+    if (res.status === 304 && _leasingDashboardCache != null && _leasingDashboardCacheKey === cacheKey) {
+      _leasingDashboardCacheExpiry = Date.now() + LEASING_DASHBOARD_CACHE_TTL_MS;
+      return _leasingDashboardCache;
+    }
     const text = await res.text();
     const result = text ? (function() { try { return JSON.parse(text); } catch (_) { return {}; } })() : {};
     if (!res.ok) throw new Error(result.message || result.error || 'API Error: ' + res.status);
+    _leasingDashboardCacheKey = cacheKey;
+    _leasingDashboardCache = result;
+    _leasingDashboardCacheExpiry = Date.now() + LEASING_DASHBOARD_CACHE_TTL_MS;
+    var etag = res.headers.get && res.headers.get('ETag');
+    if (etag) _leasingDashboardCacheEtag = etag;
     return result;
   } catch (e) {
     if (timeoutId) clearTimeout(timeoutId);

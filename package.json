@@ -5,6 +5,7 @@
   "main": "api-client.js",
   "private": true,
   "scripts": {
-    "build": "npm run build --prefix api"
+    "build": "npm run build --prefix api",
+    "distribute": "node scripts/copy-api-client-to-dashboards.js"
   }
 }
