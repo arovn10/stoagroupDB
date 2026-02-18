@@ -940,6 +940,41 @@ export const getDashboard = async (req: Request, res: Response, next: NextFuncti
   }
 };
 
+/** Cache for GET /api/leasing/dashboard/summary and KPI endpoints: 2 min. */
+const SUMMARY_AND_KPI_CACHE_MAX_AGE_SEC = 120;
+
+/**
+ * GET /api/leasing/dashboard/summary
+ * Lightweight: KPIs + builtAt only (no rows, no raw). For fast first paint on mobile.
+ * Serves from snapshot only; 503 if no snapshot.
+ */
+export const getDashboardSummary = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const snapshot = await getDashboardSnapshot();
+    if (!snapshot?.payload || !snapshot.payload.startsWith('{"success":')) {
+      res.status(503).json({ success: false, error: 'No dashboard snapshot yet; call GET /api/leasing/dashboard to build.' });
+      return;
+    }
+    const parsed = JSON.parse(snapshot.payload) as { dashboard?: { kpis?: unknown }; _meta?: { builtAt?: string } };
+    const kpis = parsed.dashboard?.kpis;
+    if (!kpis || typeof kpis !== 'object') {
+      res.status(503).json({ success: false, error: 'Snapshot has no KPIs.' });
+      return;
+    }
+    const builtAt = snapshot.builtAt?.toISOString?.() ?? parsed._meta?.builtAt;
+    const latestReportDate = (kpis as { latestReportDate?: string }).latestReportDate;
+    res.set('Cache-Control', `private, max-age=${SUMMARY_AND_KPI_CACHE_MAX_AGE_SEC}`);
+    if (snapshot.builtAt) res.set('ETag', `"${snapshot.builtAt.getTime()}"`);
+    res.json({
+      success: true,
+      kpis,
+      _meta: { builtAt, latestReportDate, fromSnapshot: true },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 /**
  * GET /api/leasing/dashboard-diag
  * Returns raw DB row counts and built dashboard row/kpi counts (does not store snapshot).
@@ -1071,6 +1106,7 @@ export const getKpis = async (req: Request, res: Response, next: NextFunction): 
     const asOf = typeof req.query.asOf === 'string' ? req.query.asOf : undefined;
     const property = typeof req.query.property === 'string' ? req.query.property : undefined;
     const { kpis, fromSnapshot } = await resolveKpis(asOf, property);
+    res.set('Cache-Control', `private, max-age=${SUMMARY_AND_KPI_CACHE_MAX_AGE_SEC}`);
     res.json({ success: true, kpis, _meta: { fromSnapshot } });
   } catch (error) {
     next(error);
@@ -1086,6 +1122,7 @@ export const getKpisOccupancy = async (req: Request, res: Response, next: NextFu
     const asOf = typeof req.query.asOf === 'string' ? req.query.asOf : undefined;
     const property = typeof req.query.property === 'string' ? req.query.property : undefined;
     const { kpis, fromSnapshot } = await resolveKpis(asOf, property);
+    res.set('Cache-Control', `private, max-age=${SUMMARY_AND_KPI_CACHE_MAX_AGE_SEC}`);
     res.json({
       success: true,
       occupancy: kpis.occupied,
@@ -1110,6 +1147,7 @@ export const getKpisLeased = async (req: Request, res: Response, next: NextFunct
     const asOf = typeof req.query.asOf === 'string' ? req.query.asOf : undefined;
     const property = typeof req.query.property === 'string' ? req.query.property : undefined;
     const { kpis, fromSnapshot } = await resolveKpis(asOf, property);
+    res.set('Cache-Control', `private, max-age=${SUMMARY_AND_KPI_CACHE_MAX_AGE_SEC}`);
     res.json({
       success: true,
       leased: kpis.leased,
@@ -1133,6 +1171,7 @@ export const getKpisOccupancyAndBudget = async (req: Request, res: Response, nex
     const asOf = typeof req.query.asOf === 'string' ? req.query.asOf : undefined;
     const property = typeof req.query.property === 'string' ? req.query.property : undefined;
     const { kpis, fromSnapshot } = await resolveKpis(asOf, property);
+    res.set('Cache-Control', `private, max-age=${SUMMARY_AND_KPI_CACHE_MAX_AGE_SEC}`);
     res.json({
       success: true,
       occupancy: kpis.occupied,
@@ -1167,6 +1206,7 @@ export const getKpisAvailable = async (req: Request, res: Response, next: NextFu
     const asOf = typeof req.query.asOf === 'string' ? req.query.asOf : undefined;
     const property = typeof req.query.property === 'string' ? req.query.property : undefined;
     const { kpis, fromSnapshot } = await resolveKpis(asOf, property);
+    res.set('Cache-Control', `private, max-age=${SUMMARY_AND_KPI_CACHE_MAX_AGE_SEC}`);
     res.json({
       success: true,
       available: kpis.available,
@@ -1190,6 +1230,7 @@ export const getKpisVelocity = async (req: Request, res: Response, next: NextFun
     const asOf = typeof req.query.asOf === 'string' ? req.query.asOf : undefined;
     const property = typeof req.query.property === 'string' ? req.query.property : undefined;
     const { kpis, fromSnapshot } = await resolveKpis(asOf, property);
+    res.set('Cache-Control', `private, max-age=${SUMMARY_AND_KPI_CACHE_MAX_AGE_SEC}`);
     res.json({
       success: true,
       leases7d: kpis.leases7d,
@@ -1213,6 +1254,7 @@ export const getKpisDeltaBudget = async (req: Request, res: Response, next: Next
     const asOf = typeof req.query.asOf === 'string' ? req.query.asOf : undefined;
     const property = typeof req.query.property === 'string' ? req.query.property : undefined;
     const { kpis, fromSnapshot } = await resolveKpis(asOf, property);
+    res.set('Cache-Control', `private, max-age=${SUMMARY_AND_KPI_CACHE_MAX_AGE_SEC}`);
     res.json({
       success: true,
       deltaToBudget: kpis.deltaToBudget,
@@ -1235,6 +1277,7 @@ export const getKpisAvgLeasedRent = async (req: Request, res: Response, next: Ne
     const asOf = typeof req.query.asOf === 'string' ? req.query.asOf : undefined;
     const property = typeof req.query.property === 'string' ? req.query.property : undefined;
     const { kpis, fromSnapshot } = await resolveKpis(asOf, property);
+    res.set('Cache-Control', `private, max-age=${SUMMARY_AND_KPI_CACHE_MAX_AGE_SEC}`);
     res.json({
       success: true,
       avgLeasedRent: kpis.avgLeasedRent,

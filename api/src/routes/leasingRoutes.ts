@@ -9,6 +9,8 @@ router.get('/aggregates/available', leasingController.getAggregatesAvailable);
 // Pre-aggregated metrics (leasing summary, tradeout summary, PUD summary) – supports million-row scaling
 router.get('/aggregates', leasingController.getAggregates);
 
+// Lightweight summary (KPIs only) for fast first paint; full payload below.
+router.get('/dashboard/summary', leasingController.getDashboardSummary);
 // Single dashboard payload: all calculations done on backend; frontend is visual-only.
 router.get('/dashboard', leasingController.getDashboard);
 // Diagnostic: raw DB counts and built dashboard row/kpi counts (no snapshot stored).

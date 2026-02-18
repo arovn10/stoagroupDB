@@ -1424,6 +1424,29 @@
   return apiRequest('/api/leasing/aggregates' + (qs ? '?' + qs : ''));
 }
 
+/**
+ * Get dashboard summary (KPIs only) for fast first paint. Use before getLeasingDashboard for progressive load.
+ * @param {object} opts - { asOf?: 'YYYY-MM-DD', skipCache?: boolean }
+ * @returns {Promise<{ success: boolean, kpis: object, _meta?: { builtAt, latestReportDate } }>}
+ */
+  var _leasingSummaryCache = null;
+  var _leasingSummaryCacheKey = '';
+  var _leasingSummaryCacheExpiry = 0;
+  async function getLeasingDashboardSummary(opts = {}) {
+  const cacheKey = opts.asOf ? String(opts.asOf) : '';
+  if (!opts.skipCache && _leasingSummaryCache != null && _leasingSummaryCacheKey === cacheKey && Date.now() < _leasingSummaryCacheExpiry) {
+    return _leasingSummaryCache;
+  }
+  const params = new URLSearchParams();
+  if (opts.asOf) params.set('asOf', opts.asOf);
+  const qs = params.toString();
+  const result = await apiRequest('/api/leasing/dashboard/summary' + (qs ? '?' + qs : ''));
+  _leasingSummaryCacheKey = cacheKey;
+  _leasingSummaryCache = result;
+  _leasingSummaryCacheExpiry = Date.now() + 120000;
+  return result;
+}
+
   // Session cache for leasing dashboard: part=dashboard (smaller payload) and 2 min TTL for faster load and less server strain.
   var _leasingDashboardCache = null;
   var _leasingDashboardCacheKey = '';
@@ -2619,11 +2642,11 @@
  * Download or open a banking file using the current auth token (for use when user clicks the file).
  * Fetches with Bearer token, then opens the file in a new tab (or triggers download with filename).
  * @param {number} attachmentId - BankingFileId
- * @param {{ openInNewTab?: boolean }} options - openInNewTab: true = open in new tab (default); false = trigger download with filename
+ * @param {{ openInNewTab?: boolean, projectName?: string }} options - openInNewTab: true = open in new tab (default); false = trigger download. projectName: prepend to filename as "filename - projectName"
  * @returns {Promise<void>}
  */
   async function downloadBankingFile(attachmentId, options = {}) {
-  const { openInNewTab = true } = options;
+  const { openInNewTab = true, projectName } = options;
   const token = authToken;
   if (!token) {
     throw new Error('Not authenticated. Call login() or setAuthToken() before downloading files.');
@@ -2637,15 +2660,18 @@
     throw new Error(err.error?.message || `Download failed: ${response.status}`);
   }
   const blob = await response.blob();
-  const filename = (response.headers.get('Content-Disposition') || '').match(/filename\*?=(?:UTF-8'')?["']?([^"'\s;]+)["']?/i)?.[1]
+  let filename = (response.headers.get('Content-Disposition') || '').match(/filename\*?=(?:UTF-8'')?["']?([^"'\s;]+)["']?/i)?.[1]
     || response.headers.get('X-File-Name')
     || `banking-file-${attachmentId}`;
+  if (projectName && typeof projectName === 'string' && projectName.trim()) {
+    const base = decodeURIComponent(filename);
+    const ext = base.includes('.') ? base.slice(base.lastIndexOf('.')) : '';
+    const nameWithoutExt = base.includes('.') ? base.slice(0, base.lastIndexOf('.')) : base;
+    const safeProj = String(projectName).trim().replace(/[/\\?*:|"<>]/g, '-');
+    filename = nameWithoutExt + ' - ' + safeProj + ext;
+  }
   const blobUrl = URL.createObjectURL(blob);
-  if (openInNewTab) {
-    const w = window.open(blobUrl, '_blank');
-    if (w) setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
-    else { URL.revokeObjectURL(blobUrl); throw new Error('Popup blocked. Allow popups or use download: false.'); }
-  } else {
+  const doDownload = function() {
     const a = document.createElement('a');
     a.href = blobUrl;
     a.download = decodeURIComponent(filename);
@@ -2654,6 +2680,17 @@
     a.click();
     document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(blobUrl), 500);
+  };
+  if (openInNewTab) {
+    const w = window.open(blobUrl, '_blank');
+    if (w) {
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+    } else {
+      // Popup blocked (e.g. windowed Domo dash) – fall back to download link
+      doDownload();
+    }
+  } else {
+    doDownload();
   }
 }
 
@@ -2926,6 +2963,7 @@
   API.bulkUpsertReviews = bulkUpsertReviews;
   API.getLeasingAggregatesAvailable = getLeasingAggregatesAvailable;
   API.getLeasingAggregates = getLeasingAggregates;
+  API.getLeasingDashboardSummary = getLeasingDashboardSummary;
   API.getLeasingDashboard = getLeasingDashboard;
 
   // Banking - Liquidity Requirements

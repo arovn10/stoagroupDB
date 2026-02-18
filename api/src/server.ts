@@ -5,6 +5,8 @@ if (typeof (globalThis as { crypto?: unknown }).crypto === 'undefined') {
 }
 
 import express, { Request, Response } from 'express';
+import compression from 'compression';
+import rateLimit from 'express-rate-limit';
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
@@ -68,6 +70,9 @@ app.use(cors({
   },
   credentials: true,
 }));
+// Gzip responses for smaller payloads (faster on mobile)
+app.use(compression());
+
 // Large limit for leasing sync (e.g. 200k+ PUD rows); default 100kb would reject
 app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || '300mb' }));
 app.use(express.urlencoded({ extended: true, limit: process.env.JSON_BODY_LIMIT || '300mb' }));
@@ -98,7 +103,15 @@ app.use('/api/pipeline', pipelineRoutes);
 app.use('/api/land-development', landDevelopmentRoutes);
 app.use('/api/asana', asanaRoutes);
 app.use('/api/reviews', reviewsRoutes);
-app.use('/api/leasing', leasingRoutes);
+// Rate limit leasing to protect DB (per IP; sync/cron can use same IP)
+const leasingLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: Number(process.env.LEASING_RATE_LIMIT_MAX) || 100,
+  message: { success: false, error: 'Too many requests; try again shortly.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use('/api/leasing', leasingLimiter, leasingRoutes);
 
 // API Documentation endpoint
 app.get('/api', (req: Request, res: Response) => {
