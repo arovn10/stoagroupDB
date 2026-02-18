@@ -20,20 +20,32 @@ export const getReviews = async (req: Request, res: Response, next: NextFunction
     if (to && typeof to === 'string') request.input('to', sql.Date, to);
 
     const query = `
-      SELECT
-        r.ReviewId, r.ProjectId, r.Property, r.Review_Text, r.rating, r.reviewer_name,
-        r.review_date, r.review_date_original, r.review_year, r.review_month, r.review_month_name, r.review_day_of_week,
-        r.scraped_at, r.source, r.extraction_method, r.property_url, r.request_ip, r.request_timestamp,
-        r.category, r.sentiment, r.common_phrase, r.Location, r.Total_Units, r.Birth_Order, r.Rank, r.CreatedAt
-      FROM reviews.Review r
-      WHERE 1=1
-      ${property && typeof property === 'string' ? ' AND r.Property = @property' : ''}
-      ${sentiment && typeof sentiment === 'string' ? ' AND r.sentiment = @sentiment' : ''}
-      ${category && typeof category === 'string' ? ' AND r.category = @category' : ''}
-      ${from && typeof from === 'string' ? ' AND r.review_date >= @from' : ''}
-      ${to && typeof to === 'string' ? ' AND r.review_date <= @to' : ''}
-      ${includeOnlyReport === 'true' || includeOnlyReport === '1' ? ' AND EXISTS (SELECT 1 FROM reviews.PropertyReviewConfig c WHERE c.ProjectId = r.ProjectId AND c.IncludeInReviewsReport = 1)' : ''}
-      ORDER BY r.scraped_at DESC, r.review_date DESC
+      ;WITH Ranked AS (
+        SELECT
+          r.ReviewId, r.ProjectId, r.Property, r.Review_Text, r.rating, r.reviewer_name,
+          r.review_date, r.review_date_original, r.review_year, r.review_month, r.review_month_name, r.review_day_of_week,
+          r.scraped_at, r.source, r.extraction_method, r.property_url, r.request_ip, r.request_timestamp,
+          r.category, r.sentiment, r.common_phrase, r.Location, r.Total_Units, r.Birth_Order, r.Rank, r.CreatedAt,
+          ROW_NUMBER() OVER (
+            PARTITION BY r.Property, ISNULL(r.reviewer_name,''), LEFT(ISNULL(r.Review_Text,''), 900)
+            ORDER BY r.scraped_at DESC, r.ReviewId DESC
+          ) AS rn
+        FROM reviews.Review r
+        WHERE 1=1
+        ${property && typeof property === 'string' ? ' AND r.Property = @property' : ''}
+        ${sentiment && typeof sentiment === 'string' ? ' AND r.sentiment = @sentiment' : ''}
+        ${category && typeof category === 'string' ? ' AND r.category = @category' : ''}
+        ${from && typeof from === 'string' ? ' AND r.review_date >= @from' : ''}
+        ${to && typeof to === 'string' ? ' AND r.review_date <= @to' : ''}
+        ${includeOnlyReport === 'true' || includeOnlyReport === '1' ? ' AND EXISTS (SELECT 1 FROM reviews.PropertyReviewConfig c WHERE c.ProjectId = r.ProjectId AND c.IncludeInReviewsReport = 1)' : ''}
+      )
+      SELECT ReviewId, ProjectId, Property, Review_Text, rating, reviewer_name,
+        review_date, review_date_original, review_year, review_month, review_month_name, review_day_of_week,
+        scraped_at, source, extraction_method, property_url, request_ip, request_timestamp,
+        category, sentiment, common_phrase, Location, Total_Units, Birth_Order, Rank, CreatedAt
+      FROM Ranked
+      WHERE rn = 1
+      ORDER BY scraped_at DESC, review_date DESC
       OFFSET 0 ROWS FETCH NEXT @limit ROWS ONLY
     `;
     const result = await request.query(query);
