@@ -78,6 +78,13 @@ const DOMO_DATASET_KEYS: Record<string, string> = {
   recentrents: 'DOMO_DATASET_RECENTRENTS',
 };
 
+/** Only one snapshot rebuild at a time to avoid DB overload. */
+let rebuildInProgress: Promise<void> | null = null;
+
+/** Debounce: schedule one rebuild after sync; rapid syncs only trigger one rebuild. */
+const REBUILD_DEBOUNCE_MS = 5000;
+let rebuildDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+
 /** Normalize property/project name for matching (trim, remove *, uppercase). */
 function normPropName(s: string | null | undefined): string {
   return (s ?? '').toString().trim().replace(/\*/g, '').toUpperCase();
@@ -413,8 +420,8 @@ export const postSync = async (req: Request, res: Response, next: NextFunction):
       console.log(`[leasing/sync] Client sent 0 rows for: ${emptyFromClient.join(', ')}. Use POST /api/leasing/sync-from-domo with DOMO_DATASET_* env vars set on the server to populate these.`);
     }
 
-    // Always rebuild snapshot after sync so cron keeps dashboard snapshot current (uses latest DB + new logic).
-    rebuildDashboardSnapshot().catch(() => {});
+    // Schedule one debounced rebuild after sync to avoid overload from rapid syncs.
+    scheduleRebuildAfterSync();
     res.status(errors.length ? 207 : 200).json({
       success: errors.length === 0,
       synced,
@@ -596,7 +603,7 @@ async function runSyncFromDomoCore(query: Record<string, unknown>): Promise<{ st
     };
   }
 
-  rebuildDashboardSnapshot().catch(() => {});
+  scheduleRebuildAfterSync();
   return {
     statusCode: errors.length ? 207 : 200,
     body: {
@@ -767,34 +774,56 @@ export const postSyncAddAlias = async (req: Request, res: Response, next: NextFu
   }
 };
 
-/** Rebuild and store the dashboard snapshot with every leasing table (raw) + computed dashboard. Backend uses snapshot to prepopulate and run calculations like Domo. */
+/**
+ * Schedule a single snapshot rebuild after a short delay. Multiple syncs in quick succession
+ * only trigger one rebuild to avoid DB overload.
+ */
+function scheduleRebuildAfterSync(): void {
+  if (rebuildDebounceTimer) clearTimeout(rebuildDebounceTimer);
+  rebuildDebounceTimer = setTimeout(() => {
+    rebuildDebounceTimer = null;
+    rebuildDashboardSnapshot().catch((err) => console.warn('[leasing] Debounced snapshot rebuild failed:', err?.message ?? err));
+  }, REBUILD_DEBOUNCE_MS);
+}
+
+/** Rebuild and store the dashboard snapshot with every leasing table (raw) + computed dashboard. Backend uses snapshot to prepopulate and run calculations like Domo. Only one rebuild runs at a time. */
 export async function rebuildDashboardSnapshot(): Promise<void> {
-  try {
-    const raw = await getAllForDashboard();
-    const statusByPropertyFromCore = await getStatusByPropertyFromCoreProjects();
-    const dashboard = await buildDashboardFromRaw(raw, { statusByPropertyFromCore });
-    dashboard.hubPropertyNames = await getLeaseUpStabilizedProjectNames();
-    const safe = dashboardPayloadToJsonSafe(dashboard);
-    const now = new Date();
-    const fullResponse = JSON.stringify({
-      success: true,
-      raw: {
-        leasing: raw.leasing,
-        mmrRows: raw.mmrRows,
-        utradeRows: raw.utradeRows,
-        portfolioUnitDetails: raw.portfolioUnitDetails,
-        units: raw.units,
-        unitmix: raw.unitmix,
-        pricing: raw.pricing,
-        recents: raw.recents,
-      },
-      dashboard: safe,
-      _meta: { source: AGGREGATION_SOURCE, fromSnapshot: true, builtAt: now.toISOString() },
-    });
-    await upsertDashboardSnapshot(fullResponse);
-  } catch (err) {
-    console.error('rebuildDashboardSnapshot failed:', err instanceof Error ? err.message : err);
+  if (rebuildInProgress) {
+    await rebuildInProgress;
+    return;
   }
+  const run = async (): Promise<void> => {
+    try {
+      const raw = await getAllForDashboard();
+      const statusByPropertyFromCore = await getStatusByPropertyFromCoreProjects();
+      const dashboard = await buildDashboardFromRaw(raw, { statusByPropertyFromCore });
+      dashboard.hubPropertyNames = await getLeaseUpStabilizedProjectNames();
+      const safe = dashboardPayloadToJsonSafe(dashboard);
+      const now = new Date();
+      const fullResponse = JSON.stringify({
+        success: true,
+        raw: {
+          leasing: raw.leasing,
+          mmrRows: raw.mmrRows,
+          utradeRows: raw.utradeRows,
+          portfolioUnitDetails: raw.portfolioUnitDetails,
+          units: raw.units,
+          unitmix: raw.unitmix,
+          pricing: raw.pricing,
+          recents: raw.recents,
+        },
+        dashboard: safe,
+        _meta: { source: AGGREGATION_SOURCE, fromSnapshot: true, builtAt: now.toISOString() },
+      });
+      await upsertDashboardSnapshot(fullResponse);
+    } catch (err) {
+      console.error('rebuildDashboardSnapshot failed:', err instanceof Error ? err.message : err);
+    } finally {
+      rebuildInProgress = null;
+    }
+  };
+  rebuildInProgress = run();
+  await rebuildInProgress;
 }
 
 /**
@@ -816,22 +845,28 @@ export const getCompareMillerville = async (req: Request, res: Response, next: N
   }
 };
 
+/** Cache for GET /api/leasing/dashboard: 2 minutes so mobile and repeat visits avoid refetch. */
+const DASHBOARD_CACHE_MAX_AGE_SEC = 120;
+
 /**
  * GET /api/leasing/dashboard
  * Returns every leasing table (raw) plus the computed dashboard so the backend can prepopulate and run calculations like Domo.
- * Serves from DashboardSnapshot if present (payload has raw: { leasing, mmrRows, utradeRows, portfolioUnitDetails, units, unitmix, pricing, recents } and dashboard); otherwise builds from DB and returns same shape.
- * Query: asOf (optional) YYYY-MM-DD.
+ * Serves from DashboardSnapshot if present (payload has raw: { leasing, mmrRows, ... } and dashboard); otherwise builds from DB and returns same shape.
+ * Query: asOf (optional) YYYY-MM-DD; part (optional) 'dashboard' | 'raw' to return only that slice (smaller payload, faster on mobile); rebuild=1 to force rebuild.
+ * Response is cacheable: Cache-Control private, max-age=120; ETag from builtAt for 304.
  */
 export const getDashboard = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const asOf = typeof req.query.asOf === 'string' ? req.query.asOf : undefined;
+    const part = typeof req.query.part === 'string' ? req.query.part.toLowerCase() : undefined;
     const skipSnapshot = req.query.rebuild === '1' || req.query.rebuild === 'true';
     const t0 = Date.now();
-    console.log('[leasing/dashboard] GET start', skipSnapshot ? '(rebuild=1)' : '');
+    console.log('[leasing/dashboard] GET start', skipSnapshot ? '(rebuild=1)' : '', part ? `part=${part}` : '');
     const snapshot = skipSnapshot ? null : await getDashboardSnapshot();
     console.log('[leasing/dashboard] snapshot fetch', Date.now() - t0, 'ms', snapshot?.payload ? 'hit' : 'miss');
-    if (snapshot?.payload) {
-      const payload = snapshot.payload;
+    type ResponsePayload = { success: boolean; raw?: unknown; dashboard?: LeasingDashboardPayload; _meta: unknown };
+
+    const buildResponseFromPayload = async (payload: string, snapshotBuiltAt: Date): Promise<{ responseObj: ResponsePayload; builtAt: Date }> => {
       let dashboard: LeasingDashboardPayload;
       let rawInPayload: unknown;
       if (payload.startsWith('{"success":')) {
@@ -849,60 +884,56 @@ export const getDashboard = async (req: Request, res: Response, next: NextFuncti
         source: AGGREGATION_SOURCE,
         asOf,
         fromSnapshot: true,
-        builtAt: snapshot.builtAt?.toISOString?.(),
+        builtAt: snapshotBuiltAt?.toISOString?.(),
         latestReportDate: (dashboard.kpis as { latestReportDate?: string | Date } | undefined)?.latestReportDate,
         performanceOverviewOverlayApplied: false,
       };
-      if (payload.startsWith('{"success":') && rawInPayload !== undefined) {
-        res.json({
-          success: true,
-          raw: rawInPayload,
-          dashboard,
-          _meta: meta,
-        });
+      let responseObj: ResponsePayload;
+      if (part === 'raw' && payload.startsWith('{"success":') && rawInPayload !== undefined) {
+        responseObj = { success: true, raw: rawInPayload, _meta: meta };
+      } else if (part === 'dashboard') {
+        responseObj = { success: true, dashboard, _meta: meta };
+      } else if (payload.startsWith('{"success":') && rawInPayload !== undefined) {
+        responseObj = { success: true, raw: rawInPayload, dashboard, _meta: meta };
       } else {
-        res.json({
-          success: true,
-          dashboard,
-          _meta: meta,
-        });
+        responseObj = { success: true, dashboard, _meta: meta };
       }
+      return { responseObj, builtAt: snapshotBuiltAt };
+    };
+
+    if (snapshot?.payload) {
+      const { responseObj, builtAt } = await buildResponseFromPayload(snapshot.payload, snapshot.builtAt);
+      res.set('Cache-Control', `private, max-age=${DASHBOARD_CACHE_MAX_AGE_SEC}`);
+      const etag = `"${builtAt.getTime()}"`;
+      res.set('ETag', etag);
+      if (req.get('If-None-Match') === etag) {
+        res.status(304).end();
+        console.log('[leasing/dashboard] 304 Not Modified', Date.now() - t0, 'ms');
+        return;
+      }
+      res.json(responseObj);
       console.log('[leasing/dashboard] sent from snapshot', Date.now() - t0, 'ms');
       return;
     }
 
-    console.log('[leasing/dashboard] building from raw...');
-    const raw = await getAllForDashboard();
-    console.log('[leasing/dashboard] raw fetch', Date.now() - t0, 'ms');
-    const statusByPropertyFromCore = await getStatusByPropertyFromCoreProjects();
-    const dashboard = await buildDashboardFromRaw(raw, { statusByPropertyFromCore });
-    ensureDashboardRowsFromKpis(dashboard);
-    dashboard.hubPropertyNames = await getLeaseUpStabilizedProjectNames();
-    console.log('[leasing/dashboard] build done', Date.now() - t0, 'ms');
-    const safe = dashboardPayloadToJsonSafe(dashboard);
-    const fullResponse = JSON.stringify({
-      success: true,
-      raw: {
-        leasing: raw.leasing,
-        mmrRows: raw.mmrRows,
-        utradeRows: raw.utradeRows,
-        portfolioUnitDetails: raw.portfolioUnitDetails,
-        units: raw.units,
-        unitmix: raw.unitmix,
-        pricing: raw.pricing,
-        recents: raw.recents,
-      },
-      dashboard: safe,
-      _meta: { source: AGGREGATION_SOURCE, asOf },
-    });
-    await upsertDashboardSnapshot(fullResponse);
-    res.json({
-      success: true,
-      raw: { leasing: raw.leasing, mmrRows: raw.mmrRows, utradeRows: raw.utradeRows, portfolioUnitDetails: raw.portfolioUnitDetails, units: raw.units, unitmix: raw.unitmix, pricing: raw.pricing, recents: raw.recents },
-      dashboard: safe,
-      _meta: { source: AGGREGATION_SOURCE, asOf },
-    });
-    console.log('[leasing/dashboard] sent from raw', Date.now() - t0, 'ms');
+    console.log('[leasing/dashboard] no snapshot, rebuilding (single mutex)...');
+    await rebuildDashboardSnapshot();
+    const afterSnapshot = await getDashboardSnapshot();
+    if (!afterSnapshot?.payload) {
+      res.status(503).json({ success: false, error: 'Dashboard snapshot rebuild did not produce a snapshot.' });
+      return;
+    }
+    const { responseObj, builtAt } = await buildResponseFromPayload(afterSnapshot.payload, afterSnapshot.builtAt);
+    res.set('Cache-Control', `private, max-age=${DASHBOARD_CACHE_MAX_AGE_SEC}`);
+    const etag = `"${builtAt.getTime()}"`;
+    res.set('ETag', etag);
+    if (req.get('If-None-Match') === etag) {
+      res.status(304).end();
+      console.log('[leasing/dashboard] 304 after rebuild', Date.now() - t0, 'ms');
+      return;
+    }
+    res.json(responseObj);
+    console.log('[leasing/dashboard] sent from snapshot after rebuild', Date.now() - t0, 'ms');
   } catch (error) {
     console.error('[leasing/dashboard] error', error instanceof Error ? error.message : error);
     next(error);
