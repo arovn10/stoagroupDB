@@ -205,11 +205,67 @@ function fifteenthOfMonth(year: number | null | undefined, month: number | null 
   return d.toISOString().slice(0, 10);
 }
 
-/** Normalize review_date: never use 1969-12-31; if missing or epoch, use 15th of review_year/review_month when available. */
+/** Parse "3 years ago", "2 months ago" etc. relative to ref, return YYYY-MM-DD with day 15 for month/year. */
+function parseRelativeDate(txt: string, ref: Date): string | null {
+  if (!txt || typeof txt !== 'string') return null;
+  const s = txt.toLowerCase().trim();
+  let m: RegExpMatchArray | null;
+  // Years: "3 years ago", "a year ago"
+  m = s.match(/(?:a|one|\d+)\s*years?\s*ago/);
+  if (m) {
+    const num = m[0].match(/\d+/);
+    const years = num ? parseInt(num[0], 10) : 1;
+    const d = new Date(ref);
+    d.setFullYear(d.getFullYear() - years);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-15`;
+  }
+  // Months
+  m = s.match(/(?:a|one|\d+)\s*months?\s*ago/);
+  if (m) {
+    const num = m[0].match(/\d+/);
+    const months = num ? parseInt(num[0], 10) : 1;
+    const d = new Date(ref);
+    d.setMonth(d.getMonth() - months);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-15`;
+  }
+  // Weeks
+  m = s.match(/(?:a|one|\d+)\s*weeks?\s*ago/);
+  if (m) {
+    const num = m[0].match(/\d+/);
+    const weeks = num ? parseInt(num[0], 10) : 1;
+    const d = new Date(ref);
+    d.setDate(d.getDate() - weeks * 7);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+  // Days: "5 days ago", "yesterday"
+  if (s.includes('yesterday') || /1\s*day\s*ago/.test(s)) {
+    const d = new Date(ref);
+    d.setDate(d.getDate() - 1);
+    return d.toISOString().slice(0, 10);
+  }
+  m = s.match(/(\d+)\s*days?\s*ago/);
+  if (m) {
+    const days = parseInt(m[1], 10);
+    const d = new Date(ref);
+    d.setDate(d.getDate() - days);
+    return d.toISOString().slice(0, 10);
+  }
+  // Hours
+  m = s.match(/(\d+)\s*hours?\s*ago/);
+  if (m) {
+    const d = new Date(ref.getTime() - parseInt(m[1], 10) * 60 * 60 * 1000);
+    return d.toISOString().slice(0, 10);
+  }
+  return null;
+}
+
+/** Normalize review_date: never use 1969-12-31; parse "X years ago" from review_date_original using scraped_at. */
 function normalizeReviewDate(r: {
   review_date?: string | null;
+  review_date_original?: string | null;
   review_year?: number | null;
   review_month?: number | null;
+  scraped_at?: string | null;
 }): string | null {
   const raw = r.review_date ?? null;
   if (raw != null && raw !== '' && raw !== EPOCH_DATE) {
@@ -217,6 +273,15 @@ function normalizeReviewDate(r: {
     if (!Number.isNaN(d.getTime())) {
       const iso = d.toISOString().slice(0, 10);
       if (iso !== EPOCH_DATE) return iso;
+    }
+  }
+  // Parse "X years ago" from review_date_original using scraped_at as reference
+  const rel = (r.review_date_original ?? r.review_date ?? '').toString().trim();
+  if (rel && /years?\s*ago|months?\s*ago|weeks?\s*ago|days?\s*ago|hours?\s*ago|yesterday/i.test(rel)) {
+    const ref = r.scraped_at ? new Date(r.scraped_at) : new Date();
+    if (!Number.isNaN(ref.getTime())) {
+      const parsed = parseRelativeDate(rel, ref);
+      if (parsed) return parsed;
     }
   }
   return fifteenthOfMonth(r.review_year, r.review_month) ?? null;

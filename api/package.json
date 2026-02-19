@@ -45,6 +45,7 @@
     "db:import-asana-precon-managers": "npx ts-node --transpile-only scripts/import-asana-precon-managers.ts",
     "db:deduplicate-precon-managers": "npx ts-node --transpile-only scripts/deduplicate-precon-managers.ts",
     "db:deduplicate-reviews": "npx ts-node --transpile-only scripts/deduplicate-reviews.ts",
+    "db:fix-review-dates": "npx ts-node --transpile-only scripts/fix-review-dates.ts",
     "db:create-admin-user": "npx ts-node --transpile-only scripts/create-admin-user.ts",
     "db:update-holdco-stage": "npx ts-node --transpile-only scripts/update-holdco-stage.ts",
     "db:add-is-completed-to-covenants": "npx ts-node --transpile-only scripts/add-is-completed-to-covenants.ts",
