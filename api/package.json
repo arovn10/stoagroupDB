@@ -46,6 +46,7 @@
     "db:deduplicate-precon-managers": "npx ts-node --transpile-only scripts/deduplicate-precon-managers.ts",
     "db:deduplicate-reviews": "npx ts-node --transpile-only scripts/deduplicate-reviews.ts",
     "db:fix-review-dates": "npx ts-node --transpile-only scripts/fix-review-dates.ts",
+    "db:fix-misattributed-review": "npx ts-node --transpile-only scripts/fix-misattributed-review.ts",
     "db:create-admin-user": "npx ts-node --transpile-only scripts/create-admin-user.ts",
     "db:update-holdco-stage": "npx ts-node --transpile-only scripts/update-holdco-stage.ts",
     "db:add-is-completed-to-covenants": "npx ts-node --transpile-only scripts/add-is-completed-to-covenants.ts",

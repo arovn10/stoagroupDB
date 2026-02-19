@@ -32,6 +32,7 @@ export const getReviews = async (req: Request, res: Response, next: NextFunction
           ) AS rn
         FROM reviews.Review r
         WHERE 1=1
+        AND EXISTS (SELECT 1 FROM core.Project p WHERE p.ProjectId = r.ProjectId AND LTRIM(RTRIM(ISNULL(p.Stage, N''))) IN (N'Lease-Up', N'Stabilized'))
         ${property && typeof property === 'string' ? ' AND r.Property = @property' : ''}
         ${sentiment && typeof sentiment === 'string' ? ' AND r.sentiment = @sentiment' : ''}
         ${category && typeof category === 'string' ? ' AND r.category = @category' : ''}

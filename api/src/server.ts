@@ -360,20 +360,38 @@ ensureContainerExists().catch((err) => {
   console.warn('Azure Blob container check failed (blob features may be limited):', err?.message ?? err);
 });
 
-// Graceful shutdown
-process.on('SIGTERM', async () => {
-  console.log('SIGTERM signal received: closing HTTP server');
-  const { closeConnection } = await import('./config/database');
-  await closeConnection();
-  process.exit(0);
-});
+// Graceful shutdown: stop new connections first, allow in-flight requests to finish (up to a limit), then close DB.
+// Render sends SIGTERM then SIGKILL ~30s later; we use 25s to leave buffer.
+const GRACEFUL_SHUTDOWN_MS = Number(process.env.GRACEFUL_SHUTDOWN_MS) || 25_000;
+let shuttingDown = false;
 
-process.on('SIGINT', async () => {
-  console.log('SIGINT signal received: closing HTTP server');
+async function gracefulShutdown(): Promise<void> {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  console.log('SIGTERM/SIGINT received: stopping new connections and draining in-flight requests');
+  // 1. Stop accepting new connections; wait for existing to drain (or timeout)
+  const drainPromise = new Promise<void>((resolve) => {
+    server.close(() => {
+      console.log('All HTTP connections closed');
+      resolve();
+    });
+  });
+  const timeoutPromise = new Promise<void>((resolve) => setTimeout(resolve, GRACEFUL_SHUTDOWN_MS));
+  const winner = await Promise.race([
+    drainPromise.then(() => 'drain' as const),
+    timeoutPromise.then(() => 'timeout' as const),
+  ]);
+  if (winner === 'timeout') {
+    console.log(`Shutdown timeout (${GRACEFUL_SHUTDOWN_MS}ms); closing DB and exiting`);
+  }
+  // 2. Now close DB (no in-flight requests should be using it, or we timed out)
   const { closeConnection } = await import('./config/database');
   await closeConnection();
   process.exit(0);
-});
+}
+
+process.on('SIGTERM', () => { gracefulShutdown().catch((err) => { console.error('Shutdown error:', err); process.exit(1); }); });
+process.on('SIGINT', () => { gracefulShutdown().catch((err) => { console.error('Shutdown error:', err); process.exit(1); }); });
 
 export default app;
 
